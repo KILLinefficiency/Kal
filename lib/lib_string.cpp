@@ -3,6 +3,9 @@ namespace lib {
         int major_string_size = major_string.size();
         int minor_string_size = minor_string.size();
         int diff_size = major_string_size - minor_string_size;
+        if(diff_size < 0) {
+            return false;
+        }
 
         return major_string.substr(diff_size, major_string_size - 1) == minor_string;
     }
