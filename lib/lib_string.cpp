@@ -1,3 +1,4 @@
+#include <vector>
 #include <fstream>
 #include <sstream>
 
@@ -21,4 +22,42 @@ namespace lib {
         source_file.close();
         return file_contents.str();
     }
+
+
+    std::vector<std::string> split(std::string text, char delimiter = ' ', char escape_char = '"') {
+        int len = -1;
+        int begin = 0;
+        int size = text.size();
+        bool enable_split = true;
+        std::vector<std::string> words;
+
+        if(text[size - 1] != delimiter) {
+            text += delimiter;
+            size++;
+        }
+
+
+        for(int current_index = 0; current_index < size; current_index++) {
+            if(text[current_index] == escape_char) {
+                enable_split = !enable_split;
+                if(enable_split) {
+                    begin++;
+                }
+                else {
+                    len -=2;
+                }
+            }
+
+            len++;
+
+            if((text[current_index] == delimiter) && enable_split) {
+                words.emplace_back(text.substr(begin, len));
+                begin = current_index + 1;
+                len = -1;
+            }
+        }
+
+        return words;
+    }
+
 }
