@@ -1,12 +1,16 @@
 #include <vector>
 #include <unordered_map>
-#include "../lib/lib_string.cpp"
+#include "lib/lib_string.cpp"
 
 std::unordered_map<std::string, std::string> get_flags(char** args, const int& size) {
     std::unordered_map<std::string, std::string> flags_map;
     for(int item_itr = 0; item_itr < size; item_itr++) {
        if(args[item_itr][0] == '-') {
-            flags_map[args[item_itr]] = args[item_itr + 1];
+           int next_item = item_itr + 1;
+           if(next_item == size) {
+                break;
+           }
+           flags_map[args[item_itr]] = args[next_item];
        }
     }
 
