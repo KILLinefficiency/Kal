@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <unordered_map>
 #include "lib/lib_string.hpp"
