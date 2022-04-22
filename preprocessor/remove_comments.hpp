@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../lib/lib_string.hpp"
-
 std::string remove_comments(const std::string& line) {
     if(line[0] == ';') {
         return "";
