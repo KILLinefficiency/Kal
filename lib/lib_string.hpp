@@ -19,6 +19,10 @@ namespace lib {
 
     std::string read_file(std::string file_path) {
         std::ifstream source_file(file_path);
+        if(!source_file.good()) {
+            std::cout << "Kal: File " << file_path << " does not exist." << std::endl;
+            return "";
+        }
         std::stringstream file_contents;
         file_contents << source_file.rdbuf();
         source_file.close();
