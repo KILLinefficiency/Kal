@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../lib/lib_string.hpp"
+#include "lib/lib_string.hpp"
 
 namespace preproc {
     std::string trim_leading(const std::string& line) {
