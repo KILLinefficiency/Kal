@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "../errors.hpp"
+
 namespace lib {
     bool ends_with(const std::string& major_string, const std::string& minor_string) {
         int major_string_size = major_string.size();
@@ -18,9 +20,13 @@ namespace lib {
         return major_string.substr(diff_size, major_string_size - 1) == minor_string;
     }
 
-    std::string read_file(std::string file_path) {
+    std::string read_file(std::string file_path, bool by_interpreter = false) {
         std::ifstream source_file(file_path);
         if(!source_file.good()) {
+            if(by_interpreter) {
+                errors::kal_error("File: " + file_path + " does not exist.");
+                return "";
+            }
             std::cout << "Kal: File " << file_path << " does not exist." << std::endl;
             return "";
         }
