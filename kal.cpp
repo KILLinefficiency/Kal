@@ -17,7 +17,12 @@ int main(int argc, char** argv) {
     std::unordered_map<std::string, std::string> flags = get_flags(argv, argc);
     
     std::string& file_name = args[0];
-    std::string source = lib::read_file(file_name);
-    std::cout << source << std::endl;
+    std::vector<std::string> initial_read = preproc::initial_preprocessing(file_name);
+
+    preproc::expand_files(initial_read);
+    for(std::string line : initial_read) {
+        std::cout << "[" << line << "]" << std::endl;
+    }
+
     return 0;
 }
