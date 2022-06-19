@@ -18,9 +18,18 @@ int main(int argc, char** argv) {
     std::string file_name = arg_parser.get_arg(0);
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
     preproc::preprocess(source_lines);
+    
+    if(arg_parser.flag_exists("-p")) {
+        std::string preprocessed_code = lib::vector_to_string(source_lines);
 
-    for(std::string line : source_lines) {
-        std::cout << "[" << line << "]" << std::endl;
+        if(arg_parser.flag_exists("-o")) {
+            std::string write_path = arg_parser.get_value("-o");
+            lib::write_file(write_path, preprocessed_code);
+            return 0;
+        }
+
+        std::cout << preprocessed_code << std::endl;
+        return 0;
     }
 
     return 0;

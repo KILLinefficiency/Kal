@@ -60,7 +60,7 @@ namespace preproc {
     }
 
     std::vector<std::string> initial_preprocessing(std::string initial_file_path) {
-        std::string initial_file_contents = lib::read_file(initial_file_path);
+        std::string initial_file_contents = lib::read_file(initial_file_path, true);
         std::vector<std::string> initial_file_lines = lib::split(initial_file_contents, '\n');
         std::vector<std::string> initial_cleaned_file_lines = clean_contents(initial_file_lines);
         return initial_cleaned_file_lines;
