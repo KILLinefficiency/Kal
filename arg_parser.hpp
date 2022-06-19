@@ -56,12 +56,12 @@ class ArgParser {
             return arg;
         }
 
-        std::string get_value(std::string key) {
-            std::string value = flags_map[key];
+        std::string get_value(std::string flag) {
+            std::string value = flags_map[flag];
             return value;
         }
 
-        bool key_exists(std::string key) {
+        bool flag_exists(std::string key) {
             bool exists = flags_map.find(key) != flags_map.end();
             return exists;
         } 

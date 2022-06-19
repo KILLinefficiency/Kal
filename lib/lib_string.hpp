@@ -36,6 +36,12 @@ namespace lib {
         return file_contents.str();
     }
 
+    void write_file(std::string file_path, std::string& text) {
+        std::ofstream destination_file(file_path);
+        destination_file << text;
+        destination_file.close();
+    }
+
     std::string trim_leading(const std::string& line) {
         int size = line.size();
         int white_space_len = 0;
@@ -68,6 +74,17 @@ namespace lib {
 
         std::string required_line = line.substr(0, initial_str_len);
         return required_line;
+    }
+
+    std::string vector_to_string(std::vector<std::string>& text_vector, char join_char = '\n') {
+        std::string complete_text = "";
+        int vector_size = text_vector.size();
+
+        for(int each_line = 0; each_line < vector_size; each_line++) {
+            complete_text += text_vector[each_line] + join_char;
+        }
+
+        return complete_text;
     }
 
     std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
