@@ -4,7 +4,7 @@ CC="g++"
 SRC_FILE="kal.cpp"
 BIN_FILE="bin/kal-$(echo $(uname) | tr L l)-$(uname -m)"
 OPTIMIZATION="-O2"
-FLAGS="-s -pipe -Wall -Werror -pedantic -fstack-protector"
+FLAGS="-s -pipe -Wall -static -Werror -pedantic -fstack-protector"
 
 SU="sudo"
 
