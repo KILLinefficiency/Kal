@@ -2,7 +2,7 @@
 
 CC="g++"
 SRC_FILE="kal.cpp"
-BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
+BIN_FILE="bin/kal-$(echo $(uname) | tr L l)-$(uname -m)"
 OPTIMIZATION="-O2"
 FLAGS="-s -pipe -Wall -Werror -pedantic -fstack-protector"
 
