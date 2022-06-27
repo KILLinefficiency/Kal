@@ -1,4 +1,6 @@
 #include <iostream>
+
+#include "lexer.hpp"
 #include "errors.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
@@ -31,6 +33,8 @@ int main(int argc, char** argv) {
         std::cout << preprocessed_code << std::endl;
         return 0;
     }
+    
+    //
 
     return 0;
 }
