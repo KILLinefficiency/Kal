@@ -22,19 +22,21 @@ int main(int argc, char** argv) {
     preproc::preprocess(source_lines);
     
     if(arg_parser.flag_exists("-p")) {
-        std::string preprocessed_code = lib::vector_to_string(source_lines);
+        source_lines = lexer::clean_tokens(source_lines);
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
+            std::string preprocessed_code = lib::vector_to_string(source_lines);
             lib::write_file(write_path, preprocessed_code);
             return 0;
         }
 
-        std::cout << preprocessed_code << std::endl;
+        int source_lines_size = source_lines.size();
+        for(int each_line = 0; each_line < source_lines_size; each_line++) {
+            std::cout << source_lines[each_line] << '\n';
+        }
         return 0;
     }
     
-    //
-
     return 0;
 }
