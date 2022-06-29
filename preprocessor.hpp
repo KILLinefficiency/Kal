@@ -51,7 +51,9 @@ namespace preproc {
             line_contents[line_itr] = lib::trim_leading(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_trailing(line_contents[line_itr]);
 
-            cleaned_contents.emplace_back(line_contents[line_itr]);
+            if(line_contents[line_itr] != "") {
+                cleaned_contents.emplace_back(line_contents[line_itr]);
+            }
         }
 
         return cleaned_contents;

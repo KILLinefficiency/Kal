@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     std::string file_name = arg_parser.get_arg(0);
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
     preproc::preprocess(source_lines);
-    
+
     if(arg_parser.flag_exists("-p")) {
         source_lines = lexer::clean_tokens(source_lines);
 
