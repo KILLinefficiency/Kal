@@ -22,7 +22,6 @@ int main(int argc, char** argv) {
     preproc::preprocess(source_lines);
 
     if(arg_parser.flag_exists("-p")) {
-        source_lines = lexer::clean_tokens(source_lines);
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
