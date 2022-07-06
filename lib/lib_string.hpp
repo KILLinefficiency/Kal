@@ -95,12 +95,12 @@ namespace lib {
         return required_line;
     }
 
-    std::string vector_to_string(std::vector<std::string>& text_vector, char join_char = '\n') {
+    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text = " ", int begin = 0) {
         std::string complete_text = "";
         int vector_size = text_vector.size();
 
-        for(int each_line = 0; each_line < vector_size; each_line++) {
-            complete_text += text_vector[each_line] + join_char;
+        for(int each_line = begin; each_line < vector_size; each_line++) {
+            complete_text += text_vector[each_line] + join_text;
         }
 
         return complete_text;
