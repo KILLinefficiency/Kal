@@ -40,7 +40,7 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
                     if(var_type == "str") {
                         parser::std_out(var.get_from_strings(var_name));
                     }
-                    else if(var_type == "nums") {
+                    else if(var_type == "num") {
                         std::cout << var.get_from_numbers(var_name);
                     }
                     else if(var_type == "bool") {
