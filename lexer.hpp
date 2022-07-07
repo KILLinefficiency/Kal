@@ -28,7 +28,20 @@ namespace lexer {
 
         std::vector<std::string> name_val_split = lib::split(type_split[1], '=');
         std::string var_name = name_val_split[0];
-        std::string var_val = name_val_split[1];
+        std::string var_val;
+
+        if(name_val_split.size() == 2) {
+            var_val = name_val_split[1];
+        }
+        else if(var_type == "str") {
+            var_val = "";
+        }
+        else if(var_type == "num") {
+            var_val = "0";
+        }
+        else if(var_type == "bool") {
+            var_val = "false";
+        }
 
         var_data = {var_type, var_name, var_val};
         return var_data;
