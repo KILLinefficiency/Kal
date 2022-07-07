@@ -31,7 +31,22 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
                 std::cout << "";
             }
             else if(cmd_size == 2) {
-                parser::std_out(cmd[1]);
+                if(cmd[1][0] != '$') {
+                    parser::std_out(cmd[1]);
+                }
+                else {
+                    std::string var_name = cmd[1].substr(1, cmd[1].size() - 1);
+                    std::string var_type = var.get_type(var_name);
+                    if(var_type == "str") {
+                        parser::std_out(var.get_from_strings(var_name));
+                    }
+                    else if(var_type == "nums") {
+                        std::cout << var.get_from_numbers(var_name);
+                    }
+                    else if(var_type == "bool") {
+                        std::cout << var.get_from_booleans(var_name);
+                    }
+                }
             }
             else {
                 errors::stdout_error(cmd[2]);
