@@ -35,7 +35,7 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
                     parser::std_out(cmd[1]);
                 }
                 else {
-                    std::string var_name = cmd[1].substr(1, cmd[1].size() - 1);
+                    std::string var_name = lexer::get_var_name_from_token(cmd[1]);
                     std::string var_type = var.get_type(var_name);
                     if(var_type == "str") {
                         parser::std_out(var.get_from_strings(var_name));
@@ -59,7 +59,7 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
         }
 
         else if(cmd[0] == "stdin" && cmd_size == 2) {
-            var.read_var(cmd[1].substr(1, cmd[1].size() - 1));
+            var.read_var(lexer::get_var_name_from_token(cmd[1]));
         }
 
         else if(cmd[0] == "var") {

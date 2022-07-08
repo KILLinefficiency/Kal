@@ -59,4 +59,9 @@ namespace lexer {
         return var_reassignment;
     }
 
+    std::string get_var_name_from_token(std::string var_token) {
+        std::string var_name = var_token.substr(1, var_token.size() - 1);
+        return var_name;
+    }
+
 }
