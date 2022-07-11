@@ -72,6 +72,10 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             var.var_add(var_data[0], var_data[1], var_data[2], true);
         }
 
+        else if(cmd[0] == "del" && cmd_size == 2) {
+            var.var_delete(lexer::get_var_name_from_token(cmd[1]));
+        }
+
         else if(cmd[0][0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
             var.var_add(var.get_type(var_data[0]), var_data[0], var_data[1]);

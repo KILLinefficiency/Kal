@@ -56,8 +56,9 @@ class VarTable {
         }
 
         void var_delete(std::string var_name) {
-            std::string var_type = type_check[var_name];
+            std::string var_type = get_type(var_name);
 
+            type_check.erase(var_name);
             if(var_type == "str") {
                 strings.erase(var_name);
             }
