@@ -81,5 +81,9 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             var.var_add(var.get_type(var_data[0]), var_data[0], var_data[1]);
         }
 
+        else if(cmd[0] == "throw" && cmd_size == 3) {
+            errors::throw_err(cmd[1], cmd[2]);
+        }
+
     }
 }
