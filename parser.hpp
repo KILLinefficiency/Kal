@@ -35,27 +35,25 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             if(cmd_size == 1) {
                 std::cout << "";
             }
-            else if(cmd_size == 2) {
-                if(cmd[1][0] != '$') {
-                    parser::std_out(cmd[1]);
-                }
-                else {
-                    std::string var_name = lexer::get_var_name_from_token(cmd[1]);
-                    std::string var_type = var.get_type(var_name);
-                    if(var_type == "str") {
-                        parser::std_out(var.get_from_strings(var_name));
-                    }
-                    else if(var_type == "num") {
-                        std::cout << var.get_from_numbers(var_name);
-                    }
-                    else if(var_type == "bool") {
-                        std::cout << var.get_from_booleans(var_name);
-                    }
-                }
-            }
             else {
-                errors::stdout_error(cmd[2]);
-                exit(1);
+                for(int start_val = 1; start_val < cmd_size; start_val++) {
+                    if(cmd[start_val][0] != '$') {
+                        parser::std_out(cmd[start_val]);
+                    }
+                    else {
+                        std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
+                        std::string var_type = var.get_type(var_name);
+                        if(var_type == "str") {
+                            parser::std_out(var.get_from_strings(var_name));
+                        }
+                        else if(var_type == "num") {
+                            std::cout << var.get_from_numbers(var_name);
+                        }
+                        else if(var_type == "bool") {
+                            std::cout << var.get_from_booleans(var_name);
+                        }
+                    }
+                }
             }
         }
 
