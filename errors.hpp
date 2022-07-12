@@ -1,6 +1,6 @@
 #pragma once
 
-#include "style.hpp"
+#include "lib/lib_style.hpp"
 
 namespace errors {
     void throw_err(std::string error_head, std::string error_body) {
