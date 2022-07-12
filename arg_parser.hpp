@@ -34,6 +34,7 @@ class ArgParser {
 
             if(arg_start_point == 0) {
                 prog_args = {};
+                arg_start_point = 1;
             }
 
             for(int start = arg_start_point; start < size; start++) {
