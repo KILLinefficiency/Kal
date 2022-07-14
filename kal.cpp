@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "shell.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
 #include "variable.hpp"
@@ -12,8 +13,8 @@ int main(int argc, char** argv) {
     VarTable var = VarTable();
 
     if(argc == 1) {
-        errors::kal_error("No arguments passed.");
-        return 1;
+        shell::init_shell();
+        return 0;
     }
     if(arg_parser.args_size() == 0) {
         errors::kal_error("Invalid argument passed.");
