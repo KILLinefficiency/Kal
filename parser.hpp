@@ -26,9 +26,14 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             continue;
         }
 
-        else if(cmd[0] == "exit" && cmd_size == 2) {
-            int exit_code = stoi(cmd[1]);
-            exit(exit_code);
+        else if(cmd[0] == "exit") {
+            if(cmd_size == 1) {
+                exit(0);
+            }
+            else {
+                int exit_code = stoi(cmd[1]);
+                exit(exit_code);
+            }
         }
 
         else if(cmd[0] == "stdout") {
