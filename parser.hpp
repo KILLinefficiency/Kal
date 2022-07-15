@@ -67,6 +67,10 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
         }
 
         else if(cmd[0] == "stdin" && cmd_size == 2) {
+            std::string var_to_read = lexer::get_var_name_from_token(cmd[1]);
+            if(var.get_mem_type(var_to_read) == "const") {
+                errors::change_const_var_error(var_to_read);
+            }
             var.read_var(lexer::get_var_name_from_token(cmd[1]));
         }
 
