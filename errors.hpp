@@ -22,4 +22,9 @@ namespace errors {
         std::cerr << style::red << style::bold << "Variable:" << style::reset << style::red << " Cannot modify `const` variable `" << var_name << "`." << std::endl;
         exit(1);
     }
+
+    void types_incompatible_error(const std::string& var_name, const std::string& var_type, const std::string& second_var_name, const std::string& second_var_type) {
+        std::cerr << style::red << style::bold << "Variable:" << style::reset << style::red << " Cannot assign variable `" << second_var_name << "` of type `" << second_var_type << "` to variable `" << var_name << "` of type `" << var_type << "`." << style::reset << std::endl;
+        exit(1);
+    }
 }

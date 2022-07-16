@@ -76,16 +76,69 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
 
         else if(cmd[0] == "var" || cmd[0] == "const") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
-            var.var_add(cmd[0], var_data[0], var_data[1], var_data[2], true);
-        }
 
-        else if(cmd[0] == "del" && cmd_size == 2) {
-            var.var_delete(lexer::get_var_name_from_token(cmd[1]));
+            if(var_data[2][0] == '$') {
+                std::string second_var = lexer::get_var_name_from_token(var_data[2]);
+                std::string second_var_type = var.get_type(second_var);
+
+                if(var_data[0] != second_var_type) {
+                    errors::types_incompatible_error(var_data[1], var_data[0], second_var, second_var_type);
+                }
+                if(var_data[0] == "str") {
+                    var_data[2] = var.get_from_strings(second_var);
+                }
+                else if(var_data[0] == "num") {
+                    double num_val = var.get_from_numbers(second_var);
+                    var_data[2] = std::to_string(num_val);
+                }
+                else if(var_data[0] == "bool") {
+                    bool bool_val = var.get_from_booleans(second_var);
+                    if(bool_val) {
+                        var_data[2] = "true";
+                    }
+                    else {
+                        var_data[2] = "false";
+                    }
+                }
+            }
+
+            var.var_add(cmd[0], var_data[0], var_data[1], var_data[2], true);
         }
 
         else if(cmd[0][0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
-            var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], var_data[1]);
+
+            std::string first_var_type = var.get_type(var_data[0]);
+            std::string second_var = lexer::get_var_name_from_token(var_data[1]);
+            std::string second_var_type = var.get_type(second_var);
+
+            if(first_var_type != second_var_type) {
+                errors::types_incompatible_error(var_data[0], first_var_type, second_var, second_var_type);
+            }
+
+            std::string second_var_val = var_data[1];
+            if(first_var_type == "str") {
+                second_var_val = var.get_from_strings(second_var);
+            }
+            else if(first_var_type == "num") {
+                double num_val = var.get_from_numbers(second_var);
+                second_var_val = std::to_string(num_val);
+            }
+            else if(first_var_type == "bool") {
+                bool bool_val = var.get_from_booleans(second_var);
+                if(bool_val) {
+                    second_var_val = "true";
+                }
+                else {
+                    second_var_val = "false";
+                }
+            }
+
+            var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], second_var_val);
+        }
+
+        else if(cmd[0] == "del" && cmd_size == 2) {
+            var.var_delete(lexer::get_var_name_from_token(cmd[1]));
         }
 
         else if(cmd[0] == "throw" && cmd_size == 3) {
