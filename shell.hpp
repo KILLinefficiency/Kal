@@ -10,6 +10,7 @@ namespace shell {
     void init_shell() {
         int count = 1;
         VarTable var = VarTable();
+        std::string init_file_path = "";
 
         while(true) {
             std::string command;
@@ -22,7 +23,7 @@ namespace shell {
             if(command[0] == '@') {
                 std::string file_name = command.substr(1);
                 std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
-                preproc::preprocess(source_lines);
+                preproc::preprocess(source_lines, init_file_path);
                 std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
                 line_exec(tokens, var);
             }
@@ -31,7 +32,7 @@ namespace shell {
                 continue;
             }
 
-            std::vector<std::vector<std::string>> tokens = {lib::split(command, ' ')};
+            std::vector<std::vector<std::string>> tokens = { lib::split(command, ' ') };
             line_exec(tokens, var);
 
             count++;

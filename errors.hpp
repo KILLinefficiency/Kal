@@ -27,4 +27,14 @@ namespace errors {
         std::cerr << style::red << style::bold << "Variable:" << style::reset << style::red << " Cannot assign variable `" << second_var_name << "` of type `" << second_var_type << "` to variable `" << var_name << "` of type `" << var_type << "`." << style::reset << std::endl;
         exit(1);
     }
+
+    void file_already_included_error(const std::string& file_name) {
+        std::cerr << style::red << style::bold << "Preprocessor:" << style::reset << style::red << " File `" << file_name << "` is already included." << style::reset << std::endl;
+        exit(1);
+    }
+
+    void file_included_in_itself_error(const std::string& file_name) {
+        std::cerr << style::red << style::bold << "Preprocessor:" << style::reset << style::red << " Cannot include file `" << file_name << "` in itself." << style::reset << std::endl;
+        exit(1);
+    }
 }

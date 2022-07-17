@@ -105,6 +105,15 @@ namespace lib {
         return complete_text;
     }
 
+    bool exists_in_vector(const std::vector<std::string>& text_list, const std::string& text) {
+        for(std::string item : text_list) {
+            if(item == text) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
         int len = -1;
         int begin = 0;

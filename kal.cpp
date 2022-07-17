@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 
     std::string file_name = arg_parser.get_arg(0);
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
-    preproc::preprocess(source_lines);
+    preproc::preprocess(source_lines, file_name);
 
     if(arg_parser.flag_exists("-p")) {
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "errors.hpp"
 #include "lib/lib_string.hpp"
 
 namespace preproc {
@@ -66,20 +67,30 @@ namespace preproc {
         return initial_cleaned_file_lines;
     }
 
-    void expand_files(std::vector<std::string>& expanded_contents) {
+    void expand_files(std::vector<std::string>& expanded_contents, std::vector<std::string>& included_file_list, std::string& current_file_path) {
         int clean_contents_size = expanded_contents.size();
         for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
             if(expanded_contents[content_itr][0] == '@') {
                 std::string include_file_path = expanded_contents[content_itr].substr(1);
+                if(lib::exists_in_vector(included_file_list, include_file_path)) {
+                    errors::file_already_included_error(include_file_path);
+                }
+                if(include_file_path == current_file_path) {
+                    errors::file_included_in_itself_error(include_file_path);
+                }
+                current_file_path = include_file_path;
+                included_file_list.emplace_back(include_file_path);
+
                 std::vector<std::string> included_cleaned_source_lines = initial_preprocessing(include_file_path);
                 squash_vector(expanded_contents, included_cleaned_source_lines, content_itr);
             }
         }
     }
 
-    void preprocess(std::vector<std::string>& processed_contents) {
+    void preprocess(std::vector<std::string>& processed_contents, std::string& current_file_path) {
+        std::vector<std::string> included_file_list;
         for(uint64_t line_count = 0; line_count < processed_contents.size(); line_count++) {
-            expand_files(processed_contents);
+            expand_files(processed_contents, included_file_list, current_file_path);
         }
     }
 }
