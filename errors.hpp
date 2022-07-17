@@ -33,6 +33,11 @@ namespace errors {
         exit(1);
     }
 
+    void undefined_var_error(const std::string& var_name) {
+        std::cerr << "\n" << style::red << style::bold << "Variable:" << style::reset << style::red << " Variable `" << var_name << "` is undefined." << style::reset << std::endl;
+        exit(1);
+    }
+
     void file_already_included_error(const std::string& file_name) {
         std::cerr << style::red << style::bold << "Preprocessor:" << style::reset << style::red << " File `" << file_name << "` is already included." << style::reset << std::endl;
         exit(1);

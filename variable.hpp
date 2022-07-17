@@ -18,6 +18,9 @@ class VarTable {
     public:
         std::string get_type(std::string var_name) {
             std::string var_type = type_check[var_name];
+            if(var_type == "") {
+                errors::undefined_var_error(var_name);
+            }
             return var_type;
         }
 
