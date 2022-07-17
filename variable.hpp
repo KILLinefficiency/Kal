@@ -40,7 +40,6 @@ class VarTable {
                 errors::change_const_var_error(var_name);
             }
 
-
             type_check[var_name] = var_type;
             mem_check[var_name] = mem_type;
 
@@ -62,6 +61,9 @@ class VarTable {
                     boolean_value = false;
                 }
                 booleans[var_name] = boolean_value;
+            }
+            else {
+                errors::unknown_var_type(var_name, var_type);
             }
         }
 

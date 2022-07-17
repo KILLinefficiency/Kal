@@ -145,5 +145,9 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             errors::throw_err(cmd[1], cmd[2]);
         }
 
+        else {
+            errors::unidentified_keyword(cmd[0]);
+        }
+
     }
 }

@@ -28,6 +28,11 @@ namespace errors {
         exit(1);
     }
 
+    void unknown_var_type(const std::string& var_name, const std::string& var_type) {
+        std::cerr << style::red << style::bold << "Variable:" << style::reset << style::red << " Type `" << var_type << "` of variable `" << var_name << "` is unknown." << style::reset << std::endl;
+        exit(1);
+    }
+
     void file_already_included_error(const std::string& file_name) {
         std::cerr << style::red << style::bold << "Preprocessor:" << style::reset << style::red << " File `" << file_name << "` is already included." << style::reset << std::endl;
         exit(1);
@@ -35,6 +40,11 @@ namespace errors {
 
     void file_included_in_itself_error(const std::string& file_name) {
         std::cerr << style::red << style::bold << "Preprocessor:" << style::reset << style::red << " Cannot include file `" << file_name << "` in itself." << style::reset << std::endl;
+        exit(1);
+    }
+
+    void unidentified_keyword(const std::string& keyword) {
+        std::cerr << style::red << style::bold << "Kal:" << style::reset << style::red << " Keyword `" << keyword << "` is unidentified." << style::reset << std::endl;
         exit(1);
     }
 }
