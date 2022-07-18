@@ -3,6 +3,7 @@
 #include "errors.hpp"
 
 #include <iostream>
+#include <vector>
 #include <string>
 #include <unordered_map>
 
@@ -11,6 +12,8 @@ class VarTable {
         std::unordered_map<std::string, bool> booleans;
         std::unordered_map<std::string, double> numbers;
         std::unordered_map<std::string, std::string> strings;
+
+        std::unordered_map<std::string, std::vector<std::string>> list_strings;
 
         std::unordered_map<std::string, std::string> type_check;
         std::unordered_map<std::string, std::string> mem_check;
@@ -62,6 +65,11 @@ class VarTable {
                 }
                 booleans[var_name] = boolean_value;
             }
+
+            else if(var_type == "[str]") {
+                list_strings[var_name] = lexer::lex_list_values(var_value);
+            }
+
             else {
                 errors::unknown_var_type(var_name, var_type);
             }

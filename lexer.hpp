@@ -55,13 +55,19 @@ namespace lexer {
         std::string var_name = var_val_split[0].substr(1);
         std::string var_val = var_val_split[1];
 
-        var_reassignment = {var_name, var_val};
+        var_reassignment = { var_name, var_val };
         return var_reassignment;
     }
 
     std::string get_var_name_from_token(std::string var_token) {
         std::string var_name = var_token.substr(1);
         return var_name;
+    }
+
+    std::vector<std::string> lex_list_values(const std::string& str_list) {
+        std::string values = str_list.substr(1, str_list.size() - 2);
+        std::vector<std::string> individual_values = lib::split(values, ',');
+        return individual_values;
     }
 
 }
