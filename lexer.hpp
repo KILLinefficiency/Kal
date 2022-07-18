@@ -12,6 +12,9 @@ namespace lexer {
         for(int line = 0; line < lines; line++) {
             std::string current_line = source_lines[line];
             std::vector<std::string> tokens = lib::split(current_line);
+            if(tokens[0] == "var" || tokens[0] == "const") {
+                tokens = lib::split(current_line, ' ', '"', true);
+            }
             all_tokens.emplace_back(tokens);
         }
 
@@ -64,8 +67,12 @@ namespace lexer {
         return var_name;
     }
 
-    std::vector<std::string> lex_list_values(const std::string& str_list) {
-        std::string values = str_list.substr(1, str_list.size() - 2);
+    std::vector<std::string> lex_list_values(std::string& str_list, const std::string& var_name) {
+        int str_list_size = str_list.size();
+        if(str_list[0] != '[' || str_list[str_list_size - 1] != ']') {
+            errors::initializer_list_error(var_name);
+        }
+        std::string values = str_list.substr(1, str_list_size - 2);
         std::vector<std::string> individual_values = lib::split(values, ',');
         return individual_values;
     }

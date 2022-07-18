@@ -48,6 +48,11 @@ namespace errors {
         exit(1);
     }
 
+    void initializer_list_error(const std::string& var_name) {
+        std::cerr << style::red << style::bold << "List:" << style::reset << style::red << " Invalid initializer list for the list `" << var_name << "`." << style::reset << std::endl;
+        exit(1);
+    }
+
     void unidentified_keyword(const std::string& keyword) {
         std::cerr << style::red << style::bold << "Kal:" << style::reset << style::red << " Keyword `" << keyword << "` is unidentified." << style::reset << std::endl;
         exit(1);

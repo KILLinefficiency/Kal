@@ -67,7 +67,7 @@ class VarTable {
             }
 
             else if(var_type == "[str]") {
-                list_strings[var_name] = lexer::lex_list_values(var_value);
+                list_strings[var_name] = lexer::lex_list_values(var_value, var_name);
             }
 
             else {
