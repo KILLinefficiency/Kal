@@ -121,6 +121,11 @@ namespace lib {
         bool enable_split = true;
         std::vector<std::string> words;
 
+        if(text[0] != delimiter) {
+            text = delimiter + text;
+            size++;
+        }
+
         if(text[size - 1] != delimiter) {
             text += delimiter;
             size++;
@@ -142,7 +147,7 @@ namespace lib {
             if((text[current_index] == delimiter) && enable_split) {
                 std::string required_string = text.substr(begin, len);
                 if(required_string != "") {
-                   words.emplace_back(required_string);
+                    words.emplace_back(required_string);
                 }
                 begin = current_index + 1;
                 len = -1;
