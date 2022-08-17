@@ -76,9 +76,6 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
 
         else if(cmd[0] == "var" || cmd[0] == "const") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
-            if(var_data[2] == "" && var_data[0][0] == '[' && var_data[0][var_data[0].size() - 1] == ']') {
-                var_data[2] = "[]";
-            }
 
             if(var_data[2][0] == '$') {
                 std::string second_var = lexer::get_var_name_from_token(var_data[2]);
@@ -112,28 +109,30 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 
             std::string first_var_type = var.get_type(var_data[0]);
-            std::string second_var = lexer::get_var_name_from_token(var_data[1]);
-            std::string second_var_type = var.get_type(second_var);
-
-            if(first_var_type != second_var_type) {
-                errors::types_incompatible_error(var_data[0], first_var_type, second_var, second_var_type);
-            }
-
             std::string second_var_val = var_data[1];
-            if(first_var_type == "str") {
-                second_var_val = var.get_from_strings(second_var);
-            }
-            else if(first_var_type == "num") {
-                double num_val = var.get_from_numbers(second_var);
-                second_var_val = std::to_string(num_val);
-            }
-            else if(first_var_type == "bool") {
-                bool bool_val = var.get_from_booleans(second_var);
-                if(bool_val) {
-                    second_var_val = "true";
+            if(second_var_val[0] == '$') {
+                std::string second_var = lexer::get_var_name_from_token(var_data[1]);
+                std::string second_var_type = var.get_type(second_var);
+                if(first_var_type != second_var_type) {
+                    errors::types_incompatible_error(var_data[0], first_var_type, second_var, second_var_type);
                 }
-                else {
-                    second_var_val = "false";
+
+                //std::string second_var_val = var_data[1];
+                if(first_var_type == "str") {
+                    second_var_val = var.get_from_strings(second_var);
+                }
+                else if(first_var_type == "num") {
+                    double num_val = var.get_from_numbers(second_var);
+                    second_var_val = std::to_string(num_val);
+                }
+                else if(first_var_type == "bool") {
+                    bool bool_val = var.get_from_booleans(second_var);
+                    if(bool_val) {
+                        second_var_val = "true";
+                    }
+                    else {
+                        second_var_val = "false";
+                    }
                 }
             }
 
