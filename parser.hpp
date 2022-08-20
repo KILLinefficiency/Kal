@@ -146,6 +146,16 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             errors::throw_err(cmd[1], cmd[2]);
         }
 
+        else if(cmd[0] == "concat") {
+            std::string concat_code = lib::vector_to_string(cmd, " ", 1, "\"");
+            std::vector<std::string> tok = lib::str_split(concat_code, "->");
+            std::string& passed_strings = tok[0];
+            if(tok.size() == 2) {
+                //std::string& destination_string = tok[1];
+            }
+            std::vector<std::string> strings = lib::split(passed_strings, ' ');
+        }
+
         else {
             errors::unidentified_keyword(cmd[0]);
         }

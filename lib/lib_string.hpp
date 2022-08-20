@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -94,12 +95,12 @@ namespace lib {
         return required_line;
     }
 
-    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text = " ", int begin = 0) {
+    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text = " ", int begin = 0, std::string padding = "") {
         std::string complete_text = "";
         int vector_size = text_vector.size();
 
         for(int each_line = begin; each_line < vector_size; each_line++) {
-            complete_text += text_vector[each_line] + join_text;
+            complete_text += (padding + text_vector[each_line] + padding + join_text);
         }
 
         return complete_text;
@@ -152,6 +153,20 @@ namespace lib {
                 begin = current_index + 1;
                 len = -1;
             }
+        }
+
+        return words;
+    }
+
+    std::vector<std::string> str_split(std::string& text, std::string delimiter) {
+        std::vector<std::string> words;
+        char* c_text = &text[0];
+        char* c_delimiter = &delimiter[0];
+
+        char* word = strtok(c_text, c_delimiter);
+        while(word != NULL) {
+            words.emplace_back(std::string(word));
+            word = strtok(NULL, c_delimiter);
         }
 
         return words;
