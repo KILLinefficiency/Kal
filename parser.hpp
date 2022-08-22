@@ -179,8 +179,10 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                 var.var_add("var", "str", first_var_name, concat_str);
             }
 
-            if(tok_size == 2) {
-                //std::string& destination_string = tok[1];
+            else if(tok_size == 2) {
+                std::string destination_string = lexer::get_var_name_from_token(tok[1]);
+                destination_string = lexer::get_var_name_from_token(destination_string.substr(2, destination_string.size() - 4));
+                var.var_add("var", "str", destination_string, concat_str);
             }
         }
 
