@@ -147,18 +147,16 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
         }
 
         else if(cmd[0] == "concat") {
-            //bool literal_first = false;
             std::string concat_str = "";
             std::string concat_code = lib::vector_to_string(cmd, " ", 1, "\"");
             std::vector<std::string> tok = lib::str_split(concat_code, "->");
+
+            int tok_size = tok.size();
             std::string& passed_strings = tok[0];
             std::vector<std::string> strings = lib::split(passed_strings, ' ');
 
-            if(strings[0][0] != '$') {
-                //literal_first = true;
-            }
-
             int str_size = strings.size();
+            bool literal_first = (strings[0][0] != '$');
             for(int str_itr = 0; str_itr < str_size; str_itr++) {
                 std::string current_value = strings[str_itr];
                 if(current_value[0] == '$') {
@@ -173,7 +171,15 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                 concat_str += lib::render_escape_chars(current_value);
             }
 
-            if(tok.size() == 2) {
+            if(tok_size == 1) {
+                if(literal_first) {
+                    errors::cannot_write_to_literal_error(strings[0]);
+                }
+                std::string first_var_name = lexer::get_var_name_from_token(strings[0]);
+                var.var_add("var", "str", first_var_name, concat_str);
+            }
+
+            if(tok_size == 2) {
                 //std::string& destination_string = tok[1];
             }
         }
