@@ -147,13 +147,35 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
         }
 
         else if(cmd[0] == "concat") {
+            //bool literal_first = false;
+            std::string concat_str = "";
             std::string concat_code = lib::vector_to_string(cmd, " ", 1, "\"");
             std::vector<std::string> tok = lib::str_split(concat_code, "->");
             std::string& passed_strings = tok[0];
+            std::vector<std::string> strings = lib::split(passed_strings, ' ');
+
+            if(strings[0][0] != '$') {
+                //literal_first = true;
+            }
+
+            int str_size = strings.size();
+            for(int str_itr = 0; str_itr < str_size; str_itr++) {
+                std::string current_value = strings[str_itr];
+                if(current_value[0] == '$') {
+                    std::string var_name = lexer::get_var_name_from_token(current_value);
+                    if(var.get_type(var_name) != "str") {
+                        std::cout << "Wrong Type" << std::endl;
+                        exit(1);
+                    }
+                    current_value = var.get_from_strings(var_name);
+                }
+
+                concat_str += lib::render_escape_chars(current_value);
+            }
+
             if(tok.size() == 2) {
                 //std::string& destination_string = tok[1];
             }
-            std::vector<std::string> strings = lib::split(passed_strings, ' ');
         }
 
         else {
