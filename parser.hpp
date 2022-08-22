@@ -184,7 +184,6 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                     var_start++;
                 }
                 std::string destination_string = lexer::get_var_name_from_token(tok[1].substr(var_start, tok[1].size() - (var_start + 2)));
-                std::cout << "[" << destination_string << "]" << std::endl;
                 var.var_add("var", "str", destination_string, concat_str);
             }
         }
