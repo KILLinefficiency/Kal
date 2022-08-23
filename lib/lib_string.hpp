@@ -106,6 +106,14 @@ namespace lib {
         return complete_text;
     }
 
+    void expand_tabs(std::string& tabbed_string) {
+        for(uint64_t tabbed_itr = 0; tabbed_itr < tabbed_string.size(); tabbed_itr++) {
+            if(tabbed_string[tabbed_itr] == '\t') {
+                tabbed_string[tabbed_itr] = ' ';
+            }
+        }
+    }
+
     bool exists_in_vector(const std::vector<std::string>& text_list, const std::string& text) {
         for(std::string item : text_list) {
             if(item == text) {

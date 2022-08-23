@@ -25,6 +25,11 @@ int main(int argc, char** argv) {
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
     preproc::preprocess(source_lines, file_name);
 
+    int source_lines_count = source_lines.size();
+    for(int each_line = 0; each_line < source_lines_count; each_line++) {
+        lib::expand_tabs(source_lines[each_line]);
+    }
+
     if(arg_parser.flag_exists("-p")) {
 
         if(arg_parser.flag_exists("-o")) {
