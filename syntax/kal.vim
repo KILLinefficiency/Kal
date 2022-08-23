@@ -2,16 +2,18 @@ if exists("b:current_syntax")
 	finish
 endif
 
-syntax keyword kal_keyword var const stdin stdout stderr
+syntax keyword kal_type num str bool
 syntax keyword kal_todo TODO NOTE FIXME README
+syntax keyword kal_keyword var del const throw stdin stdout stderr concat
 
 syntax match kal_comment ";.*$" contains=kal_todo
 syntax match kal_shebang "#!.*$" 
 
 syntax region kal_string start='"' end='"'
 
-highlight kal_keyword     ctermfg=yellow
-highlight kal_todo        ctermfg=yellow
-highlight kal_comment     ctermfg=gray
+highlight kal_keyword     ctermfg=cyan
+highlight kal_todo        ctermfg=white    ctermbg=gray    cterm=bold
+highlight kal_comment     ctermfg=gray                     cterm=italic
 highlight kal_string      ctermfg=green
-highlight kal_shebang     ctermfg=red
+highlight kal_shebang     ctermfg=red                      cterm=bold
+highlight kal_type        ctermfg=142                      cterm=italic
