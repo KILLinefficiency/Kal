@@ -43,6 +43,32 @@ namespace preproc {
         return useful_string;
     }
 
+    void adjust_strings(std::string& line, char delimiter = ' ') {
+        bool done = true;
+        const char str_delim[2] = { delimiter, '\0' };
+        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
+            if(line[line_itr] == '"' && line[line_itr - 1] != delimiter && line_itr != 0 && done) {
+                line.insert(line_itr, str_delim);
+            }
+            if(line[line_itr] == '"') {
+                done = false;
+            }
+        }
+
+        done = false;
+        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
+            if(line[line_itr] == '"' && line[line_itr + 1] != delimiter && line_itr != line.size() - 1 && done) {
+                line.insert(line_itr + 1, str_delim);
+            }
+            if(line[line_itr] == '"') {
+                done = true;
+            }
+            if(line[line_itr] == delimiter) {
+                done = false;
+            }
+        }
+    }
+
     std::vector<std::string> clean_contents(std::vector<std::string>& line_contents) {
         std::vector<std::string> cleaned_contents;
         int line_contents_size = line_contents.size();
@@ -51,6 +77,7 @@ namespace preproc {
             line_contents[line_itr] = remove_comments(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_leading(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_trailing(line_contents[line_itr]);
+            adjust_strings(line_contents[line_itr]);
 
             if(line_contents[line_itr] != "") {
                 cleaned_contents.emplace_back(line_contents[line_itr]);
