@@ -22,7 +22,7 @@ function get_help() {
     echo -e "   ${GREEN}│                                                         │"
     echo -e "   │ ${DEFAULT_BOLD}./build.sh install      ${GREEN}Compiles and Installs Kal.      │"
     echo -e "   │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
-    echo -e "   │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Kal in a Docker container. │"
+    echo -e "   │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Docker container for Kal.  │"
     echo -e "   │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
     echo -e "   │                                                         │"
     echo -e "   └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
