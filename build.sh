@@ -9,7 +9,7 @@ CC="g++"
 SRC_FILE="kal.cpp"
 BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
-FLAGS="-s -pipe -Wall -static -Werror -pedantic -fstack-protector"
+FLAGS="-s -pipe -static -pedantic -Wall -Wextra -Werror"
 
 SU="sudo"
 [ $(whoami) == "root" ] && SU=""
