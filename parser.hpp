@@ -77,6 +77,15 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
         else if(cmd[0] == "var" || cmd[0] == "const") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
 
+            if(var_data[2] == "") {
+                std::vector<std::string> multiple_vars = lib::split(var_data[1], ',');
+                int total_vars = multiple_vars.size();
+                for(int add_var = 0; add_var < total_vars; add_var++) {
+                    var.var_add(cmd[0], var_data[0], multiple_vars[add_var], var_data[2], true);
+                }
+                continue;
+            }
+
             if(var_data[2][0] == '$') {
                 std::string second_var = lexer::get_var_name_from_token(var_data[2]);
                 std::string second_var_type = var.get_type(second_var);
