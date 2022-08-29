@@ -15,7 +15,7 @@ namespace parser {
     }
 }
 
-void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var, const std::vector<std::string>& prog_args) {
+void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, const std::vector<std::string>& prog_args) {
     bool warn = true;
     int tokens_list = tokens.size();
 
@@ -26,7 +26,7 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
     }
 
     for(int line = 0; line < tokens_list; line++) {
-        std::vector<std::string> cmd = tokens[line];
+        std::vector<std::string>& cmd = tokens[line];
         int cmd_size = cmd.size();
 
         if(cmd[0][0] == '#' && cmd[0][1] == '!') {
