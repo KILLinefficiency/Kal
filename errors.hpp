@@ -65,6 +65,11 @@ namespace errors {
         exit(1);
     }
 
+    void file_does_not_exist_error(const std::string& file_name) {
+        std::cerr << style::red << style::bold << "File: " << style::reset << style::red << " File `" << file_name << "` does not exist." << style::reset << std::endl;
+        exit(1);
+    }
+
     void unidentified_keyword(const std::string& keyword) {
         std::cerr << style::red << style::bold << "Kal:" << style::reset << style::red << " Keyword `" << keyword << "` is unidentified." << style::reset << std::endl;
         exit(1);
