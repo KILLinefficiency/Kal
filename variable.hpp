@@ -8,7 +8,6 @@
 
 class VarTable {
     private:
-        std::unordered_map<std::string, bool> booleans;
         std::unordered_map<std::string, double> numbers;
         std::unordered_map<std::string, std::string> strings;
 
@@ -55,17 +54,6 @@ class VarTable {
                 numbers[var_name] = casted_var_value;
             }
 
-            else if(var_type == "bool") {
-                bool boolean_value;
-                if(var_value == "true") {
-                    boolean_value = true;
-                }
-                if(var_value == "false") {
-                    boolean_value = false;
-                }
-                booleans[var_name] = boolean_value;
-            }
-
             else {
                 errors::unknown_var_type(var_name, var_type);
             }
@@ -81,9 +69,6 @@ class VarTable {
             else if(var_type == "num") {
                 numbers.erase(var_name);
             }
-            else if(var_type == "bool") {
-                booleans.erase(var_name);
-            }
         }
 
         std::string get_from_strings(std::string var_name) {
@@ -96,11 +81,6 @@ class VarTable {
             return var_val;
         }
 
-        bool get_from_booleans(std::string var_name) {
-            bool var_val = booleans[var_name];
-            return var_val;
-        }
-
         void read_var(std::string var_name) {
             std::string var_type = get_type(var_name);
 
@@ -110,9 +90,5 @@ class VarTable {
             else if(var_type == "num") {
                 std::cin >> numbers[var_name];
             }
-            else if(var_type == "bool") {
-                std::cin >> booleans[var_name];
-            }
         }
-
 };

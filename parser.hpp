@@ -75,9 +75,6 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                         else if(var_type == "num") {
                             std::cout << var.get_from_numbers(var_name);
                         }
-                        else if(var_type == "bool") {
-                            std::cout << var.get_from_booleans(var_name);
-                        }
                     }
                 }
             }
@@ -125,15 +122,6 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                     double num_val = var.get_from_numbers(second_var);
                     var_data[2] = std::to_string(num_val);
                 }
-                else if(var_data[0] == "bool") {
-                    bool bool_val = var.get_from_booleans(second_var);
-                    if(bool_val) {
-                        var_data[2] = "true";
-                    }
-                    else {
-                        var_data[2] = "false";
-                    }
-                }
             }
 
             var.var_add(cmd[0], var_data[0], var_data[1], var_data[2], true);
@@ -157,15 +145,6 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                 else if(first_var_type == "num") {
                     double num_val = var.get_from_numbers(second_var);
                     second_var_val = std::to_string(num_val);
-                }
-                else if(first_var_type == "bool") {
-                    bool bool_val = var.get_from_booleans(second_var);
-                    if(bool_val) {
-                        second_var_val = "true";
-                    }
-                    else {
-                        second_var_val = "false";
-                    }
                 }
             }
 
