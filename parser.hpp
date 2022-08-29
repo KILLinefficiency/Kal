@@ -200,6 +200,22 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 var.var_add("var", "str", destination_string, concat_str);
             }
         }
+        
+        else if(cmd[0] == "read") {
+            std::string read_code = lib::vector_to_string(cmd, " ", 1);
+            std::vector<std::string> tok = lib::str_split(read_code , "->");
+            std::string& file_path = tok[0];
+            std::string& hold_var = tok[1];
+            file_path = lib::trim_trailing(file_path);
+            hold_var = lib::trim_trailing(lib::trim_leading(hold_var));
+            if(file_path[0] == '$') {
+                file_path = var.get_from_strings(lexer::get_var_name_from_token(file_path));
+            }
+            hold_var = lexer::get_var_name_from_token(hold_var);
+            std::string read_text = lib::read_file(file_path);
+
+            var.var_add("var", "str", hold_var, read_text);
+        }
 
         else {
             errors::unidentified_keyword(cmd[0]);
