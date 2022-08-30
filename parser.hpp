@@ -201,20 +201,31 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
         
-        else if(cmd[0] == "read") {
-            std::string read_code = lib::vector_to_string(cmd, " ", 1);
-            std::vector<std::string> tok = lib::str_split(read_code , "->");
-            std::string& file_path = tok[0];
-            std::string& hold_var = tok[1];
-            file_path = lib::trim_trailing(file_path);
-            hold_var = lib::trim_trailing(lib::trim_leading(hold_var));
-            if(file_path[0] == '$') {
-                file_path = var.get_from_strings(lexer::get_var_name_from_token(file_path));
-            }
-            hold_var = lexer::get_var_name_from_token(hold_var);
-            std::string read_text = lib::read_file(file_path);
+        else if(cmd[0] == "read" || cmd[0] == "write") {
+            std::string file_code = lib::vector_to_string(cmd, "", 1);
+            std::vector<std::string> tok = lib::str_split(file_code , "->");
+            if(cmd[0] == "read") {
+                std::string& file_path = tok[0];
+                std::string& hold_var = tok[1];
+                if(file_path[0] == '$') {
+                    file_path = var.get_from_strings(lexer::get_var_name_from_token(file_path));
+                }
+                hold_var = lexer::get_var_name_from_token(hold_var);
+                std::string read_text = lib::read_file(file_path);
 
-            var.var_add("var", "str", hold_var, read_text);
+                var.var_add("var", "str", hold_var, read_text);
+            }
+            else if(cmd[0] == "write") {
+                std::string& write_string = tok[0];
+                std::string& dest_file = tok[1];
+                if(write_string[0] == '$') {
+                    write_string = var.get_from_strings(lexer::get_var_name_from_token(write_string));
+                }
+                if(dest_file[0] == '$') {
+                    dest_file = var.get_from_strings(lexer::get_var_name_from_token(dest_file));
+                }
+                lib::write_file(dest_file, write_string);
+            }
         }
 
         else {
