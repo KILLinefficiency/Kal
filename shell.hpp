@@ -25,6 +25,11 @@ namespace shell {
             command = lib::trim_leading(command);
             command = lib::trim_trailing(command);
 
+            if(command == ".reset") {
+                var = VarTable();
+                continue;
+            }
+
             std::vector<std::string> prog_args = {};
             if(command[0] == '@') {
                 std::string file_name = command.substr(1);
