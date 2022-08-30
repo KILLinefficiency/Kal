@@ -17,7 +17,7 @@ namespace shell {
             std::cout << style::bold << "\nKal" << style::reset << " " << style::bold << style::green << "[" << count << "]:" << style::reset << " ";
             std::getline(std::cin, command);
             if(std::cin.eof()) {
-                std::cout << std::endl;
+                std::cout << "\n" << std::endl;
                 exit(0);
             }
 
