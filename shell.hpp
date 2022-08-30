@@ -16,6 +16,11 @@ namespace shell {
             std::string command;
             std::cout << style::bold << "\nKal" << style::reset << " " << style::bold << style::green << "[" << count << "]:" << style::reset << " ";
             std::getline(std::cin, command);
+            if(std::cin.eof()) {
+                std::cout << std::endl;
+                exit(0);
+            }
+
             command = preproc::remove_comments(command);
             command = lib::trim_leading(command);
             command = lib::trim_trailing(command);
