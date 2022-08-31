@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <stack>
 #include <iostream>
 
@@ -9,11 +10,16 @@ double eval_expression(std::string expr) {
     expr += ' ';
 
     std::stack<double> numbers;
+    std::stack<char> symbols;
+
     int start = 0;
     int current = 0;
     int len = 0;
     int expr_len = expr.size();
     for(int tok = 0; tok < expr_len; tok++) {
+        if(expr[tok] == '+' || expr[tok] == '-' || expr[tok] == '*' || expr[tok] == '/') {
+            symbols.push(expr[tok]);
+        }
         if((expr[tok] >= '0' && expr[tok] <= '9') || expr[tok] == '.') {
             len++;
         }
@@ -30,6 +36,31 @@ double eval_expression(std::string expr) {
         }
         current++;
     }
+
+    while(numbers.size() != 1) {
+        double x = numbers.top();
+        numbers.pop();
+        double y = numbers.top();
+        numbers.pop();
+        char operator = symbols.top();
+        symbols.pop();
+        switch(operator) {
+            case '+':
+                numbers.push(x + y);
+                break;
+            case '-':
+                numbers.push(x - y);
+                break;
+            case '*':
+                numbers.push(x * y);
+                break;
+            case '/':
+                numbers.push(x / y);
+        }
+    }
+
+    result = numbers.top();
+    numbers.pop();
 
     return result;
 }
