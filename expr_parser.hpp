@@ -1,16 +1,15 @@
 #pragma once
 
 #include <queue>
-#include <stack>
+#include <deque>
 #include <iostream>
 
 double eval_expression(std::string expr) {
     double result = 0;
-    std::cout << "Expr: [" << expr << "]" << std::endl;
     expr += ' ';
 
-    std::stack<double> numbers;
-    std::stack<char> symbols;
+    std::deque<double> numbers;
+    std::queue<char> symbols;
 
     int start = 0;
     int current = 0;
@@ -31,36 +30,36 @@ double eval_expression(std::string expr) {
                 current++;
                 continue;
             }
-            numbers.push(std::stod(value));
-            std::cout << "[" << std::stod(value) << "]" << std::endl;
+            numbers.push_back(std::stod(value));
         }
         current++;
     }
 
     while(numbers.size() != 1) {
-        double x = numbers.top();
-        numbers.pop();
-        double y = numbers.top();
-        numbers.pop();
-        char operator = symbols.top();
+        double x = numbers.front();
+        numbers.pop_front();
+        double y = numbers.front();
+        numbers.pop_front();
+        char oper = symbols.front();
         symbols.pop();
-        switch(operator) {
+        switch(oper) {
             case '+':
-                numbers.push(x + y);
+                numbers.push_front(x + y);
                 break;
             case '-':
-                numbers.push(x - y);
+                numbers.push_front(x - y);
                 break;
             case '*':
-                numbers.push(x * y);
+                numbers.push_front(x * y);
                 break;
             case '/':
-                numbers.push(x / y);
+                numbers.push_front(x / y);
+                break;
         }
     }
 
-    result = numbers.top();
-    numbers.pop();
+    result = numbers.front();
+    numbers.pop_front();
 
     return result;
 }
