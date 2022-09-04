@@ -37,6 +37,8 @@ namespace shell {
                 preproc::preprocess(source_lines, init_file_path);
                 std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
                 line_exec(tokens, var, prog_args);
+                count++;
+                continue;
             }
 
             if(command == "") {
