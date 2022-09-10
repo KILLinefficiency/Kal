@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    //std::string file_name = arg_parser.get_arg(0);
     std::vector<std::string> args = arg_parser.get_args();
     std::string file_name = args[0];
 
