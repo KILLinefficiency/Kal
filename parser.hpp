@@ -67,6 +67,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                         parser::std_out(cmd[start_val]);
                     }
                     else {
+                        /*
                         std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
                         std::string var_type = var.get_type(var_name);
                         if(var_type == "str") {
@@ -75,9 +76,29 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                         else if(var_type == "num") {
                             std::cout << var.get_from_numbers(var_name);
                         }
+                        */
+                        var.eval_var(cmd[start_val]);
+                        parser::std_out(var.get_current_str());
+                        //std::cout << var.get_current_str() << std::endl;
+                        /*std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
+                        std::cout << cmd[start_val] << std::endl;
+                        std::cout << var_name << std::endl;
+                        std::string var_type = var.get_type(var_name);
+                        std::cout << var_type << std::endl;
+                        if(var_type == "num") {
+                            parser::std_out(std::to_string(var.get_current_num()));
+                        }
+                        else if(var_type == "str") {
+                            parser::std_out(var.get_current_str());
+                        }*/
                     }
                 }
             }
+        }
+
+        else if(cmd[0] == "get") {
+            var.eval_var(cmd[1]);
+            parser::std_out(std::to_string(var.get_current_num()));
         }
 
         else if(cmd[0] == "stderr" && cmd_size == 2) {
