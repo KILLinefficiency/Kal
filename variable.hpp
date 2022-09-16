@@ -14,6 +14,8 @@ class VarTable {
         std::unordered_map<std::string, double> numbers;
         std::unordered_map<std::string, std::string> strings;
 
+        std::unordered_map<std::string, std::string> structures;
+
         std::unordered_map<std::string, std::string> type_check;
         std::unordered_map<std::string, std::string> mem_check;
 
@@ -103,6 +105,14 @@ class VarTable {
             return current_str;
         }
 
+        void add_structure(std::string struct_name, std::string struct_type) {
+            structures[struct_name] = struct_type;
+        }
+
+        std::string get_structure_type(std::string struct_name) {
+            return structures[struct_name];
+        }
+
         void eval_var(std::string& var_expr) {
             var_expr = var_expr.substr(1);
             std::vector<std::string> var_params = lib::split(var_expr, '#');
@@ -124,5 +134,19 @@ class VarTable {
                 std::string identifier = "[" + var_params[0] + "#" + index + "]";
                 current_str = get_from_strings(identifier);
             }
+        }
+
+        std::string print_list(std::string list_name) {
+            std::string list_result = "[";
+            int list_len = get_from_numbers("[" + list_name + "#len]");
+            std::string list_end = ", ";
+            for(int each_item = 0; each_item < list_len; each_item++) {
+                if(each_item == list_len - 2) {
+                    list_end = "";
+                }
+                list_result += (get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + list_end);
+            }
+            list_result += "]";
+            return list_result;
         }
 };

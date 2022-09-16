@@ -77,6 +77,10 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                             std::cout << var.get_from_numbers(var_name);
                         }
                         */
+                        if(var.get_structure_type(cmd[start_val].substr(1)) == "list") {
+                            std::cout << var.print_list(cmd[start_val].substr(1));
+                            continue;
+                        }
                         var.eval_var(cmd[start_val]);
                         parser::std_out(var.get_current_str());
                         //std::cout << var.get_current_str() << std::endl;
@@ -176,6 +180,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 1) + "]";
                 var.var_add("var", "str", identifier, list_data[each_item]);
             }
+            var.add_structure(list_name, "list");
         }
 
         else if(cmd[0] == "del" && cmd_size == 2) {
