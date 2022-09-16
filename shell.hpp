@@ -26,9 +26,9 @@ namespace shell {
             }
 
             command = preproc::remove_comments(command);
-            preproc::adjust_strings(command);
             command = lib::trim_leading(command);
             command = lib::trim_trailing(command);
+            preproc::adjust_strings(command);
 
             if(command == "") {
                 continue;
