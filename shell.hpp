@@ -8,6 +8,13 @@
 #include "lib/lib_string.hpp"
 
 namespace shell {
+    void prep_for_shell(std::string& shell_cmd) {
+        shell_cmd = preproc::remove_comments(shell_cmd);
+        shell_cmd = lib::trim_leading(shell_cmd);
+        shell_cmd = lib::trim_trailing(shell_cmd);
+        preproc::adjust_strings(shell_cmd);
+    }
+
     void init_shell() {
         int count = 1;
         VarTable var = VarTable();
@@ -25,10 +32,7 @@ namespace shell {
                 exit(0);
             }
 
-            command = preproc::remove_comments(command);
-            command = lib::trim_leading(command);
-            command = lib::trim_trailing(command);
-            preproc::adjust_strings(command);
+            prep_for_shell(command);
 
             if(command == "") {
                 continue;
@@ -46,6 +50,7 @@ namespace shell {
                 std::cout << style::style["bold"] << style::style["blue"] << "\nIn:" << style::style["reset"] << "\n";
                 std::cout << multi_prompt;
                 while(std::getline(std::cin, multi_line) && multi_line != ".eof") {
+                    prep_for_shell(multi_line);
                     std::cout << multi_prompt;
                     if(multi_line != "") {
                         multi_lines.emplace_back(multi_line);
