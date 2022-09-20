@@ -8,9 +8,6 @@
 
 class VarTable {
     private:
-        double current_num;
-        std::string current_str;
-
         std::unordered_map<std::string, double> numbers;
         std::unordered_map<std::string, std::string> strings;
 
@@ -97,14 +94,6 @@ class VarTable {
             }
         }
 
-        double get_current_num() {
-            return current_num;
-        }
-
-        std::string get_current_str() {
-            return current_str;
-        }
-
         void add_structure(std::string struct_name, std::string struct_type) {
             structures[struct_name] = struct_type;
         }
@@ -113,17 +102,17 @@ class VarTable {
             return structures[struct_name];
         }
 
-        void eval_var(std::string& var_expr) {
+        std::string eval_var(std::string& var_expr) {
             var_expr = var_expr.substr(1);
             std::vector<std::string> var_params = lib::split(var_expr, '#');
             int var_params_size = var_params.size();
             std::string var_type = type_check[var_params[0]];
             if(var_params_size == 1) {
                 if(var_type == "num") {
-                    current_num = get_from_numbers(var_params[0]);
+                    return std::to_string(get_from_numbers(var_params[0]));
                 }
                 else if(var_type == "str") {
-                    current_str = get_from_strings(var_params[0]);
+                    return get_from_strings(var_params[0]);
                 }
             }
             else if(var_params_size == 2) {
@@ -132,8 +121,10 @@ class VarTable {
                     index = std::to_string(int(get_from_numbers(lexer::get_var_name_from_token(var_params[1]))));
                 }
                 std::string identifier = "[" + var_params[0] + "#" + index + "]";
-                current_str = get_from_strings(identifier);
+                return get_from_strings(identifier);
             }
+
+            return "";
         }
 
         std::string print_list(std::string list_name) {

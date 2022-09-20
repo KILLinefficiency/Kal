@@ -50,7 +50,6 @@ int main(int argc, char** argv) {
     
     std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
     line_exec(tokens, var, args);
-    std::cout << style::style["reset"];
 
     return 0;
 }

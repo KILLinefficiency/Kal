@@ -61,12 +61,13 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(cmd[0] == "style") {
             for(int style_itr = 1; style_itr < cmd_size; style_itr++) {
                 std::string passed_style = cmd[style_itr];
-                /*if(passed_style[0] == '$') {
+                if(passed_style[0] == '$') {
                     passed_style = var.eval_var(passed_style);
-                }*/
+                }
                 std::string current_style = style::style[passed_style];
+
                 if(current_style != "") {
-                    std::cout << style::style[cmd[style_itr]];
+                    std::cout << current_style;
                 }
             }
         }
@@ -95,8 +96,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                             std::cout << var.print_list(cmd[start_val].substr(1));
                             continue;
                         }
-                        var.eval_var(cmd[start_val]);
-                        parser::std_out(var.get_current_str());
+                        std::string str_value = var.eval_var(cmd[start_val]);
+                        parser::std_out(str_value);
                         //std::cout << var.get_current_str() << std::endl;
                         /*std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
                         std::cout << cmd[start_val] << std::endl;
@@ -257,7 +258,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                     file_path = var.get_from_strings(lexer::get_var_name_from_token(file_path));
                 }
                 hold_var = lexer::get_var_name_from_token(hold_var);
-                std::string read_text = lib::read_file(file_path);
+                std::string read_text = lib::render_escape_chars(lib::read_file(file_path));
 
                 var.var_add("var", "str", hold_var, read_text);
             }
@@ -270,6 +271,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 if(dest_file[0] == '$') {
                     dest_file = var.get_from_strings(lexer::get_var_name_from_token(dest_file));
                 }
+                write_string = lib::render_escape_chars(write_string);
                 lib::write_file(dest_file, write_string);
             }
         }
@@ -279,4 +281,6 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         }
 
     }
+
+    std::cout << style::style["reset"];
 }
