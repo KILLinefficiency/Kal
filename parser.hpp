@@ -21,10 +21,12 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
     int tokens_list = tokens.size();
 
     int args_len = prog_args.size();
-    var.var_add("var", "num", "0", std::to_string(args_len));
+    var.var_add("var", "num", "[args#len]", std::to_string(args_len));
     for(int arg_count = 0; arg_count < args_len; arg_count++) {
-        var.var_add("var", "str", std::to_string(arg_count + 1), prog_args[arg_count]);
+        std::string args_identifier = "[args#" + std::to_string(arg_count) + "]";
+        var.var_add("var", "str", args_identifier, prog_args[arg_count]);
     }
+    var.add_structure("args", "list");
 
     for(int line = 0; line < tokens_list; line++) {
         std::vector<std::string>& cmd = tokens[line];
