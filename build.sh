@@ -35,6 +35,7 @@ function vim_ft() {
     cp syntax/kal.vim ~/.vim/syntax
     ft_exists=$(grep "kal" ~/.vimrc)
     [ -z "$ft_exists" ] && echo -e "\nsyntax on | au BufRead,BufNewFile *.kal set filetype=kal number autoindent noswapfile hlsearch incsearch tabstop=4 shiftwidth=4 expandtab clipboard=unnamedplus" >> ~/.vimrc
+    return 0
 }
 
 function compile() {
