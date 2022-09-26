@@ -149,12 +149,16 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             if(var_data[2][0] == '$') {
                 std::string second_var = lexer::get_var_name_from_token(var_data[2]);
                 std::string second_var_type = var.get_type(second_var);
+                if(second_var.find('#') != std::string::npos) {
+                    second_var_type = var.get_type("[" + second_var + "]");
+                }
 
                 if(var_data[0] != second_var_type) {
                     errors::types_incompatible_error(var_data[1], var_data[0], second_var, second_var_type);
                 }
                 if(var_data[0] == "str") {
-                    var_data[2] = var.get_from_strings(second_var);
+                    second_var = "$" + second_var;
+                    var_data[2] = var.eval_var(second_var);
                 }
                 else if(var_data[0] == "num") {
                     double num_val = var.get_from_numbers(second_var);
