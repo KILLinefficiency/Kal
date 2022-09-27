@@ -201,6 +201,32 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
         }
 
+        else if(cmd[0] == "join") {
+            std::string formed_string = "";
+            std::string list_name = cmd[1].substr(1);
+            std::string join_code = lib::vector_to_string(cmd, "", 2);
+            std::vector<std::string> join_ins = lib::str_split(join_code, "->");
+            std::string& join_text = join_ins[0];
+            std::string target_str = join_ins[1].substr(1);
+
+            int list_size = var.get_list_size(list_name);
+            std::string struct_type = var.get_structure_type(list_name).substr(0, 3);
+            for(int item_itr = 0; item_itr < list_size; item_itr++) {
+                if(item_itr == list_size - 1) {
+                    join_text = "";
+                }
+
+                if(struct_type == "str") {
+                    formed_string += (var.get_from_strings("[" + list_name + "#" + std::to_string(item_itr) + "]") + join_text);
+                }
+                else if(struct_type == "num") {
+                    formed_string += (std::to_string(var.get_from_numbers("[" + list_name + "#" + std::to_string(item_itr) + "]")) + join_text);
+                }
+            }
+
+            var.var_add("var", struct_type, target_str, formed_string);
+        }
+
         else if(cmd[0][0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 

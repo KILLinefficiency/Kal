@@ -4,7 +4,7 @@ endif
 
 syntax keyword kal_type num str
 syntax keyword kal_todo TODO NOTE FIXME README
-syntax keyword kal_keyword var del const exit warn read list push write throw stdin stdout stderr concat style
+syntax keyword kal_keyword var del const exit warn read list push join write throw stdin stdout stderr concat style
 
 syntax match kal_comment ";.*$" contains=kal_todo
 syntax match kal_shebang "#!.*$" 
