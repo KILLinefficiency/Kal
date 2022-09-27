@@ -69,15 +69,20 @@ namespace lexer {
         std::vector<std::string> rest_list = lib::split(list_data[1], '=');
         std::string list_name = lib::trim_leading(lib::trim_trailing(rest_list[0]));
         int list_size = rest_list[1].size();
-        rest_list[1] = rest_list[1].substr(2, list_size - 5);
+        std::string clean_rest_list = lib::trim_leading(lib::trim_trailing(rest_list[1]));
+        if(clean_rest_list != "[]") {
+            rest_list[1] = rest_list[1].substr(2, list_size - 5);
+        }
         list_name_elements.emplace_back(list_type);
         list_name_elements.emplace_back(list_name);
 
-        std::vector<std::string> elements = lib::split(rest_list[1], ',');
-        int list_len = elements.size();
-        for(int each_element = 0; each_element < list_len; each_element++) {
-            elements[each_element] = lib::trim_leading(lib::trim_trailing(elements[each_element]));
-            list_name_elements.emplace_back(elements[each_element]);
+        if(clean_rest_list != "[]") {
+            std::vector<std::string> elements = lib::split(rest_list[1], ',');
+            int list_len = elements.size();
+            for(int each_element = 0; each_element < list_len; each_element++) {
+                elements[each_element] = lib::trim_leading(lib::trim_trailing(elements[each_element]));
+                list_name_elements.emplace_back(elements[each_element]);
+            }
         }
 
         return list_name_elements;
