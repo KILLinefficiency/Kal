@@ -30,13 +30,14 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
 
     for(int line = 0; line < tokens_list; line++) {
         std::vector<std::string>& cmd = tokens[line];
+        std::string& ins = cmd[0];
         int cmd_size = cmd.size();
 
-        if(cmd[0][0] == '#' && cmd[0][1] == '!') {
+        if(ins[0] == '#' && ins[1] == '!') {
             continue;
         }
 
-        else if(cmd[0] == "exit") {
+        else if(ins == "exit") {
             if(cmd_size == 1) {
                 exit(0);
             }
@@ -46,7 +47,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
 
-        else if(cmd[0] == "warn") {
+        else if(ins == "warn") {
             if(cmd_size == 1) {
                 warn = !warn;
             }
@@ -60,7 +61,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
 
-        else if(cmd[0] == "style") {
+        else if(ins == "style") {
             for(int style_itr = 1; style_itr < cmd_size; style_itr++) {
                 std::string passed_style = cmd[style_itr];
                 if(passed_style[0] == '$') {
@@ -74,7 +75,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
 
-        else if(cmd[0] == "stdout") {
+        else if(ins == "stdout") {
             if(cmd_size == 1) {
                 std::cout << "";
             }
@@ -118,11 +119,11 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
 
-        else if(cmd[0] == "stderr" && cmd_size == 2) {
+        else if(ins == "stderr" && cmd_size == 2) {
             parser::std_err(cmd[1]);
         }
 
-        else if(cmd[0] == "stdin" && cmd_size == 2) {
+        else if(ins == "stdin" && cmd_size == 2) {
             std::string var_to_read = lexer::get_var_name_from_token(cmd[1]);
             if(var.get_mem_type(var_to_read) == "const") {
                 errors::change_const_var_error(var_to_read);
@@ -130,10 +131,10 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.read_var(var.expand_var(cmd[1]));
         }
 
-        else if(cmd[0] == "var" || cmd[0] == "const") {
+        else if(ins == "var" || ins == "const") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
 
-            if(cmd[0] == "const" && var_data[2] == "" && warn) {
+            if(ins == "const" && var_data[2] == "" && warn) {
                 warnings::const_uninitialized_warning(var_data[1]);
             }
 
@@ -141,7 +142,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 std::vector<std::string> multiple_vars = lib::split(var_data[1], ',');
                 int total_vars = multiple_vars.size();
                 for(int add_var = 0; add_var < total_vars; add_var++) {
-                    var.var_add(cmd[0], var_data[0], multiple_vars[add_var], var_data[2], true);
+                    var.var_add(ins, var_data[0], multiple_vars[add_var], var_data[2], true);
                 }
                 continue;
             }
@@ -166,10 +167,10 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 }
             }
 
-            var.var_add(cmd[0], var_data[0], var_data[1], var_data[2], true);
+            var.var_add(ins, var_data[0], var_data[1], var_data[2], true);
         }
 
-        else if(cmd[0] == "list") {
+        else if(ins == "list") {
             std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
             std::string& list_type = list_data[0];
             std::string& list_name = list_data[1];
@@ -185,7 +186,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.add_structure(list_name, list_type + "_list");
         }
 
-        else if(cmd[0] == "push") {
+        else if(ins == "push") {
             std::string push_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> push_data = lib::str_split(push_code, "->");
             if(push_data[0][0] == '$') {
@@ -201,7 +202,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
         }
 
-        else if(cmd[0] == "join") {
+        else if(ins == "join") {
             std::string formed_string = "";
             std::string list_name = cmd[1].substr(1);
             std::string join_code = lib::vector_to_string(cmd, "", 2);
@@ -227,7 +228,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add("var", struct_type, target_str, formed_string);
         }
 
-        else if(cmd[0][0] == '$') {
+        else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 
             var_data[0] = var.expand_var(var_data[0]);
@@ -252,15 +253,15 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], second_var_val);
         }
 
-        else if(cmd[0] == "del" && cmd_size == 2) {
+        else if(ins == "del" && cmd_size == 2) {
             var.var_delete(lexer::get_var_name_from_token(cmd[1]));
         }
 
-        else if(cmd[0] == "throw" && cmd_size == 3) {
+        else if(ins == "throw" && cmd_size == 3) {
             errors::throw_err(cmd[1], cmd[2]);
         }
 
-        else if(cmd[0] == "concat") {
+        else if(ins == "concat") {
             std::string concat_str = "";
             std::string concat_code = lib::vector_to_string(cmd, " ", 1, "\"");
             std::vector<std::string> tok = lib::str_split(concat_code, "->");
@@ -302,10 +303,10 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
         
-        else if(cmd[0] == "read" || cmd[0] == "write") {
+        else if(ins == "read" || ins == "write") {
             std::string file_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> tok = lib::str_split(file_code , "->");
-            if(cmd[0] == "read") {
+            if(ins == "read") {
                 std::string& file_path = tok[0];
                 std::string& hold_var = tok[1];
                 if(file_path[0] == '$') {
@@ -316,7 +317,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
 
                 var.var_add("var", "str", hold_var, read_text);
             }
-            else if(cmd[0] == "write") {
+            else if(ins == "write") {
                 std::string& write_string = tok[0];
                 std::string& dest_file = tok[1];
                 if(write_string[0] == '$') {
@@ -331,7 +332,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         }
 
         else {
-            errors::unidentified_keyword(cmd[0]);
+            errors::unidentified_keyword(ins);
         }
 
     }
