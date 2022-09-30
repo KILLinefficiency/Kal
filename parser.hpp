@@ -27,7 +27,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         std::string args_identifier = "[args#" + std::to_string(arg_count) + "]";
         var.var_add("var", "str", args_identifier, prog_args[arg_count]);
     }
-    var.add_structure("args", "list");
+    var.add_structure("args", "str_list");
 
     for(int line = 0; line < tokens_list; line++) {
         std::vector<std::string>& cmd = tokens[line];
