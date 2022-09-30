@@ -179,12 +179,9 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(ins == "size") {
             std::string size_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> size_data = lib::str_split(size_code, "->");
+            std::string& list_name = size_data[0];
             std::string target_var = var.expand_var(size_data[1]);
-            std::string struct_type = var.get_structure_type(size_data[0].substr(1));
-            if(struct_type == "str_list" || struct_type == "num_type") {
-                double struct_size = var.get_from_numbers("[" + size_data[0].substr(1) + "#len]");
-                var.var_add("var", "num", target_var, std::to_string(struct_size));
-            }
+            lib::get_list_size(list_name, target_var, var);
         }
 
         else if(ins == "push") {
@@ -276,7 +273,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             for(int str_itr = 0; str_itr < str_size; str_itr++) {
                 std::string current_value = strings[str_itr];
                 if(current_value[0] == '$') {
-                    std::string var_name = lexer::get_var_name_from_token(current_value);
+                    std::string var_name = var.expand_var(current_value);
                     if(var.get_type(var_name) != "str") {
                         errors::expected_type_error("str");
                     }
@@ -290,7 +287,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 if(literal_first) {
                     errors::cannot_write_to_literal_error(strings[0]);
                 }
-                std::string first_var_name = lexer::get_var_name_from_token(strings[0]);
+                std::string first_var_name = var.expand_var(strings[0]);
                 var.var_add("var", "str", first_var_name, concat_str);
             }
 
@@ -299,7 +296,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 while(tok[1][var_start] != '$') {
                     var_start++;
                 }
-                std::string destination_string = lexer::get_var_name_from_token(tok[1].substr(var_start, tok[1].size() - (var_start + 2)));
+                std::string dest_string_id = tok[1].substr(var_start, tok[1].size() - (var_start + 2));
+                std::string destination_string = var.expand_var(dest_string_id);
                 var.var_add("var", "str", destination_string, concat_str);
             }
         }

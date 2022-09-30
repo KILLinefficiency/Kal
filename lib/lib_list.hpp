@@ -19,5 +19,12 @@ namespace lib {
         var.add_structure(list_name, list_type + "_list");
     }
 
-    void get_list_size() {}
+    void get_list_size(std::string& list_name, std::string& target_var, VarTable& var) {
+        list_name = list_name.substr(1);
+        std::string struct_type = var.get_structure_type(list_name);
+        if(struct_type == "str_list" || struct_type == "num_type") {
+            double struct_size = var.get_from_numbers("[" + list_name + "#len]");
+            var.var_add("var", "num", target_var, std::to_string(struct_size));
+        }
+    }
 }
