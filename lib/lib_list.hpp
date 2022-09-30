@@ -4,8 +4,7 @@
 #include "../variable.hpp"
 
 namespace lib {
-    void create_list(std::vector<std::string>& cmd, VarTable& var) {
-        std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
+    void create_list(std::vector<std::string>& list_data, VarTable& var) {
         std::string& list_type = list_data[0];
         std::string& list_name = list_data[1];
         int list_len = list_data.size();
@@ -19,4 +18,6 @@ namespace lib {
         }
         var.add_structure(list_name, list_type + "_list");
     }
+
+    void get_list_size() {}
 }

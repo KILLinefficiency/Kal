@@ -172,7 +172,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         }
 
         else if(ins == "list") {
-            lib::create_list(cmd, var);
+            std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
+            lib::create_list(list_data, var);
         }
 
         else if(ins == "size") {
