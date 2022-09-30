@@ -1,0 +1,12 @@
+#!/usr/bin/env kal
+
+var str: X = "Hello"
+var str: Y = "World"
+
+stdout "Before swapping: " $X " " $Y "\n"
+
+var str: temp = $X
+$X = $Y
+$Y = $temp
+
+stdout "After swapping: " $X " " $Y "\n"

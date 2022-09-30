@@ -49,7 +49,7 @@ namespace lexer {
 
         std::string complete_line = lib::vector_to_string(tokens, "");
         std::vector<std::string> var_val_split = lib::split(complete_line, '=');
-        std::string var_name = var_val_split[0].substr(1);
+        std::string var_name = var_val_split[0];
         std::string var_val = var_val_split[1];
 
         var_reassignment = { var_name, var_val };
@@ -59,6 +59,33 @@ namespace lexer {
     std::string get_var_name_from_token(std::string var_token) {
         std::string var_name = var_token.substr(1);
         return var_name;
+    }
+
+    std::vector<std::string> lex_list_declaration(std::vector<std::string>& tokens) {
+        std::vector<std::string> list_name_elements = {};
+        std::string list_code = lib::vector_to_string(tokens, " ", 1);
+        std::vector<std::string> list_data = lib::split(list_code, ':');
+        std::string& list_type = list_data[0];
+        std::vector<std::string> rest_list = lib::split(list_data[1], '=');
+        std::string list_name = lib::trim_leading(lib::trim_trailing(rest_list[0]));
+        int list_size = rest_list[1].size();
+        std::string clean_rest_list = lib::trim_leading(lib::trim_trailing(rest_list[1]));
+        if(clean_rest_list != "[]") {
+            rest_list[1] = rest_list[1].substr(2, list_size - 5);
+        }
+        list_name_elements.emplace_back(list_type);
+        list_name_elements.emplace_back(list_name);
+
+        if(clean_rest_list != "[]") {
+            std::vector<std::string> elements = lib::split(rest_list[1], ',');
+            int list_len = elements.size();
+            for(int each_element = 0; each_element < list_len; each_element++) {
+                elements[each_element] = lib::trim_leading(lib::trim_trailing(elements[each_element]));
+                list_name_elements.emplace_back(elements[each_element]);
+            }
+        }
+
+        return list_name_elements;
     }
 
 }

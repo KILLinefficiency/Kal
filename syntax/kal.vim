@@ -1,10 +1,10 @@
 if exists("b:current_syntax")
-	finish
+    finish
 endif
 
 syntax keyword kal_type num str
 syntax keyword kal_todo TODO NOTE FIXME README
-syntax keyword kal_keyword var del const exit warn read write throw stdin stdout stderr concat
+syntax keyword kal_keyword var del const exit warn read list push join size write throw stdin stdout stderr concat style
 
 syntax match kal_comment ";.*$" contains=kal_todo
 syntax match kal_shebang "#!.*$" 

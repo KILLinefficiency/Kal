@@ -1,17 +1,23 @@
 #pragma once
 
+#include <unordered_map>
+
 namespace style {
-    std::string reset      = "\u001b[0m";
-
-    std::string bold       = "\u001b[1m";
-    std::string underline  = "\u001b[4m";
-
-    std::string black      = "\u001b[30m";
-    std::string red        = "\u001b[31m";
-    std::string green      = "\u001b[32m";
-    std::string yellow     = "\u001b[33m";
-    std::string blue       = "\u001b[34m";
-    std::string magenta    = "\u001b[35m";
-    std::string cyan       = "\u001b[36m";
-    std::string white      = "\u001b[37m";
+    std::unordered_map<std::string, std::string> style {
+        { "reset",     "\u001b[0m"  },
+        { "bold",      "\u001b[1m"  },
+        { "italic",    "\u001b[3m"  },
+        { "underline", "\u001b[4m"  },
+        { "blink",     "\u001b[5m"  },
+        { "bg",        "\u001b[7m"  },
+        { "strike",    "\u001b[9m"  },
+        { "black",     "\u001b[30m" },
+        { "red",       "\u001b[31m" },
+        { "green",     "\u001b[32m" },
+        { "yellow",    "\u001b[33m" },
+        { "blue",      "\u001b[34m" },
+        { "magenta",   "\u001b[35m" },
+        { "cyan",      "\u001b[36m" },
+        { "white",     "\u001b[37m" },
+    };
 }

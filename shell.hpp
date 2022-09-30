@@ -8,6 +8,13 @@
 #include "lib/lib_string.hpp"
 
 namespace shell {
+    void prep_for_shell(std::string& shell_cmd) {
+        shell_cmd = preproc::remove_comments(shell_cmd);
+        shell_cmd = lib::trim_leading(shell_cmd);
+        shell_cmd = lib::trim_trailing(shell_cmd);
+        preproc::adjust_strings(shell_cmd);
+    }
+
     void init_shell() {
         int count = 1;
         VarTable var = VarTable();
@@ -18,16 +25,14 @@ namespace shell {
             std::vector<std::string> prog_args = {};
             std::vector<std::vector<std::string>> tokens;
 
-            std::cout << style::bold << "\nKal" << style::reset << " " << style::bold << style::green << "[" << count << "]:" << style::reset << " ";
+            std::cout << style::style["bold"] << "\nKal" << style::style["reset"] << " " << style::style["bold"] << style::style["green"] << "[" << count << "]:" << style::style["reset"] << " ";
             std::getline(std::cin, command);
             if(std::cin.eof()) {
                 std::cout << "\n" << std::endl;
                 exit(0);
             }
 
-            command = preproc::remove_comments(command);
-            command = lib::trim_leading(command);
-            command = lib::trim_trailing(command);
+            prep_for_shell(command);
 
             if(command == "") {
                 continue;
@@ -39,12 +44,13 @@ namespace shell {
             }
 
             if(command == ".multi") {
-                std::string multi_prompt = style::bold + style::blue + "> " + style::reset;
+                std::string multi_prompt = style::style["bold"] + style::style["blue"] + "> " + style::style["reset"];
                 std::string multi_line;
                 std::vector<std::string> multi_lines;
-                std::cout << style::bold << style::blue << "\nIn:" << style::reset << "\n";
+                std::cout << style::style["bold"] << style::style["blue"] << "\nIn:" << style::style["reset"] << "\n";
                 std::cout << multi_prompt;
                 while(std::getline(std::cin, multi_line) && multi_line != ".eof") {
+                    prep_for_shell(multi_line);
                     std::cout << multi_prompt;
                     if(multi_line != "") {
                         multi_lines.emplace_back(multi_line);
@@ -53,7 +59,7 @@ namespace shell {
                 }
                 if(multi_lines.size() != 0) {
                     tokens = lexer::tokenize(multi_lines);
-                    std::cout << style::bold << style::blue << "\nOut:" << style::reset << "\n";
+                    std::cout << style::style["bold"] << style::style["blue"] << "\nOut:" << style::style["reset"] << "\n";
                     line_exec(tokens, var, prog_args);
                 }
                 continue;
