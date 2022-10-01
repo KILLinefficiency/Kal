@@ -61,4 +61,16 @@ namespace lib {
 
         var.var_add("var", struct_type, target_str, formed_string);
     }
+
+    void unpack_list(std::string& unpack_list, std::string& unpack_list_type, std::vector<std::string>& list_vars, VarTable& var) {
+        int total_unpack_vars = list_vars.size();
+        for(int unpack_itr = 0; unpack_itr < total_unpack_vars; unpack_itr++) {
+            if(list_vars[unpack_itr][0] == '$') {
+                list_vars[unpack_itr] = var.expand_var(list_vars[unpack_itr]);
+            }
+            std::string list_element_id = "$" + unpack_list + "#" + std::to_string(unpack_itr);
+            std::string unpack_value = var.eval_var(list_element_id);
+            var.var_add("var", unpack_list_type, list_vars[unpack_itr], unpack_value);
+        }
+    }
 }

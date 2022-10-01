@@ -200,6 +200,16 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             lib::join_list(list_name, join_text, target_str, var);
         }
 
+        else if(ins == "unpack") {
+            std::string unpack_code = lib::vector_to_string(cmd, "", 1);
+            std::vector<std::string> unpack_data = lib::str_split(unpack_code, "->");
+            std::string unpack_list = var.expand_var(unpack_data[0]);
+            std::string unpack_list_type = var.get_structure_type(unpack_list).substr(0, 3);
+            std::string clean_var_list = unpack_data[1].substr(1, unpack_data[1].size() - 2);
+            std::vector<std::string> list_vars = lib::split(clean_var_list, ',');
+            lib::unpack_list(unpack_list, unpack_list_type, list_vars, var);
+        }
+
         else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 
