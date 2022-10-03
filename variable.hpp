@@ -150,6 +150,8 @@ class VarTable {
         }
 
         std::string print_list(std::string list_name) {
+            std::string list_type = get_structure_type(list_name);
+            std::string str_pad = "";
             std::string list_result = "[";
             int list_len = get_list_size(list_name);
             std::string list_end = ", ";
@@ -157,7 +159,10 @@ class VarTable {
                 if(each_item == list_len - 1) {
                     list_end = "";
                 }
-                list_result += (get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + list_end);
+                if(list_type == "str_list") {
+                    str_pad = "\"";
+                }
+                list_result += (str_pad + get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + str_pad + list_end);
             }
             list_result += "]";
             return list_result;
