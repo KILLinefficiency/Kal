@@ -1,6 +1,7 @@
 #pragma once
 
 #include "errors.hpp"
+#include "lib/lib_math.hpp"
 
 #include <iostream>
 #include <string>
@@ -113,7 +114,7 @@ class VarTable {
             std::string var_type = type_check[var_params[0]];
             if(var_params_size == 1) {
                 if(var_type == "num") {
-                    return std::to_string(get_from_numbers(var_params[0]));
+                    return lib::display_num(get_from_numbers(var_params[0]));
                 }
                 else if(var_type == "str") {
                     return get_from_strings(var_params[0]);
@@ -127,7 +128,7 @@ class VarTable {
                 }
                 std::string identifier = "[" + var_params[0] + "#" + index + "]";
                 if(list_type == "num_list") {
-                    return std::to_string(get_from_numbers(identifier));
+                    return lib::display_num(get_from_numbers(identifier));
                 }
                 return get_from_strings(identifier);
             }
@@ -166,7 +167,7 @@ class VarTable {
                     list_result += ("\"" + get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + "\"" + list_end);
                 }
                 else if(list_type == "num_list") {
-                    list_result += (std::to_string(get_from_numbers("[" + list_name + "#" + std::to_string(each_item) + "]")) + list_end);
+                    list_result += (lib::display_num(get_from_numbers("[" + list_name + "#" + std::to_string(each_item) + "]")) + list_end);
                 }
             }
             list_result += "]";
