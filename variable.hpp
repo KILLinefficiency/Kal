@@ -120,11 +120,15 @@ class VarTable {
                 }
             }
             else if(var_params_size == 2) {
+                std::string list_type = get_structure_type(var_params[0]);
                 std::string index = var_params[1];
                 if(var_params[1][0] == '$') {
                     index = std::to_string(int(get_from_numbers(lexer::get_var_name_from_token(var_params[1]))));
                 }
                 std::string identifier = "[" + var_params[0] + "#" + index + "]";
+                if(list_type == "num_list") {
+                    return std::to_string(get_from_numbers(identifier));
+                }
                 return get_from_strings(identifier);
             }
 
@@ -151,7 +155,6 @@ class VarTable {
 
         std::string print_list(std::string list_name) {
             std::string list_type = get_structure_type(list_name);
-            std::string str_pad = "";
             std::string list_result = "[";
             int list_len = get_list_size(list_name);
             std::string list_end = ", ";
@@ -160,9 +163,11 @@ class VarTable {
                     list_end = "";
                 }
                 if(list_type == "str_list") {
-                    str_pad = "\"";
+                    list_result += ("\"" + get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + "\"" + list_end);
                 }
-                list_result += (str_pad + get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + str_pad + list_end);
+                else if(list_type == "num_list") {
+                    list_result += (std::to_string(get_from_numbers("[" + list_name + "#" + std::to_string(each_item) + "]")) + list_end);
+                }
             }
             list_result += "]";
             return list_result;
