@@ -160,14 +160,15 @@ class VarTable {
             int list_len = get_list_size(list_name);
             std::string list_end = ", ";
             for(int each_item = 0; each_item < list_len; each_item++) {
+                std::string identifier = "[" + list_name + "#" + std::to_string(each_item) + "]";
                 if(each_item == list_len - 1) {
                     list_end = "";
                 }
                 if(list_type == "str_list") {
-                    list_result += ("\"" + get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + "\"" + list_end);
+                    list_result += ("\"" + get_from_strings(identifier) + "\"" + list_end);
                 }
                 else if(list_type == "num_list") {
-                    list_result += (lib::display_num(get_from_numbers("[" + list_name + "#" + std::to_string(each_item) + "]")) + list_end);
+                    list_result += (lib::display_num(get_from_numbers(identifier)) + list_end);
                 }
             }
             list_result += "]";
