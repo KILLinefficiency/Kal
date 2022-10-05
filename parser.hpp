@@ -79,43 +79,21 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(ins == "stdout") {
             if(cmd_size == 1) {
                 std::cout << "";
+                continue;
             }
-            else {
-                for(int start_val = 1; start_val < cmd_size; start_val++) {
-                    if(cmd[start_val][0] != '$') {
-                        parser::std_out(cmd[start_val]);
+
+            for(int start_val = 1; start_val < cmd_size; start_val++) {
+                if(cmd[start_val][0] != '$') {
+                    parser::std_out(cmd[start_val]);
+                }
+                else {
+                    std::string structure_type = var.get_structure_type(cmd[start_val].substr(1));
+                    if(structure_type == "num_list" || structure_type == "str_list") {
+                        std::cout << var.print_list(cmd[start_val].substr(1));
+                        continue;
                     }
-                    else {
-                        /*
-                        std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
-                        std::string var_type = var.get_type(var_name);
-                        if(var_type == "str") {
-                            parser::std_out(var.get_from_strings(var_name));
-                        }
-                        else if(var_type == "num") {
-                            std::cout << var.get_from_numbers(var_name);
-                        }
-                        */
-                        std::string structure_type = var.get_structure_type(cmd[start_val].substr(1));
-                        if(structure_type == "num_list" || structure_type == "str_list") {
-                            std::cout << var.print_list(cmd[start_val].substr(1));
-                            continue;
-                        }
-                        std::string str_value = var.eval_var(cmd[start_val]);
-                        parser::std_out(str_value);
-                        //std::cout << var.get_current_str() << std::endl;
-                        /*std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
-                        std::cout << cmd[start_val] << std::endl;
-                        std::cout << var_name << std::endl;
-                        std::string var_type = var.get_type(var_name);
-                        std::cout << var_type << std::endl;
-                        if(var_type == "num") {
-                            parser::std_out(std::to_string(var.get_current_num()));
-                        }
-                        else if(var_type == "str") {
-                            parser::std_out(var.get_current_str());
-                        }*/
-                    }
+                    std::string str_value = var.eval_var(cmd[start_val]);
+                    parser::std_out(str_value);
                 }
             }
         }
