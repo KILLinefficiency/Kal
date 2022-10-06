@@ -103,4 +103,30 @@ namespace lib {
             var.var_add("var", unpack_list_type, list_vars[unpack_itr], unpack_value);
         }
     }
+
+    void reverse_list(std::string list_name, VarTable& var) {
+        std::string list_type = var.get_structure_type(list_name).substr(0, 3);
+        int len = int(var.get_from_numbers("[" + list_name + "#len]"));
+        int total_itr = len / 2;
+
+        std::string item = "";
+        std::string other_item = "";
+
+        for(int index = 0; index < total_itr; index++) {
+            int other_index = len - index - 1;
+            std::string identifier = "[" + list_name + "#" + std::to_string(index) + "]";
+            std::string other_identifier = "[" + list_name + "#" + std::to_string(other_index) + "]";
+            if(list_type == "num") {
+                item = std::to_string(var.get_from_numbers(identifier));
+                other_item = std::to_string(var.get_from_numbers(other_identifier));
+            }
+            else if(list_type == "str") {
+                item = var.get_from_strings(identifier);
+                other_item = var.get_from_strings(other_identifier);
+            }
+
+            var.var_add("var", list_type, identifier, other_item);
+            var.var_add("var", list_type, other_identifier, item);
+        }
+    }
 }

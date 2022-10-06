@@ -188,6 +188,14 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             lib::unpack_list(unpack_list, unpack_list_type, list_vars, var);
         }
 
+        else if(ins == "extend") {
+            std::vector<std::string> extend_data = lexer::lex_extend_list(cmd);
+        }
+
+        else if(ins == "reverse") {
+            lib::reverse_list(cmd[1].substr(1), var);
+        }
+
         else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 

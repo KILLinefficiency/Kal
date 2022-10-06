@@ -92,4 +92,12 @@ namespace lexer {
         return list_name_elements;
     }
 
+    std::vector<std::string> lex_extend_list(std::vector<std::string>& tokens) {
+        std::vector<std::string> extend_list_tokens;
+        std::string extend_code = lib::vector_to_string(tokens, " ", 1);
+        std::cout << extend_code << std::endl;
+
+        return extend_list_tokens;
+    }
+
 }
