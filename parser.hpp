@@ -193,7 +193,15 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         }
 
         else if(ins == "reverse") {
-            lib::reverse_list(cmd[1].substr(1), var);
+            std::vector<std::string> rev_data = lexer::lex_reverse_ins(cmd);
+            int ins_param_size = rev_data.size();
+            if(ins_param_size == 1) {
+                lib::reverse_list(rev_data[0], var);
+            }
+            else if(ins_param_size == 2) {
+                lib::copy_list(rev_data[0], rev_data[1], var);
+                lib::reverse_list(rev_data[1], var);
+            }
         }
 
         else if(ins[0] == '$') {
