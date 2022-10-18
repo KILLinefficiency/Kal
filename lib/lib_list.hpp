@@ -140,4 +140,21 @@ namespace lib {
             var.var_add("var", list_type, other_identifier, item);
         }
     }
+
+    void range_to_list(std::vector<double>& range_data, std::string& target_list, VarTable& var) {
+        int range_items = 0;
+        target_list = target_list.substr(1);
+
+        double range_step = 1;
+        if(range_data.size() == 3) {
+            range_step = range_data[2];
+        }
+        for(double& range_itr = range_data[0]; range_itr <= range_data[1]; range_itr += range_step) {
+            var.var_add("var", "num", "[" + target_list + "#" + std::to_string(range_items) + "]", std::to_string(range_itr));
+            range_items++;
+        }
+
+        var.var_add("var", "num", "[" + target_list + "#len]", std::to_string(range_items));
+        var.add_structure(target_list, "num_list");
+    }
 }

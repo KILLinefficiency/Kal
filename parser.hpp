@@ -205,6 +205,11 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
 
+        else if(ins == "range") {
+            std::pair<std::vector<double>, std::string> range_data = lexer::lex_range_ins(cmd);
+            lib::range_to_list(range_data.first, range_data.second, var);
+        }
+
         else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
             std::string struct_type = var.get_structure_type(var_data[0].substr(1));

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <utility>
 
 #include "lib/lib_string.hpp"
 
@@ -110,6 +111,21 @@ namespace lexer {
             }
         }
         return rev_data;
+    }
+
+    std::pair<std::vector<double>, std::string> lex_range_ins(std::vector<std::string>& tokens) {
+        std::string range_code = lib::vector_to_string(tokens, "", 1);
+        std::pair<std::vector<double>, std::string> ret_range_data;
+        std::vector<double> range_vals;
+        std::vector<std::string> range_data = lib::str_split(range_code, "->");
+        std::vector<std::string> range_vals_str = lib::str_split(range_data[0], "..");
+        for(std::string& val : range_vals_str) {
+            range_vals.emplace_back(std::stod(val));
+        }
+        ret_range_data.first = range_vals;
+        ret_range_data.second = range_data[1];
+
+        return ret_range_data;
     }
 
 }
