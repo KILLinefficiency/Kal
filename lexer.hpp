@@ -93,15 +93,6 @@ namespace lexer {
         return list_name_elements;
     }
 
-    std::vector<std::string> lex_extend_list(std::vector<std::string>& tokens) {
-        // wip
-        std::vector<std::string> extend_list_tokens;
-        std::string extend_code = lib::vector_to_string(tokens, " ", 1);
-        std::cout << extend_code << std::endl;
-
-        return extend_list_tokens;
-    }
-
     std::vector<std::string> lex_reverse_ins(std::vector<std::string>& tokens) {
         std::string rev_code = lib::vector_to_string(tokens, "", 1);
         std::vector<std::string> rev_data = lib::str_split(rev_code, "->");

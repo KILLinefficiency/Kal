@@ -189,10 +189,6 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             lib::unpack_list(unpack_list, unpack_list_type, list_vars, var);
         }
 
-        else if(ins == "extend") {
-            std::vector<std::string> extend_data = lexer::lex_extend_list(cmd);
-        }
-
         else if(ins == "reverse") {
             std::vector<std::string> rev_data = lexer::lex_reverse_ins(cmd);
             int ins_param_size = rev_data.size();
