@@ -165,7 +165,7 @@ class VarTable {
                     list_end = "";
                 }
                 if(list_type == "str_list") {
-                    list_result += ("\"" + get_from_strings(identifier) + "\"" + list_end);
+                    list_result += (get_from_strings(identifier) + list_end);
                 }
                 else if(list_type == "num_list") {
                     list_result += (lib::display_num(get_from_numbers(identifier)) + list_end);
