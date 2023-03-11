@@ -150,11 +150,17 @@ namespace lib {
         }
 
         for(int current_index = 0; current_index < size; current_index++) {
+            len++;
+
+            if(delimiter == '.' && text[current_index] == delimiter) {
+                if((text[current_index - 1] >= '0' && text[current_index - 1] <= '9') && (text[current_index + 1] >= '0' && text[current_index + 1] <= '9')) {
+                    continue;
+                }
+            }
+
             if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || (text[current_index - 1] == ' ') || !enable_split)) {
                 enable_split = !enable_split;
             }
-
-            len++;
 
             if((text[current_index] == delimiter) && enable_split) {
                 std::string required_string = text.substr(begin, len);
