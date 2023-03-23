@@ -100,8 +100,8 @@ namespace preproc {
         for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
             if(expanded_contents[content_itr][0] == '@') {
                 std::string include_file_path = expanded_contents[content_itr].substr(1);
-
-                if(include_file_path.substr(include_file_path.size() - 4) != ".kal") {
+                int include_file_path_size = include_file_path.size();
+                if(include_file_path_size < 4 || include_file_path.substr(include_file_path_size - 4) != ".kal") {
                     include_file_path += ".kal";
                 }
 
