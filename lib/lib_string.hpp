@@ -175,6 +175,58 @@ namespace lib {
         return words;
     }
 
+    std::vector<std::string> new_split(std::string& text, char delimiter = '.', char secondary_id = '@' , char secondary_delimiter = '\n', char escape_char = '"') {
+        int index = 0;
+        int text_size = text.size();
+        int begin = 0;
+        int end = 0;
+        bool inside_string = false;
+        std::string required_line;
+        std::vector<std::string> lines;
+
+        if(text[text_size - 1] != delimiter) {
+            text += delimiter;
+            text_size++;
+        }
+
+        while(index < text_size) {
+
+            if(!inside_string && text[index] == secondary_id) {
+                while(text[index] != secondary_delimiter) {
+                    index++;
+                }
+                required_line = text.substr(begin, index - begin);
+                lines.emplace_back(required_line);
+                begin = index + 1;
+                continue;
+
+            }
+
+            if(text[index] == '.' && delimiter == '.') {
+                if((text[index - 1] >= '0' && text[index - 1] <= '9') && (text[index + 1] >= '0' && text[index + 1] <= '9')) {
+                    index++;
+                    continue;
+                }
+            }
+
+            if(!inside_string && text[index] == delimiter) {
+                end = index;
+                required_line = text.substr(begin, end - begin);
+                if(required_line != "") {
+                    lines.emplace_back(required_line);
+                }
+                begin = end + 1;
+            }
+
+            if(text[index] == escape_char) {
+                inside_string = !inside_string;
+            }
+            index++;
+        }
+
+        return lines;
+    }
+
     std::vector<std::string> str_split(std::string& text, std::string delimiter) {
         std::vector<std::string> words;
         char* c_text = &text[0];

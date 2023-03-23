@@ -90,7 +90,7 @@ namespace preproc {
         std::string initial_file_contents = lib::read_file(initial_file_path, true);
         remove_comments(initial_file_contents);
         adjust_strings(initial_file_contents);
-        std::vector<std::string> initial_file_lines = lib::split(initial_file_contents, '.', '"');
+        std::vector<std::string> initial_file_lines = lib::new_split(initial_file_contents);
         std::vector<std::string> initial_cleaned_file_lines = clean_contents(initial_file_lines);
         return initial_cleaned_file_lines;
     }
@@ -99,7 +99,12 @@ namespace preproc {
         int clean_contents_size = expanded_contents.size();
         for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
             if(expanded_contents[content_itr][0] == '@') {
-                std::string include_file_path = expanded_contents[content_itr].substr(1) + ".kal";
+                std::string include_file_path = expanded_contents[content_itr].substr(1);
+
+                if(include_file_path.substr(include_file_path.size() - 4) != ".kal") {
+                    include_file_path += ".kal";
+                }
+
                 if(lib::exists_in_vector(included_file_list, include_file_path)) {
                     errors::file_already_included_error(include_file_path);
                 }
