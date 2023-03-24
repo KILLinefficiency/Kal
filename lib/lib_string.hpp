@@ -190,6 +190,12 @@ namespace lib {
         }
 
         while(index < text_size) {
+            if(!inside_string && text[index] == '#' && text[index + 1] == '!') {
+                while(text[index] != '\n') {
+                    index++;
+                }
+                begin = index + 1;
+            }
 
             if(!inside_string && text[index] == secondary_id) {
                 while(text[index] != secondary_delimiter) {
