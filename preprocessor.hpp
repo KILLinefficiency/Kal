@@ -1,6 +1,7 @@
 #pragma once
 
 #include "errors.hpp"
+#include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
 
 namespace preproc {
@@ -104,7 +105,7 @@ namespace preproc {
                 if(include_file_path_size < 4 || include_file_path.substr(include_file_path_size - 4) != ".kal") {
                     include_file_path += ".kal";
                 }
-
+                include_file_path = /*include_file_path + '/' +*/ lib::get_dir(current_file_path) + include_file_path;
                 if(lib::exists_in_vector(included_file_list, include_file_path)) {
                     errors::file_already_included_error(include_file_path);
                 }

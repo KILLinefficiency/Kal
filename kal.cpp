@@ -6,6 +6,7 @@
 #include "variable.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
+#include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
 
 int main(int argc, char** argv) {
@@ -22,7 +23,7 @@ int main(int argc, char** argv) {
     }
 
     std::vector<std::string> args = arg_parser.get_args();
-    std::string file_name = args[0];
+    std::string file_name = lib::get_path(args[0]);
 
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
     preproc::preprocess(source_lines, file_name);
