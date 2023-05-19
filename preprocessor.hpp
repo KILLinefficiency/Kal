@@ -143,9 +143,6 @@ namespace preproc {
             index++;
         }
         //std::string file_path = lib::get_dir(current_file_path) + file_path;
-        for(std::string x : deps) {
-            std::cout << "[" << x << "]" << std::endl;
-        }
         std::vector<std::string> sloc = initial_preprocessing(deps[0]);
         squash_vector(expanded_contents, sloc, 0, false);
 
@@ -156,7 +153,6 @@ namespace preproc {
         /*if(deps) {
             expand_deps(processed_contents, deps_str, current_file_path)
         }*/
-        std::cout << "preproc\n";
         for(uint64_t line_count = 0; line_count < processed_contents.size(); line_count++) {
             expand_files(processed_contents, included_file_list, current_file_path);
         }

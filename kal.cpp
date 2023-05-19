@@ -24,19 +24,12 @@ int main(int argc, char** argv) {
 
     std::vector<std::string> args = arg_parser.get_args();
     std::string file_name = lib::get_path(args[1]);
-    std::cout << "File: " << file_name << std::endl;
 
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
-    for(auto x : source_lines) {
-        std::cout << "{" << x << "}" << std::endl;
-    }
 
     if(arg_parser.flag_exists("-d")) {
         std::string deps = arg_parser.get_value("-d");
         preproc::expand_deps(source_lines, deps);
-    }
-    for(auto x : source_lines) {
-        std::cout << "{" << x << "}" << std::endl;
     }
 
     preproc::preprocess(source_lines, file_name);

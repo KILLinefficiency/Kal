@@ -30,13 +30,13 @@ class ArgParser {
             }
 
             std::unordered_map<std::string, std::string>::iterator it;
-            for(it = flags_map.begin(); it != flags_map.end(); it++) {
+            /*for(it = flags_map.begin(); it != flags_map.end(); it++) {
                 std::cout << it->first << ": " << it->second << std::endl;
             }
             for(std::string x : prog_args) {
                 std::cout << x << std::endl;
-            }
-            std::cout << "--------\n";
+            }*/
+            //std::cout << "--------\n";
             /*for(int item_itr = 0; item_itr < size; item_itr++) {
                if(args[item_itr][0] == '-') {
                    int next_item = item_itr + 1;
