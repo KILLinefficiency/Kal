@@ -130,21 +130,50 @@ namespace preproc {
 
     void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
         std::vector<std::string> deps;
-        int index = 0;
-        int begin = 0;
         int size = deps_str.size();
+        int index = size;
+        int begin = size;
+
         std::string required_dep = "";
-        while(index < size) {
+        /*if(deps_str[size - 1] != ',') {
+            deps_str += ',';
+            size++;
+        }*/
+        if(deps_str[0] != ',') {
+            deps_str = ',' + deps_str;
+            size++;
+        }
+
+        while(index >= 0) {
+            //std::cout << index << ": " << deps_str[index] << std::endl;
             if(deps_str[index] == ',') {
-                required_dep = deps_str.substr(begin, index);
+                required_dep = deps_str.substr(index + 1, begin - index + 1);
+                if(required_dep != "") {
+                    required_dep = lib::trim_leading(lib::trim_trailing(required_dep));
+                    deps.emplace_back(required_dep);
+                }
+                //std::cout << "[" << required_dep << "]" << std::endl;
+                begin = index - 2;
+            }
+            index--;
+        }
+        //std::cout << deps_str << std::endl;
+        /*while(index < size) {
+            if(deps_str[index] == ',') {
+                //std::cout << begin << " " << index << std::endl;
+                required_dep = deps_str.substr(begin, index - begin);
                 deps.emplace_back(required_dep);
+                //std::cout << "[" << required_dep << "]" << std::endl;
                 begin = index + 1;
             }
             index++;
-        }
+        }*/
+        //return;
         //std::string file_path = lib::get_dir(current_file_path) + file_path;
-        std::vector<std::string> sloc = initial_preprocessing(deps[0]);
-        squash_vector(expanded_contents, sloc, 0, false);
+        for(std::string dep : deps) {
+            std::vector<std::string> sloc = initial_preprocessing(dep);
+            squash_vector(expanded_contents, sloc, 0, false);
+        }
 
     }
 
