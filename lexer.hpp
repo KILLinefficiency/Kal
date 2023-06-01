@@ -2,20 +2,27 @@
 
 #include <vector>
 #include <utility>
+#include "parser.hpp"
 
 #include "lib/lib_string.hpp"
 
 namespace lexer {
     std::vector<std::vector<std::string>> tokenize(const std::vector<std::string>& source_lines) {
         int lines = source_lines.size();
+        /*for(auto y : source_lines) {
+            std::cout << y << std::endl;
+        }*/
         std::vector<std::vector<std::string>> all_tokens;
 
         for(int line = 0; line < lines; line++) {
             std::string current_line = source_lines[line];
-            std::vector<std::string> tokens = lib::split(current_line);
+            std::vector<std::string> tokens = parser::parse(current_line);
+            /*for(auto x : tokens) {
+                std::cout << "[" << x << "]" << std::endl;
+            }*/
             all_tokens.emplace_back(tokens);
         }
-
+        //exit(1);
         return all_tokens;
     }
 
@@ -42,6 +49,9 @@ namespace lexer {
         }
 
         var_data = {var_type, var_name, var_val};
+        /*for(std::string x : var_data) {
+            std::cout << "[" << x << "]" << std::endl;
+        }*/
         return var_data;
     }
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -79,6 +81,15 @@ namespace parser {
         int end = index - 1;
         std::string expr = text.substr(begin, end - begin + 1);
         return std::to_string(eval(expr));
+    }
+
+    std::string parse_variable(const std::string& text, int& index) {
+        int begin = index;
+        while(!WHITESPACE(index)) {
+            index++;
+        }
+        std::string required_string  = text.substr(begin, index - begin);
+        return required_string;
     }
 
     std::string extract_list(const std::string& text, int& index) {
@@ -163,20 +174,21 @@ namespace parser {
                 }
                 element_idx += std::to_string(pos);
                 elements[element_idx] = element;
+                std::cout << element_idx << ": " << element << std::endl;;
             }
         }
 
         return elements;
     }
 
-    std::vector<std::string> parse(const std::string& text, bool direct = false) {
+    std::vector<std::string> parse(const std::string& text /*,bool direct = false*/) {
         std::vector<std::string> tokens;
         int index = 0;
         int text_size = text.size();
 
         int begin = 0;
         int end = 0;
-        bool inside_string = false;
+        //bool inside_string = false;
         std::string required_token;
 
         while(index < text_size) {
@@ -195,15 +207,6 @@ namespace parser {
                 tokens.emplace_back(required_token);
             }
 
-            if(is_num(text[index])) {
-                begin = index;
-                while(is_num(text[index])) {
-                    index++;
-                }
-                end = index;
-                required_token = text.substr(begin, end - begin);
-                tokens.emplace_back(required_token);
-            }
 
             if(text[index] == '=') {
                 end = index;
@@ -216,7 +219,8 @@ namespace parser {
                 }
                 required_token = text.substr(begin, end - begin + 1);
                 tokens.emplace_back(required_token);
-                index += (end - begin);
+                index += (end - begin - 1);
+                //std::cout << "later: " << index << std::endl;
 
                 /*begin = index;
                 begin++;
@@ -229,7 +233,8 @@ namespace parser {
                 }
                 index = end;
                 required_token = text.substr(begin, end - begin);
-                tokens.emplace_back(required_token);*/
+                tokens.emplace_back(required_token);
+                std::cout << required_token << std::endl;*/
             }
 
             if(match(index, text, target_operator)) {
@@ -262,6 +267,20 @@ namespace parser {
                 //index++;
             }
 
+            if(is_num(text[index])) {
+                begin = index;
+                while(is_num(text[index])) {
+                    index++;
+                }
+                end = index;
+                required_token = text.substr(begin - 1, end - begin + 1);
+                tokens.emplace_back(required_token);
+            }
+
+            if(text[index] == '$') {
+                tokens.emplace_back(parse_variable(text, index));
+            }
+
             if(text[index] == '[') {
                 tokens.emplace_back(extract_list(text, index));
             }
@@ -276,6 +295,10 @@ namespace parser {
 
             index++;
         }
+
+        /*for(std::string x : tokens) {
+            std::cout << "{" << x << "}" << std::endl;
+        }*/
 
         return tokens;
     }

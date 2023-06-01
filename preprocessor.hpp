@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 #include "errors.hpp"
 #include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
@@ -104,6 +106,7 @@ namespace preproc {
     }
 
     void expand_files(std::vector<std::string>& expanded_contents, std::vector<std::string>& included_file_list, std::string& current_file_path) {
+        char buf[4096];
         int clean_contents_size = expanded_contents.size();
         for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
             if(expanded_contents[content_itr][0] == '@') {
@@ -113,6 +116,10 @@ namespace preproc {
                     include_file_path += ".kal";
                 }
                 include_file_path = /*include_file_path + '/' +*/ lib::get_dir(current_file_path) + include_file_path;
+                const char* x = realpath(include_file_path.c_str(), buf);
+                //std::cout << x << std::endl;
+                include_file_path = x;
+                std::cout << include_file_path << std::endl;
                 if(lib::exists_in_vector(included_file_list, include_file_path)) {
                     errors::file_already_included_error(include_file_path);
                 }
@@ -124,6 +131,7 @@ namespace preproc {
 
                 std::vector<std::string> included_cleaned_source_lines = initial_preprocessing(include_file_path);
                 squash_vector(expanded_contents, included_cleaned_source_lines, content_itr);
+                memset(buf, '\0', sizeof(buf));
             }
         }
     }

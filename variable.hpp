@@ -12,12 +12,14 @@ class VarTable {
         std::unordered_map<std::string, double> numbers;
         std::unordered_map<std::string, std::string> strings;
 
+
         std::unordered_map<std::string, std::string> structures;
 
         std::unordered_map<std::string, std::string> type_check;
         std::unordered_map<std::string, std::string> mem_check;
 
     public:
+        std::unordered_map<std::string, std::string> data;
         std::string get_type(std::string var_name) {
             std::string var_type = type_check[var_name];
             /*if(var_type == "") {
@@ -36,7 +38,7 @@ class VarTable {
             return exist_condition;
         }
 
-        void var_add(std::string mem_type, std::string var_type, std::string var_name, std::string var_value, bool declaration = false) {
+        void var_add(std::string mem_type, std::string var_name, std::string var_value, bool declaration = false) {
             if(var_exists(var_name) && declaration) {
                 errors::var_redeclare_error(var_name, get_type(var_name));
             }
@@ -45,21 +47,23 @@ class VarTable {
                 errors::change_const_var_error(var_name);
             }
 
-            type_check[var_name] = var_type;
+            // type_check[var_name] = var_type;
             mem_check[var_name] = mem_type;
 
-            if(var_type == "str") {
+            data[var_name] = var_value;
+
+            /*if(var_type == "str") {
                 strings[var_name] = var_value;
             }
 
             else if(var_type == "num") {
                 double casted_var_value = std::stod(var_value);
                 numbers[var_name] = casted_var_value;
-            }
+            }*/
 
-            else {
+            /*else {
                 errors::unknown_var_type(var_name, var_type);
-            }
+            }*/
         }
 
         void var_delete(std::string var_name) {
@@ -107,7 +111,7 @@ class VarTable {
             return int(get_from_numbers("[" + list_name + "#len]"));
         }
 
-        std::string eval_var(std::string& var_expr) {
+        /*std::string eval_var(std::string& var_expr) {
             var_expr = var_expr.substr(1);
             std::vector<std::string> var_params = lib::split(var_expr, '#');
             int var_params_size = var_params.size();
@@ -134,6 +138,15 @@ class VarTable {
             }
 
             return "";
+        }*/
+
+        std::string eval_var(std::string& var_expr) {
+            std::string val = data[var_expr.substr(1)];
+            if(val[0] == '"') {
+                val = val.substr(1, val.size() - 2);
+            }
+
+            return val;
         }
 
         std::string expand_var(std::string& var_expr) {

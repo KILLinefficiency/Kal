@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "shell.hpp"
 #include "exec.hpp"
@@ -23,7 +24,9 @@ int main(int argc, char** argv) {
     }
 
     std::vector<std::string> args = arg_parser.get_args();
-    std::string file_name = lib::get_path(args[1]);
+    //std::string file_name = lib::get_path(args[1]);
+    char buf[4096];
+    std::string file_name = realpath(args[1].c_str(), buf);
 
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
 

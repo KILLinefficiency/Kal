@@ -10,7 +10,7 @@ namespace lib {
         var.add_structure(to_list, list_type);
         list_type = list_type.substr(0, 3);
 
-        var.var_add("var", "num", "[" + to_list + "#len]", std::to_string(list_size));
+        var.var_add("var", "[" + to_list + "#len]", std::to_string(list_size));
         for(int copy_itr = 0; copy_itr < list_size; copy_itr++) {
             std::string each_value = "";
             std::string index = std::to_string(copy_itr);
@@ -23,7 +23,7 @@ namespace lib {
                 each_value = std::to_string(var.get_from_numbers(from_identifier));
             }
 
-            var.var_add("var", list_type, to_identifier, each_value);
+            var.var_add("var", to_identifier, each_value);
         }
     }
 
@@ -38,13 +38,13 @@ namespace lib {
             return;
         }
 
-        var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len - 2));
+        var.var_add("var", "[" + list_name + "#len]", std::to_string(list_len - 2));
         for(int each_item = 2; each_item < list_len; each_item++) {
             std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 2) + "]";
             if(list_data[each_item][0] == '$') {
                 list_data[each_item] = var.eval_var(list_data[each_item]);
             }
-            var.var_add("var", list_type, identifier, list_data[each_item]);
+            var.var_add("var", identifier, list_data[each_item]);
         }
         var.add_structure(list_name, list_type + "_list");
     }
@@ -54,7 +54,7 @@ namespace lib {
         std::string struct_type = var.get_structure_type(list_name);
         if(struct_type == "str_list" || struct_type == "num_type") {
             double struct_size = var.get_from_numbers("[" + list_name + "#len]");
-            var.var_add("var", "num", target_var, std::to_string(struct_size));
+            var.var_add("var", target_var, std::to_string(struct_size));
         }
     }
 
@@ -80,8 +80,8 @@ namespace lib {
 
         std::string identifier = "[" + push_list + "#" + std::to_string(latest_index) + "]";
         std::string list_type = var.get_structure_type(push_list).substr(0, 3);
-        var.var_add("var", list_type, identifier, push_item);
-        var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
+        var.var_add("var", identifier, push_item);
+        var.var_add("var", len_var, std::to_string(latest_index + 1));
     }
 
     void join_list(std::string& list_name, std::string& join_text, std::string& target_str, VarTable& var) {
@@ -101,10 +101,10 @@ namespace lib {
             }
         }
 
-        var.var_add("var", struct_type, target_str, formed_string);
+        var.var_add("var", target_str, formed_string);
     }
 
-    void unpack_list(std::string& unpack_list, std::string& unpack_list_type, std::vector<std::string>& list_vars, VarTable& var) {
+    void unpack_list(std::string& unpack_list, std::vector<std::string>& list_vars, VarTable& var) {
         int total_unpack_vars = list_vars.size();
         for(int unpack_itr = 0; unpack_itr < total_unpack_vars; unpack_itr++) {
             if(list_vars[unpack_itr][0] == '$') {
@@ -112,7 +112,7 @@ namespace lib {
             }
             std::string list_element_id = "$" + unpack_list + "#" + std::to_string(unpack_itr);
             std::string unpack_value = var.eval_var(list_element_id);
-            var.var_add("var", unpack_list_type, list_vars[unpack_itr], unpack_value);
+            var.var_add("var", list_vars[unpack_itr], unpack_value);
         }
     }
 
@@ -137,8 +137,8 @@ namespace lib {
                 other_item = var.get_from_strings(other_identifier);
             }
 
-            var.var_add("var", list_type, identifier, other_item);
-            var.var_add("var", list_type, other_identifier, item);
+            var.var_add("var", identifier, other_item);
+            var.var_add("var", other_identifier, item);
         }
     }
 
@@ -151,11 +151,11 @@ namespace lib {
             range_step = range_data[2];
         }
         for(double& range_itr = range_data[0]; range_itr <= range_data[1]; range_itr += range_step) {
-            var.var_add("var", "num", "[" + target_list + "#" + std::to_string(range_items) + "]", std::to_string(range_itr));
+            var.var_add("var", "[" + target_list + "#" + std::to_string(range_items) + "]", std::to_string(range_itr));
             range_items++;
         }
 
-        var.var_add("var", "num", "[" + target_list + "#len]", std::to_string(range_items));
+        var.var_add("var", "[" + target_list + "#len]", std::to_string(range_items));
         var.add_structure(target_list, "num_list");
     }
 }

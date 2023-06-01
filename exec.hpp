@@ -22,10 +22,10 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
     int tokens_list = tokens.size();
 
     int args_len = prog_args.size();
-    var.var_add("var", "num", "[args#len]", std::to_string(args_len));
+    var.var_add("var", "[args#len]", std::to_string(args_len));
     for(int arg_count = 0; arg_count < args_len; arg_count++) {
         std::string args_identifier = "[args#" + std::to_string(arg_count) + "]";
-        var.var_add("var", "str", args_identifier, prog_args[arg_count]);
+        var.var_add("var", args_identifier, prog_args[arg_count]);
     }
     var.add_structure("args", "str_list");
 
@@ -111,18 +111,25 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         }
 
         else if(ins == "var" || ins == "const") {
-            std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
+            //std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
+            std::vector<std::string> var_data = cmd;
 
             if(ins == "const" && var_data[2] == "" && warn) {
                 warnings::const_uninitialized_warning(var_data[1]);
             }
+            
+            var.var_add(ins, var_data[1], var_data[2], true);
+            //std::cout << var.data["age"] << std::endl;
 
             if(var_data[2] == "") {
-                std::vector<std::string> multiple_vars = lib::split(var_data[1], ',');
-                int total_vars = multiple_vars.size();
-                for(int add_var = 0; add_var < total_vars; add_var++) {
-                    var.var_add(ins, var_data[0], multiple_vars[add_var], var_data[2], true);
-                }
+                //std::vector<std::string> multiple_vars = lib::split(var_data[1], ',');
+                //int total_vars = multiple_vars.size();
+                /*for(int add_var = 0; add_var < total_vars; add_var++) {
+                    //var.var_add(ins, var_data[0], multiple_vars[add_var], var_data[2], true);
+                    var.var_add(ins, "hey", var_data[1], var_data[2], true);
+                }*/
+
+
                 continue;
             }
 
@@ -147,7 +154,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 }
             }
 
-            var.var_add(ins, var_data[0], var_data[1], var_data[2], true);
+            var.var_add(ins, var_data[1], var_data[2], true);
         }
 
         else if(ins == "list") {
@@ -186,7 +193,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             std::string unpack_list_type = var.get_structure_type(unpack_list).substr(0, 3);
             std::string clean_var_list = unpack_data[1].substr(1, unpack_data[1].size() - 2);
             std::vector<std::string> list_vars = lib::split(clean_var_list, ',');
-            lib::unpack_list(unpack_list, unpack_list_type, list_vars, var);
+            lib::unpack_list(unpack_list, list_vars, var);
         }
 
         else if(ins == "reverse") {
@@ -233,7 +240,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 }
             }
 
-            var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], second_var_val);
+            var.var_add(var.get_mem_type(var_data[0]), var_data[0], second_var_val);
         }
 
         else if(ins == "del" && cmd_size == 2) {
@@ -273,7 +280,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                     errors::cannot_write_to_literal_error(strings[0]);
                 }
                 std::string first_var_name = var.expand_var(strings[0]);
-                var.var_add("var", "str", first_var_name, concat_str);
+                var.var_add("var", first_var_name, concat_str);
             }
 
             else if(tok_size == 2) {
@@ -283,7 +290,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 }
                 std::string dest_string_id = tok[1].substr(var_start, tok[1].size() - (var_start + 2));
                 std::string destination_string = var.expand_var(dest_string_id);
-                var.var_add("var", "str", destination_string, concat_str);
+                var.var_add("var", destination_string, concat_str);
             }
         }
         
@@ -299,7 +306,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 hold_var = lexer::get_var_name_from_token(hold_var);
                 std::string read_text = lib::render_escape_chars(lib::read_file(file_path));
 
-                var.var_add("var", "str", hold_var, read_text);
+                var.var_add("var", hold_var, read_text);
             }
             else if(ins == "write") {
                 std::string& write_string = tok[0];

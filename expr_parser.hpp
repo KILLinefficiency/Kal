@@ -89,9 +89,9 @@ double eval(std::string expr) {
             index++;
             continue;
         }
-        else if(expr[index] >= '0' && expr[index] <= '9' || expr[index] == '.') {
+        else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
-            while(expr[index] >= '0' && expr[index] <= '9' || expr[index] == '.') {
+            while((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
                 index++;
             }
             std::string value = expr.substr(begin, index - begin);
