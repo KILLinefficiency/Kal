@@ -17,6 +17,7 @@ namespace lexer {
         for(int line = 0; line < lines; line++) {
             std::string current_line = source_lines[line];
             std::vector<std::string> tokens = parser::parse(current_line);
+            // std::vector<std::string> tokens = lib::split(current_line);
             /*for(auto x : tokens) {
                 std::cout << "[" << x << "]" << std::endl;
             }*/
