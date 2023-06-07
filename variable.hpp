@@ -89,14 +89,9 @@ class VarTable {
         }
 
         void read_var(std::string var_name) {
-            std::string var_type = get_type(var_name);
-
-            if(var_type == "str") {
-                std::getline(std::cin, strings[var_name]);
-            }
-            else if(var_type == "num") {
-                std::cin >> numbers[var_name];
-            }
+            std::string temp_data;
+            std::getline(std::cin, temp_data);
+            data[var_name.substr(1)] = '"' + temp_data + '"';
         }
 
         void add_structure(std::string struct_name, std::string struct_type) {
@@ -142,15 +137,15 @@ class VarTable {
 
         std::string eval_var(std::string var_expr) {
             std::string val = data[var_expr];
-            if(val == "") {
-                std::cout << val << "does not exist" << std::endl;
-                exit(1);
-            }
             if(var_expr[0] == '$') {
                 val = data[var_expr.substr(1)];
             }
             if(val[0] == '"') {
                 val = val.substr(1, val.size() - 2);
+            }
+            if(val == "") {
+                std::cout << val << "does not exist" << std::endl;
+                exit(1);
             }
 
             return val;

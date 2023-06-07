@@ -1,6 +1,7 @@
 #pragma once
 
 struct Config {
+    std::string id = "";
     bool head           =  true,
          optional_arg   =  true,
          single_arg     =  false,
@@ -12,8 +13,8 @@ struct Config {
 
 Config group_0 = {
     .head = false,
-    .init_list = true;
-}
+    .init_list = true,
+};
 
 Config group_1;
 
@@ -27,5 +28,25 @@ Config group_3 = {
 };
 
 Config group_4 = {
-    .init_list = true;
+    .id = "group_4",
+    .init_list = true,
+};
+
+namespace p_config {
+    Config* get_config(const std::string& cmd) {
+        if(cmd == "exit" || cmd == "warn") {
+            return &group_1;
+        }
+        else if(cmd == "stdin") {
+            return &group_2;
+        }
+        else if(cmd == "style" || cmd == "stdout") {
+            return &group_3;
+        }
+        else if(cmd == "var" || cmd == "const" || cmd == "static") {
+            return &group_4;
+        }
+
+        return &group_0;
+    }
 }

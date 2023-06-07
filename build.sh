@@ -9,6 +9,7 @@ CC="g++"
 SRC_FILE="kal.cpp"
 BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
+STD="-std=c++20"
 FLAGS="-s -pipe -static -pedantic -Wall -Wextra -Werror"
 
 SU="sudo"
@@ -41,7 +42,7 @@ function vim_ft() {
 function compile() {
     echo -e "${GREEN} * Compiling Kal${DEFAULT}"
     ! [ -d bin ] && mkdir bin
-    ${CC} ${OPTIMIZATION} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
+    ${CC} ${OPTIMIZATION} ${STD} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
 }
 
 function install() {

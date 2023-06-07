@@ -12,11 +12,20 @@ namespace lexer {
         /*for(auto y : source_lines) {
             std::cout << y << std::endl;
         }*/
+        std::string head;
+        Config* config;
         std::vector<std::vector<std::string>> all_tokens;
 
         for(int line = 0; line < lines; line++) {
+            int get_head = 0;
             std::string current_line = source_lines[line];
-            std::vector<std::string> tokens = parser::parse(current_line);
+            while(current_line[get_head] != ' ' && current_line[get_head] != '\t' && current_line[get_head] != '\n') {
+                get_head++;
+            }
+            head = current_line.substr(0, get_head);
+            config = p_config::get_config(head);
+            std::cout << "head: " << head << std::endl;
+            std::vector<std::string> tokens = parser::parse(current_line, config);
             // std::vector<std::string> tokens = lib::split(current_line);
             /*for(auto x : tokens) {
                 std::cout << "[" << x << "]" << std::endl;

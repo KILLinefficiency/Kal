@@ -33,6 +33,14 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         std::vector<std::string>& cmd = tokens[line];
         std::string& ins = cmd[0];
         int cmd_size = cmd.size();
+        for(int replace = 1; replace < cmd_size; replace++) {
+            if(ins == "stdin") {
+                continue;
+            }
+            if(cmd[replace][0] == '$') {
+                cmd[replace] = var.eval_var(cmd[replace]);
+            }
+        }
 
         if(ins[0] == '#' && ins[1] == '!') {
             continue;
@@ -65,8 +73,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(ins == "style") {
             for(int style_itr = 1; style_itr < cmd_size; style_itr++) {
                 std::string passed_style = cmd[style_itr];
-                if(passed_style[0] == '$') {
-                    passed_style = var.eval_var(passed_style);
+                if(passed_style[0] == '"' && passed_style[passed_style.size() - 1] == '"') {
+                    passed_style = passed_style.substr(1, passed_style.size() - 2);
                 }
                 std::string current_style = style::style[passed_style];
 
@@ -83,7 +91,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
 
             for(int start_val = 1; start_val < cmd_size; start_val++) {
-                if(cmd[start_val][0] != '$') {
+                parser::std_out(cmd[start_val]);
+                /*if(cmd[start_val][0] != '$') {
                     parser::std_out(cmd[start_val]);
                 }
                 else {
@@ -94,12 +103,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                     }
                     std::string str_value = var.eval_var(cmd[start_val]);
                     parser::std_out(str_value);
-                }
+                }*/
             }
-        }
-
-        else if(ins == "stderr" && cmd_size == 2) {
-            parser::std_err(cmd[1]);
         }
 
         else if(ins == "stdin" && cmd_size == 2) {
@@ -107,7 +112,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             if(var.get_mem_type(var_to_read) == "const") {
                 errors::change_const_var_error(var_to_read);
             }
-            var.read_var(var.expand_var(cmd[1]));
+            //var.read_var(var.expand_var(cmd[1]));
+            var.read_var(cmd[1]);
         }
 
         else if(ins == "var" || ins == "const") {
