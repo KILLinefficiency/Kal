@@ -190,7 +190,6 @@ namespace parser {
     }
 
     void parse_value(const std::string& text, int& index, std::vector<std::string>& tokens) {
-        int begin = 0, end = 0;
         std::string required_token;
 
         if(is_num(text[index])) {
@@ -217,6 +216,9 @@ namespace parser {
 
         if(text[index] == '"') {
             tokens.emplace_back(parse_string(text, index));
+        }
+        if(match(index, text, "null")) {
+            tokens.emplace_back("null");
         }
     }
 
