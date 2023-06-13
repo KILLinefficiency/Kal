@@ -24,7 +24,7 @@ namespace lexer {
             }
             head = current_line.substr(0, get_head);
             config = p_config::get_config(head);
-            std::cout << "head: " << head << std::endl;
+            //std::cout << "head: " << head << std::endl;
             std::vector<std::string> tokens = parser::parse(current_line, config);
             // std::vector<std::string> tokens = lib::split(current_line);
             /*for(auto x : tokens) {

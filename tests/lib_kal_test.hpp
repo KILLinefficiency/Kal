@@ -12,8 +12,9 @@ void component(std::string kal_component) {
 void title(std::string function) {
     std::cout << style::style["green"]
         << "[" << current << " / " << total << "] "
+        << style::style["reset"] << style::style["italic"] << "Testing " 
         << style::style["reset"] << style::style["bold"]
-        << "Testing " << function << "... ";
+        << function << style::style["reset"] << style::style["bold"] << "... ";
 }
 
 void check(std::string found, std::string actual, std::string error = "") {
@@ -35,5 +36,7 @@ void progress() {
 
 void exit_successfully() {
     std::cout << style::style["reset"] << style::style["bold"]
-        << "\nAll tests PASS.\n" << style::style["reset"] << std::endl;
+        << "\nAll tests " << style::style["green"] << "PASS" << style::style["reset"]
+        << style::style["bold"] << ".\n" << style::style["reset"]
+        << std::endl;
 }

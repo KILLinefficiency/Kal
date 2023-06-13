@@ -378,10 +378,10 @@ namespace parser {
             index++;
         }
 
-        for(std::string x : tokens) {
+        /*for(std::string x : tokens) {
             std::cout << "{" << x << "}" << std::endl;
         }
-        std::cout << "----------" << std::endl;
+        std::cout << "----------" << std::endl;*/
 
         return tokens;
     }
