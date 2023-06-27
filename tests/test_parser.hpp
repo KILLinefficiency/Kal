@@ -5,6 +5,7 @@
 void test_parser() {
     int index;
     std::string text, actual, found;
+    std::vector<std::string> actual_vec, found_vec;
 
     component("Parser");
 
@@ -14,5 +15,15 @@ void test_parser() {
     actual = "3.14";
     found = parser::parse_number(text, index);
     check(found, actual);
+    progress();
+
+    title("parser::parse_init()");
+    index = 0;
+    text = "name = \"Superman\", age = 25,\naddress, friends = [\"Batman\", \"The Flash\"],\tpowers = null";
+    actual_vec = { "name", "\"Superman\"", "age", "25", "address", "null", "friends", "[\"Batman\", \"The Flash\"]", "powers", "null" };
+    parser::parse_init(text, index, found_vec);
+    for(uint64_t i = 0; i < found_vec.size(); i++) {
+        check(found_vec[i], actual_vec[i]);
+    }
     progress();
 }
