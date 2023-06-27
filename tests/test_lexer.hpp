@@ -6,9 +6,10 @@ void test_lexer() {
     component("Lexer");
 
     title("lexer::tokenize()");
-    std::vector<std::string> source_lines = { "var name = \"Kal-El\"",
-                                              "stdout $name \"\\n\"",
-                                            };
+    std::vector<std::string> source_lines = {
+        "var name = \"Kal-El\"",
+        "stdout $name \"\\n\"",
+    };
 
     std::vector<std::vector<std::string>> found = lexer::tokenize(source_lines);
     std::vector<std::vector<std::string>> actual = { { "var", "name", "\"Kal-El\"" },

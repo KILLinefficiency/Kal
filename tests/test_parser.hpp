@@ -21,7 +21,7 @@ void test_parser() {
     index = 0;
     text = "name = \"Superman\", age = 25,\naddress, friends = [\"Batman\", \"The Flash\"],\tpowers = null";
     actual_vec = { "name", "\"Superman\"", "age", "25", "address", "null", "friends", "[\"Batman\", \"The Flash\"]", "powers", "null" };
-    parser::parse_init(text, index, found_vec);
+    found_vec = parser::parse_init(text, index);
     for(uint64_t i = 0; i < found_vec.size(); i++) {
         check(found_vec[i], actual_vec[i]);
     }

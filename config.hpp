@@ -1,5 +1,10 @@
 #pragma once
 
+struct Token {
+    std::string head, target;
+    std::vector<std::string> init, values;
+};
+
 struct Config {
     std::string id = "";
     bool head           =  true,
