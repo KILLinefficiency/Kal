@@ -29,8 +29,8 @@ class ArgParser {
                 index++;
             }
 
-            std::unordered_map<std::string, std::string>::iterator it;
-            /*for(it = flags_map.begin(); it != flags_map.end(); it++) {
+            /*std::unordered_map<std::string, std::string>::iterator it;
+            for(it = flags_map.begin(); it != flags_map.end(); it++) {
                 std::cout << it->first << ": " << it->second << std::endl;
             }
             for(std::string x : prog_args) {

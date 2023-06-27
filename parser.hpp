@@ -228,10 +228,12 @@ namespace parser {
         int text_size = text.size();
         std::string required_token = "";
         while(index < text_size) {
+            bool key_val = false;
             /*while(WHITESPACE(index)) {
                 index++;
             }*/
             if(text[index] == '=') {
+                key_val = true;
                 end = index;
                 while(WHITESPACE(end - 1)) {
                     end--;
@@ -249,15 +251,29 @@ namespace parser {
                 while(WHITESPACE(index)) {
                     index++;
                 }
-                if(text[index] == ',') {
-                    index++;
-                    while(WHITESPACE(index)) {
-                        index++;
+            }
+            if(text[index] == ',') {
+                if(!key_val) {
+                    int var_end = index;
+                    while(WHITESPACE(var_end - 1)) {
+                        var_end--;
                     }
-                    begin = index;
-                    index++;
-                    continue;
+                    var_end--;
+                    int var_start = var_end;
+                    while(is_alpha(text[var_start - 1])) {
+                        var_start--;
+                    }
+                    required_token = text.substr(var_start, var_end - var_start + 1);
+                    tokens.emplace_back(required_token);
+                    tokens.emplace_back("null");
                 }
+                index++;
+                while(WHITESPACE(index)) {
+                    index++;
+                }
+                begin = index;
+                index++;
+                continue;
             }
 
             index++;

@@ -24,26 +24,11 @@ int main(int argc, char** argv) {
     }
 
     std::vector<std::string> args = arg_parser.get_args();
-    //std::string file_name = lib::get_path(args[1]);
-    char buf[4096];
-    std::string file_name = realpath(args[1].c_str(), buf);
-
-    std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
-
-    if(arg_parser.flag_exists("-d")) {
-        std::string deps = arg_parser.get_value("-d");
-        preproc::expand_deps(source_lines, deps);
-    }
-
-    preproc::preprocess(source_lines, file_name);
-
-
-    int source_lines_count = source_lines.size();
-    for(int each_line = 0; each_line < source_lines_count; each_line++) {
-        lib::expand_tabs(source_lines[each_line]);
-    }
-
+    std::string file_name;
+    std::vector<std::string> source_lines;
     if(arg_parser.flag_exists("-p")) {
+        file_name = arg_parser.get_value("-p");
+        source_lines = preproc::initial_preprocessing(file_name);
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
@@ -58,6 +43,23 @@ int main(int argc, char** argv) {
         }
         return 0;
     }
+    file_name = lib::get_path(args[1]);
+
+    source_lines = preproc::initial_preprocessing(file_name);
+
+    if(arg_parser.flag_exists("-d")) {
+        std::string deps = arg_parser.get_value("-d");
+        preproc::expand_deps(source_lines, deps);
+    }
+
+    preproc::preprocess(source_lines, file_name);
+
+
+    int source_lines_count = source_lines.size();
+    for(int each_line = 0; each_line < source_lines_count; each_line++) {
+        lib::expand_tabs(source_lines[each_line]);
+    }
+
     
     std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
     line_exec(tokens, var, args);

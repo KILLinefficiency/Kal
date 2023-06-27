@@ -198,9 +198,3 @@ double eval(std::string expr) {
     numbers.pop();
     return result;
 }
-
-/*int main(int argc, char** argv) {
-    double res = eval(argv[1]);
-    std::cout << res << std::endl;
-    return 0; 
-}*/
