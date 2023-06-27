@@ -1,8 +1,8 @@
 #pragma once
 
 struct Token {
-    std::string head, target;
-    std::vector<std::string> init, values;
+    std::string head = "", target ="";
+    std::vector<std::string> init = {}, values = {};
 };
 
 struct Config {

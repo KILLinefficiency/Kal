@@ -349,7 +349,7 @@ namespace parser {
                 while(WHITESPACE(index)) {
                     index++;
                 }
-                std::cout << index << std::endl;
+                //std::cout << index << std::endl;
                 token.init = parse_init(text, index);
                 continue;
             }

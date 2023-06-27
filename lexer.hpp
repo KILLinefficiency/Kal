@@ -7,14 +7,14 @@
 #include "lib/lib_string.hpp"
 
 namespace lexer {
-    std::vector<std::vector<std::string>> tokenize(const std::vector<std::string>& source_lines) {
+    std::vector<Token> tokenize(const std::vector<std::string>& source_lines) {
         int lines = source_lines.size();
         /*for(auto y : source_lines) {
             std::cout << y << std::endl;
         }*/
         std::string head;
         Config* config;
-        std::vector<std::vector<std::string>> all_tokens;
+        std::vector<Token> all_tokens;
 
         for(int line = 0; line < lines; line++) {
             int get_head = 0;
@@ -25,12 +25,12 @@ namespace lexer {
             head = current_line.substr(0, get_head);
             config = p_config::get_config(head);
             //std::cout << "head: " << head << std::endl;
-            std::vector<std::string> tokens = parser::parse(current_line, config);
+            Token token = parser::parse(current_line, config);
             // std::vector<std::string> tokens = lib::split(current_line);
             /*for(auto x : tokens) {
                 std::cout << "[" << x << "]" << std::endl;
             }*/
-            all_tokens.emplace_back(tokens);
+            all_tokens.emplace_back(token);
         }
         //exit(1);
         return all_tokens;
