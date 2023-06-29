@@ -19,5 +19,10 @@ void test_expr_parser() {
     found = eval(expr);
     check(found, actual);
 
+    expr = "1 == (0 + 1)";
+    actual = 1.0;
+    found = eval(expr);
+    check(found, actual);
+
     progress();
 }

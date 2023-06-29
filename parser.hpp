@@ -257,8 +257,12 @@ namespace parser {
                     index++;
                 }
             }
-            if(text[index] == ',') {
+            if(text[index] == ',' || index == text_size - 1) {
                 if(!key_val) {
+                    int offset = 1;
+                    if(index == text_size - 1 && text[text_size - 1] != ',') {
+                        offset++;
+                    }
                     int var_end = index;
                     while(WHITESPACE(var_end - 1)) {
                         var_end--;
@@ -268,7 +272,7 @@ namespace parser {
                     while(is_alpha(text[var_start - 1])) {
                         var_start--;
                     }
-                    required_token = text.substr(var_start, var_end - var_start + 1);
+                    required_token = text.substr(var_start, var_end - var_start + offset);
                     tokens.emplace_back(required_token);
                     tokens.emplace_back(null_val);
                 }
