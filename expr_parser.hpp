@@ -12,6 +12,28 @@ bool is_string(const std::string& text) {
     return text[0] == '"' && text[text.size() - 1] == '"';
 }
 
+std::string str_add(const std::string& x, const std::string& y) {
+    std::string xy;
+    /*std::cout << "x: " << x << "\ny: " << y
+        << "\nx_str: " << x.substr(0, x.size() - 1)
+        << "\ny_str: " << y.substr(1, y.size() - 1)
+        << std::endl;*/
+    xy = x.substr(0, x.size() - 1);
+    xy += y.substr(1, y.size() - 1);
+    return xy;
+}
+
+std::string str_mul(std::string& x, double d_times) {
+    std::string x_times = "";
+    int times = int(d_times);
+    x = x.substr(1, x.size() - 2);
+    while(times--) {
+        x_times += x;
+    }
+    x_times = '"' + x_times + '"';
+    return x_times;
+}
+
 namespace ops {
     const std::string negative = "n",
                       log_not = "!",
@@ -74,8 +96,8 @@ double mod(double x, double y) {
     return x;
 }
 
-double eval(std::string expr) {
-    double result = 0;
+std::string eval(std::string expr) {
+    std::string result;
     std::stringstream rpn;
     std::string current_op = "";
     std::stack<std::string> operators;
@@ -98,7 +120,10 @@ double eval(std::string expr) {
             continue;
         }
         else if(expr[index] == '"') {
+            //std::cout << "before: " << index << std::endl;
             std::string value = parser::parse_string(expr, index);
+            //std::cout << "after: " << index << std::endl;
+            //std::cout << "parsed value: [" << value << "]" << std::endl;
             rpn << value << ' ';
             //std::cout << index << std::endl;
             index++;
@@ -192,8 +217,11 @@ double eval(std::string expr) {
             numbers.pop();
             a = numbers.top();
             numbers.pop();
-            if(is_string(a) && is_string(a)) {
-                if(token == "==") {
+            if(is_string(a) && is_string(b)) {
+                if(token == "+") {
+                    numbers.push(str_add(a, b));
+                }
+                else if(token == "==") {
                     numbers.push(std::to_string(a == b));
                 }
                 else if(token == "!=") {
@@ -201,8 +229,20 @@ double eval(std::string expr) {
                 }
                 continue;
             }
-            x = std::stod(a);
-            y = std::stod(b);
+            else if(is_string(a) && !is_string(b)) {
+                if(token == "*") {
+                    //std::cout << "hey\n";
+                    numbers.push(str_mul(a, std::stod(b)));
+                    //std::cout << "hey\n";
+                }
+                continue;
+            }
+            if(!is_string(a)) {
+                x = std::stod(a);
+            }
+            if(!is_string(a)) {
+                y = std::stod(b);
+            }
 
             if     (token == "+")   numbers.push(std::to_string(x + y));
             else if(token == "-")   numbers.push(std::to_string(x - y));
@@ -224,7 +264,7 @@ double eval(std::string expr) {
             else if(token == "||")  numbers.push(std::to_string(x || y));
         }
     }
-    result = std::stod(numbers.top());
+    result = numbers.top();
     numbers.pop();
     return result;
 }
