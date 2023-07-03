@@ -3,95 +3,35 @@
 #include "../expr_parser.hpp"
 
 void test_expr_parser() {
-    std::string expr, found, actual;
+    std::string found;
+    std::vector<std::string> expr, actual;
 
     component("Expression Parser");
 
     title("eval()");
-    expr = "1 + 2 * 3";
-    actual = "7.000000";
-    found = eval(expr);
-    check(found, actual);
+    expr = {
+        "\"hello\" == \"hello\"",
+        "\"hello\" != \"hello\"",
+        "\"hello\" == \"hey\"",
+        "\"hello\" != \"hey\"",
+        "\"a\" + \"b\"",
+        "\"a\" * 3",
+        "\"a\" + \"b\" * 3",
+        "\"a\" + \"b\" * 3 == \"abbb\"",
+        "(\"a\" + \"b\") * 3",
+        "(\"a\" + \"b\") * 3 == \"ababab\"",
+        "(\"a\" + \"b\") * (1 + 2) == \"ababab\"",
+        "\"hell\" + \"o\" == \"hel\" + \"lo\"",
+        "\"a\" * 1 + \"b\" * 2 + \"c\" * 3",
+        "\"a\" * 1 + \"b\" * 2 + \"c\" * 3 == \"abbccc\""
+    };
+    
+    actual = { "1", "0", "0", "1", "\"ab\"", "\"aaa\"", "\"abbb\"", "1", "\"ababab\"", "1", "1", "1", "\"abbccc\"", "1" };
 
-    expr = "(1 + 2) * 3";
-    actual = "9.000000";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "1 == (0 + 1)";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"hello\" == \"hello\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"hello\" != \"hello\"";
-    actual = "0";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"hello\" == \"hey\"";
-    actual = "0";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"hello\" != \"hey\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"a\" + \"b\"";
-    actual = "\"ab\"";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"a\" * 3";
-    actual = "\"aaa\"";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"a\" + \"b\" * 3";
-    actual = "\"abbb\"";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"a\" + \"b\" * 3 == \"abbb\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "(\"a\" + \"b\") * 3";
-    actual = "\"ababab\"";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "(\"a\" + \"b\") * 3 == \"ababab\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "(\"a\" + \"b\") * (1 + 2) == \"ababab\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"hell\" + \"o\" == \"hel\" + \"lo\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"a\" * 1 + \"b\" * 2 + \"c\" * 3";
-    actual = "\"abbccc\"";
-    found = eval(expr);
-    check(found, actual);
-
-    expr = "\"a\" * 1 + \"b\" * 2 + \"c\" * 3 == \"abbccc\"";
-    actual = "1";
-    found = eval(expr);
-    check(found, actual);
+    for(uint64_t i = 0; i < expr.size(); i++) {
+        found = eval(expr[i]);
+        check(found, actual[i]);
+    }
 
     progress();
 }
