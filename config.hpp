@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 struct Token {
     std::string head = "", target ="";
     std::vector<std::string> init = {}, values = {};
@@ -35,6 +37,11 @@ Config group_3 = {
 Config group_4 = {
     .id = "group_4",
     .init_list = true,
+};
+
+Config group_5 = {
+    .multiple_args = true,
+    .target = true,
 };
 
 namespace p_config {

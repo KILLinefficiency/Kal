@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "shell.hpp"
+//#include "shell.hpp"
 #include "exec.hpp"
 #include "errors.hpp"
 #include "variable.hpp"
@@ -15,7 +15,8 @@ int main(int argc, char** argv) {
     VarTable var = VarTable();
 
     if(argc == 1) {
-        shell::init_shell();
+        //shell::init_shell();
+        std::cout << "shell" << std::endl;
         return 0;
     }
     if(arg_parser.args_size() == 0) {
@@ -61,8 +62,8 @@ int main(int argc, char** argv) {
     }
 
     
-    std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens, var, args);
+    std::vector<Token> tokens = lexer::tokenize(source_lines);
+    line_exec(tokens, var);
 
     return 0;
 }
