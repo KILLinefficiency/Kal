@@ -298,7 +298,7 @@ namespace parser {
             values.emplace_back(required_token);
             index++;
         }
-        std::cout << "index: " << index << std::endl;
+        //std::cout << "index: " << index << std::endl;
         return values;
     }
 
@@ -335,6 +335,7 @@ namespace parser {
                 continue;
             }
             else {
+                token.values = parse_values(text, index);
             }
 
             // perform check inside. (if not config->target: throw error)
