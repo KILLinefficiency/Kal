@@ -9,7 +9,7 @@
 
 #include "config.hpp"
 
-#define WHITESPACE(position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n')
+#define WHITESPACE(position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n' || text[position] == '\r')
 
 namespace parser {
     std::string general_delimiter = ",";
@@ -46,11 +46,11 @@ namespace parser {
         return number >= '0' && number <= '9';
     }
 
-    bool match(int& index, std::string text, const std::string pattern) {
+    bool match(int& index, std::string text, const std::string pattern, bool incr = true) {
         int pattern_len = pattern.size();
         std::string found_pattern = text.substr(index, pattern_len);
         bool matched = pattern == found_pattern;
-        if(matched) {
+        if(matched && incr) {
             index += pattern_len;
         }
         return matched;
@@ -189,16 +189,10 @@ namespace parser {
         return elements;
     }
 
-    std::string parse_value(const std::string& text, int& index/*, std::vector<std::string>& tokens*/) {
+    std::string parse_value(const std::string& text, int& index) {
         std::string required_token = "";
 
         if(is_num(text[index])) {
-            /*begin = index;
-            while(is_num(text[index])) {
-                index++;
-            }
-            end = index;
-            required_token = text.substr(begin, end - begin);*/
             required_token = parse_number(text, index);
         }
 
@@ -219,6 +213,7 @@ namespace parser {
         }
         if(match(index, text, null_val)) {
             required_token = null_val;
+            index--;
         }
 
         return required_token;
@@ -290,16 +285,30 @@ namespace parser {
         return tokens;
     }
 
+    std::vector<std::string> parse_values(const std::string& text, int& index) {
+        int text_size = text.size();
+        std::vector<std::string> values;
+        std::string required_token = "";
+        while(index < text_size && !match(index, text, target_operator, false)) {
+            if(WHITESPACE(index)) {
+                index++;
+                continue;
+            }
+            required_token = parse_value(text, index);
+            values.emplace_back(required_token);
+            index++;
+        }
+        std::cout << "index: " << index << std::endl;
+        return values;
+    }
+
     Token parse(const std::string& text, Config* config) {
-        //bool done = false;
         Token token;
-        std::vector<std::string> tokens;
         int index = 0;
         int text_size = text.size();
 
         int begin = 0;
         int end = 0;
-        //bool inside_string = false;
         std::string required_token;
 
         while(index < text_size) {
@@ -308,43 +317,13 @@ namespace parser {
                 continue;
             }
             if(index == 0) {
-                /*if(text[index] == '$') {
-                    int begin = index;
-                    int assignment = index;
-                    while(text[index] != '=') {
-                        index++;
-                    }
-                    int end = index;
-                    while(WHITESPACE(end - 1)) {
-                        end--;
-                    }
-                    required_token = text.substr(begin, end - begin);
-                    tokens.emplace_back(required_token);
-                    if(text[index] == '=') {
-                        index++;
-                        assignment = index;
-                        while(WHITESPACE(assignment)) {
-                            assignment++;
-                        }
-                        index = assignment;
-                        while(text[index] != '\0') {
-                            index++;
-                        }
-
-                        required_token = text.substr(assignment, index - assignment);
-                        tokens.emplace_back(required_token);
-                    }
+                begin = index;
+                while(!WHITESPACE(index) && index != text_size) {
+                    index++;
                 }
-                else {*/
-                    begin = index;
-                    while(!WHITESPACE(index) && index != text_size) {
-                        index++;
-                    }
-                    end = index;
-                    required_token = text.substr(begin, end - begin);
-                    //tokens.emplace_back(required_token);
-                    token.head = required_token;
-                //}
+                end = index;
+                required_token = text.substr(begin, end - begin);
+                token.head = required_token;
             }
 
             if(token.head == "var" || token.head == "const" || token.head == "static") {
@@ -352,42 +331,11 @@ namespace parser {
                 while(WHITESPACE(index)) {
                     index++;
                 }
-                //std::cout << index << std::endl;
                 token.init = parse_init(text, index);
                 continue;
             }
-
-            /*if(text[index] == '=' && config->init_list) {
-                //std::cout << config->id << std::endl;
-                end = index;
-                while(!is_alpha(text[end])) {
-                    end--;
-                }
-                begin = end;
-                while(!WHITESPACE(begin - 1)) {
-                    begin--;
-                }
-                required_token = text.substr(begin, end - begin + 1);
-                tokens.emplace_back(required_token);
-                //index += (end - begin - 1);
-                index++;
-                //std::cout << "later: " << index << std::endl;
-
-                //
-                begin = index;
-                begin++;
-                while(WHITESPACE(begin)) {
-                    begin++;
-                }
-                end = begin;
-                while(is_alpha(text[end])) {
-                    end++;
-                }
-                index = end;
-                required_token = text.substr(begin, end - begin);
-                tokens.emplace_back(required_token);
-                std::cout << required_token << std::endl;*/
-            //}
+            else {
+            }
 
             // perform check inside. (if not config->target: throw error)
             if(match(index, text, target_operator)) {
@@ -403,51 +351,13 @@ namespace parser {
                 }
                 end = index;
                 required_token = text.substr(begin, end - begin + 1);
-                //tokens.emplace_back(required_token);
                 token.target = required_token;
             }
 
-            if(match(index, text, assignment_operator) && config->init_list) {
-                while(WHITESPACE(index)) {
-                    index++;
-                }
-                required_token = parse_value(text, index);
-                tokens.emplace_back(required_token);
-            }
-
             required_token = parse_value(text, index);
-            tokens.emplace_back(required_token);
             index++;
         }
-
-        /*for(std::string x : tokens) {
-            std::cout << "{" << x << "}" << std::endl;
-        }
-        std::cout << "----------" << std::endl;*/
 
         return token;
     }
 };
-
-/*int main() {
-    int index = 0;
-    std::string text = R"(["hey", [1, 2, ["a", "b"]], [3, 4], "o"])";
-    text = R"(["a", "b", "c"])";
-    //text = R"(["a", "b", [1, 2, 3], [3.14], "c"])";
-    text = R"([1, 2, 3])";
-    //text = R"([[1, 2, 3, ["x", "y"]], "a", "b", "c"])";
-    text = R"([1, [2, [3, [4, [5, [6]]]]]])";
-    text = R"([[1, 2, 3], [4, 5, 6], [7, 8, 9,,],])";
-    text = R"([[1, 2, 3]])";
-    text = R"([[[[,1,]],]])";
-    std::cout << "List: " << text << std::endl;
-    std::vector<std::string> tokens = p.parse_list(text, index);
-
-    std::string cmd = "var num: res = \"hey\"";
-    std::vector<std::string> a = parse("var num: res = `(1 + 2) * 3`");
-    for(std::string x : a) {
-        std::cout << x << std::endl;
-    }
-    
-    return 0;
-}*/
