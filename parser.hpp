@@ -195,25 +195,25 @@ namespace parser {
         if(is_num(text[index])) {
             required_token = parse_number(text, index);
         }
-
-        if(text[index] == '$') {
+        else if(text[index] == '$') {
             required_token = parse_variable(text, index);
         }
-
-        if(text[index] == '[') {
+        else if(text[index] == '[') {
             required_token = extract_list(text, index);
         }
-
-        if(text[index] == '`') {
+        else if(text[index] == '`') {
             required_token = parse_expr(text, index);
         }
-
-        if(text[index] == '"') {
+        else if(text[index] == '"') {
             required_token = parse_string(text, index);
         }
-        if(match(index, text, null_val)) {
+        else if(match(index, text, null_val)) {
             required_token = null_val;
             index--;
+        }
+        else {
+            std::cout << "unknown token: " << text[index] << std::endl;
+            exit(1);
         }
 
         return required_token;
@@ -226,6 +226,7 @@ namespace parser {
         std::vector<std::string> tokens;
         std::string required_token = "";
         while(index < text_size) {
+            std::cout << text[index] << std::endl;
             bool key_val = false;
             if(text[index] == '=') {
                 key_val = true;
@@ -273,7 +274,7 @@ namespace parser {
                 begin = index;
                 continue;
             }
-            else if(match(index, text, target_operator, false)) {
+            if(match(index, text, target_operator, false)) {
                 END;
             }
             index++;
