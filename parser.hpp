@@ -90,9 +90,22 @@ namespace parser {
 
     std::string parse_variable(const std::string& text, int& index) {
         int begin = index;
-        index++;
-        while(is_alpha(text[index])) {
+        int text_pos = index;
+        int text_size = text.size();
+        if(text[index] == '$') {
             index++;
+        }
+        if(text[index] >= '0' && text[index] <= '9') {
+            END;
+        }
+        while(text_pos < text_size) {
+            if(text[index] == '.') {
+                END;
+            }
+            if(is_alpha(text[index]) || text[index] == '_' || (text[index] >= '0' && text[index] <= '9')) {
+                index++;
+            }
+            text_pos++;
         }
         int end = index;
         index--;
