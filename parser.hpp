@@ -106,7 +106,7 @@ namespace parser {
                 index++;
             }
             else {
-                if(text[index] == '\0') {
+                if(text[index] == '\0' || WHITESPACE(index)) {
                     break;
                 }
                 END;
@@ -201,7 +201,7 @@ namespace parser {
                 }
                 element_idx += std::to_string(pos);
                 elements[element_idx] = element;
-                std::cout << element_idx << ": " << element << std::endl;;
+                //std::cout << element_idx << ": " << element << std::endl;;
             }
         }
 
@@ -230,6 +230,9 @@ namespace parser {
             required_token = null_val;
             index--;
         }
+        else if(text[index] == '\0') {
+            return required_token;
+        }
         else {
             std::cout << "unknown token: " << text[index] << std::endl;
             exit(1);
@@ -245,7 +248,7 @@ namespace parser {
         std::vector<std::string> tokens;
         std::string required_token = "";
         while(index < text_size) {
-            std::cout << text[index] << std::endl;
+            //std::cout << text[index] << std::endl;
             bool key_val = false;
             if(text[index] == '=') {
                 key_val = true;
