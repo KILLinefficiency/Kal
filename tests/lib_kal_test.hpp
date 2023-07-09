@@ -1,4 +1,5 @@
 #include "../lib/lib_style.hpp"
+#include "../config.hpp"
 
 int current = 1;
 int total = 0;
@@ -21,11 +22,51 @@ template <typename Type = std::string>
 void check(Type found, Type actual, std::string error = "") {
     if(found != actual) {
         std::cerr << style::style["reset"] << style::style["red"]
-            << "\nGenerated Value `" << found << "`" << " != " << "Actual Value `" << actual << "`.\n";
+            << "\nGenerated Value `" << found <<  "` != Actual Value `" << actual << "`.\n";
         if(error != "") {
             std::cerr << style::style["reset"] << style::style["red"] << error << "\n";
         }
-        std::cout << style::style["bold"] << "FAIL." << style::style["reset"] << "\n";
+        std::cerr << style::style["bold"] << "FAIL." << style::style["reset"] << "\n";
+        exit(1);
+    }
+}
+
+void check_vector(const std::vector<std::string>& found, const std::vector<std::string>& actual, std::string name = "") {
+    uint64_t vector_size = found.size();
+    name = " " + name;
+
+    for(uint64_t i = 0; i < vector_size; i++) {
+        if(found[i] != actual[i]) {
+            std::cerr << style::style["reset"] << style::style["red"]
+                << "\nGenerated" << name << " Value `" << found[i] << "` != Actual" << name << " Value `" << actual[i] << "`.\n"; 
+            
+            std::cerr << style::style["bold"] << "FAIL." << style::style["reset"] << "\n";
+            exit(1);
+        }
+    }
+}
+
+void check_token(const Token& found, const Token& actual) {
+    bool fail = false;
+
+    if(found.head != actual.head) {
+        fail = true;
+        std::cerr << style::style["reset"] << style::style["red"]
+            << "\nGenerated Head `" << found.head << "` != Actual Head `" << actual.head << "`.\n";
+    }
+
+    check_vector(found.init, actual.init, "Init");
+
+    check_vector(found.values, found.values);
+
+    if(found.target != actual.target) {
+        fail = true;
+        std::cerr << style::style["reset"] << style::style["red"]
+            << "\nGenerated Target Value `" << found.target << "` != Actual Target Value `" << actual.target << "`.\n";
+    }
+
+    if(fail) {
+        std::cerr << style::style["bold"] << "FAIL." << style::style["reset"] << "\n";
         exit(1);
     }
 }

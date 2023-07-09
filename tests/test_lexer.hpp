@@ -25,15 +25,9 @@ void test_lexer() {
         }
     };
 
-    check(found[0].head, actual[0].head);
-    check(found[1].head, actual[1].head);
-    for(uint64_t i = 0; i < actual.size(); i++) {
-        for(uint64_t j = 0; j < found[i].init.size(); j++) {
-            check(found[i].init[j], actual[i].init[j]);
-        }
-        for(uint64_t j = 0; j < found[i].values.size(); j++) {
-            check(found[i].values[j], actual[i].values[j]);
-        }
+    for(uint64_t i = 0; i < found.size(); i++) {
+        check_token(found[i], actual[i]);
     }
+
     progress();
 }
