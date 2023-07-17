@@ -4,37 +4,30 @@
 #include <filesystem>
 
 namespace lib {
-    /*std::string get_dir(std::string given_file) {
-        int path_len = given_file.size();
-        while(path_len--) {
-            if(given_file[path_len] == '/') {
-                break;
-            }
-        }
-        std::string dir_name = given_file.substr(0, path_len);
-        return dir_name;
-    }*/
-
-    std::string replace_preceeding(std::string passed) {
-        std::string rel_path = passed;
-        std::string current = std::filesystem::current_path();
-        int current_size = current.size();
-        if(passed.substr(0, current_size - 1) == current) {
-            std::cout << "works" << std::endl;
-            rel_path = passed.substr(current_size);
-        }
-        return rel_path;
-    }
-
     void ensure_extension(std::string& text, std::string ext) {
         if(ext[0] != '.') {
             ext = '.' + ext;
         }
         int ext_size = ext.size();
         int text_size = text.size();
-        if(text_size < ext_size || text.substr(text_size - 4) != ext) {
+        if(text_size < ext_size || text.substr(text_size - ext_size) != ext) {
             text += ext;
         }
+    }
+
+    std::string replace_extension(std::string& text, std::string ext) {
+        if(ext[0] != '.') {
+            ext = '.' + ext;
+        }
+        int last_index = text.size() - 1;
+        while(last_index >= 0 && last_index--) {
+            if(text[last_index] == '.') {
+                break;
+            }
+        }
+        std::string file_name = text.substr(0, last_index);
+        file_name += ext;
+        return file_name;
     }
 
     std::string get_dir(std::string given_path) {

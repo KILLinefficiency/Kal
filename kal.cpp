@@ -3,6 +3,7 @@
 
 //#include "shell.hpp"
 #include "exec.hpp"
+#include "kast.hpp"
 #include "errors.hpp"
 #include "variable.hpp"
 #include "arg_parser.hpp"
@@ -44,9 +45,28 @@ int main(int argc, char** argv) {
         }
         return 0;
     }
+
+    if(arg_parser.flag_exists("-k")) {
+        std::string kast_file;
+        std::string kal_file = arg_parser.get_value("-k");
+        source_lines = preproc::preprocess(kal_file);
+        std::vector<Token> tokens = lexer::tokenize(source_lines);
+        if(arg_parser.flag_exists("-o")) {
+            kast_file = arg_parser.get_value("-o");
+            lib::ensure_extension(kast_file, ".kast");
+        }
+        else {
+            kast_file = lib::replace_extension(kal_file, ".kast");
+        }
+        kast::encode(kast_file, tokens);
+
+        return 0;
+    }
+
     file_name = args[1];
 
     source_lines = preproc::preprocess(file_name);
+
 
     if(arg_parser.flag_exists("-d")) {
         std::string deps = arg_parser.get_value("-d");
