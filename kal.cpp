@@ -65,6 +65,14 @@ int main(int argc, char** argv) {
 
     file_name = args[1];
 
+    bool is_kast_file = file_name.substr(file_name.size() - 5) == ".kast";
+    if(is_kast_file) {
+        std::vector<Token> tokens;
+        kast::decode(file_name, tokens);
+        line_exec(tokens, var);
+        return 0;
+    }
+
     source_lines = preproc::preprocess(file_name);
 
 
