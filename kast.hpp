@@ -50,7 +50,6 @@ namespace kast {
         uint64_t total_tokens;
         kast.read(reinterpret_cast<char*>(&total_tokens), sizeof(total_tokens));
 
-        tokens.clear();
         tokens.reserve(total_tokens);
         
         while(total_tokens--) {
@@ -69,7 +68,6 @@ namespace kast {
 
             // Reading init.
             kast.read(reinterpret_cast<char*>(&init_size), sizeof(init_size));
-            token.init.clear();
             token.init.reserve(init_size);
             while(init_size--) {
                 uint64_t init_val_size;
@@ -85,7 +83,6 @@ namespace kast {
 
             // Reading values;
             kast.read(reinterpret_cast<char*>(&val_size), sizeof(val_size));
-            token.values.clear();
             token.values.reserve(val_size);
             while(val_size--) {
                 uint64_t item_size;
