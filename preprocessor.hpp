@@ -82,8 +82,21 @@ namespace preproc {
         }
     }
 
+    void check_path(std::vector<std::string>& paths, std::string path) {
+        uint64_t size = paths.size();
+        if(path == paths[size - 1]) {
+            std::cerr << paths[size - 1] << " included in itself\n"; exit(1);
+        }
+        for(std::string each : paths) {
+            if(each == path) {
+                std::cerr << each << " already included\n"; exit(1);
+            } 
+        }
+    }
+
 
     std::stack<std::string> dirs;
+    std::vector<std::string> paths;
     std::vector<std::string> preprocess(std::string file_path) {
         std::vector<std::string> all_lines;
         std::string top = "";
@@ -97,6 +110,7 @@ namespace preproc {
         remove_comments(file_contents);
 
         std::vector<std::string> file_lines = lib::new_split(file_contents);
+        paths.emplace_back(abs_file_path);
         for(std::string& line : file_lines) {
             line = lib::trim_leading(lib::trim_trailing(line));
             if(line != "") {
@@ -108,12 +122,12 @@ namespace preproc {
                 lib::ensure_extension(include_path, ".kal");
                 dirs.push(current_path);
                 abs_file_path = include_path;
+                check_path(paths, lib::get_path(abs_file_path));
                 std::vector<std::string> vals = preprocess(abs_file_path);
                 squash_vector(all_lines, vals, all_lines.size() - 1);
                 current_path = dirs.top();
                 dirs.pop();
             }
-
         }
 
         return all_lines;
