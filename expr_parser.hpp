@@ -227,7 +227,7 @@ std::string eval(std::string expr) {
             numbers.pop();
             a = numbers.top();
             numbers.pop();
-            if(a == parser::null_val && token == "??") {
+            if(token == "??") {
                 numbers.push(if_null(a, b));
                 continue;
             }
