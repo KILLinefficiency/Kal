@@ -257,6 +257,15 @@ std::string eval(std::string expr) {
                 }
                 continue;
             }
+            else if(a == parser::null_val || b == parser::null_val) {
+                if(token == "==") {
+                    numbers.push(std::to_string(a == b));
+                }
+                else if(token == "!=") {
+                    numbers.push(std::to_string(a != b));
+                }
+                continue;
+            }
 
             x = std::stod(a);
             y = std::stod(b);
