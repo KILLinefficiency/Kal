@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "parser.hpp"
+#include "errors.hpp"
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
@@ -242,7 +243,8 @@ std::string eval(std::string expr) {
                     numbers.push(std::to_string(a != b));
                 }
                 else {
-                    std::cout << "error" << std::endl; exit(1);
+                    //std::cout << "error" << std::endl; exit(1);
+                    //errors::invalid_string_operation_error(token, a, b);
                 }
                 continue;
             }

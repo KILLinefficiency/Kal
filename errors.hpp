@@ -1,6 +1,51 @@
 #pragma once
 
+#include <sstream>
+#include <vector>
+
 #include "lib/lib_style.hpp"
+
+std::string fmt(std::string body, std::vector<std::string> args) {
+    std::stringstream text;
+    uint64_t i = 0, count = 0, len = body.size(), size = args.size();
+
+    while(i < len) {
+        if(body[i] == '{' && body[i + 1] == '}' && count < size) {
+            text << args[count];
+            count++;
+            i += 2;
+            continue;
+        }
+
+        if(body[i] == '\n') {
+            text << "\n\u2502 ";
+            i++;
+            continue;
+        }
+
+        text << body[i];
+        i++;
+    }
+
+    return text.str();
+}
+
+std::string write_line(std::string& line) {
+    std::stringstream display_line;
+    display_line << style::style["reset"] << style::style["italic"] << style::style["green"];
+    uint64_t i = 0, size = line.size();
+    while(i < size) {
+        if(line[i] == '\n') {
+            display_line << style::style["reset"] << "\n\u2502       ";
+            display_line << style::style["italic"] << style::style["green"];
+            i++;
+            continue;
+        }
+        display_line << line[i];
+        i++;
+    }
+    return display_line.str();
+}
 
 namespace warnings {
     void const_uninitialized_warning(const std::string& const_name) {
@@ -10,15 +55,30 @@ namespace warnings {
 }
 
 namespace errors {
-    void throw_err(std::string error_head, std::string error_body) {
-        std::cerr << style::style["red"] << style::style["bold"] << error_head << ":" << style::style["reset"] << style::style["red"] << " " << error_body << style::style["reset"] << std::endl;
-        exit(1);
+    void throw_err(std::string& line, std::string head, std::string body, std::initializer_list<std::string> list = {}, bool quit = true) {
+        std::vector<std::string> args(list);
+        for(std::string& each : args) {
+            each = style::style["bold"] + style::style["yellow"] + each + style::style["reset"];
+        }
+        std::cerr << "\n\u250C\u2500\n\u2502 " << style::style["red"] << style::style["bold"] << style::style["underline"] << head << " Error" << style::style["reset"] << "\n\u2502 "
+            << style::style["green"] << style::style["bold"] << "Line: " << write_line(line) << style::style["reset"] << "\n\u2502 "
+            << fmt(body, args) << "\n\u2514\u2500\n" << std::endl; 
+        if(quit) exit(1);
     }
 
     void kal_error(std::string kal_err) {
         std::cerr << style::style["red"] << style::style["bold"] << "Kal:" << style::style["reset"] << style::style["red"] << " " << kal_err << style::style["reset"] << std::endl;
         exit(1);
     }
+
+    /*void invalid_operation_error(std::string& token, std::string& a, std::string& b) {
+        std::cerr << style::style["red"] << style::style["bold"] << "Expression:" << style::style["reset"] << style::style["red"] << " Invalid Expression: " << a << " " << token << " " << b << ".\nCannot perform " << token << " on " << a << " and " << b << "." << style::style["reset"] << std::endl;
+        exit(1);
+    }
+
+    void invalid_string_operation_error(std::string& token, std::string& a, std::string& b) {
+        throw_err("Expression", "Cannot use operator " + token + " on strings " + a + " and " + b);
+    }*/
     
     void var_redeclare_error(std::string var_name, std::string var_type) {
         std::cerr << style::style["red"] << style::style["bold"] << "Variable:" << style::style["reset"] << style::style["red"] << " Variable `" << var_name << "` of type `" << var_type << "` already exists." << style::style["reset"] << std::endl;
