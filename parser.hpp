@@ -11,7 +11,12 @@
 
 #define WHITESPACE(position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n' || text[position] == '\r')
 
+std::string eval(std::string expr);
+
 namespace parser {
+    // for now.
+    std::string extract_list(const std::string&, int&);
+    // for now.
     std::string general_delimiter = ",";
     std::string str_delimiter = "\"";
     std::string list_open = "[";
@@ -106,7 +111,7 @@ namespace parser {
                 index++;
             }
             else {
-                if(text[index] == '\0' || text[index] == '=' || text[index] == ',' || WHITESPACE(index)) {
+                if(text[index] == '\0' || text[index] == '=' || text[index] == ',' || WHITESPACE(index) || text[index] == '[') {
                     break;
                 }
                 END;
@@ -116,6 +121,12 @@ namespace parser {
         int end = index;
         //index--;
         std::string required_string = text.substr(begin, end - begin);
+        if(text[index] == '[') {
+            std::string sub_body = extract_list(text, index);
+            sub_body = sub_body.substr(1, sub_body.size() - 2);
+            sub_body = eval(sub_body);
+            required_string += "[" + sub_body + "]";
+        }
         return required_string;
     }
 

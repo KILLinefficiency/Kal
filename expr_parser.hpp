@@ -249,13 +249,12 @@ std::string eval(std::string expr) {
                 }
                 continue;
             }
-            else if(token == "*") {
-                if(is_string(a) && !is_string(b)) {
-                    numbers.push(str_mul(a, std::stod(b)));
-                }
-                else if(!is_string(a) && is_string(b)) {
-                    numbers.push(str_mul(b, std::stod(a)));
-                }
+            else if(token == "*" && is_string(a) && !is_string(b)) {
+                numbers.push(str_mul(a, std::stod(b)));
+                continue;
+            }
+            else if(token == "*" && !is_string(a) && is_string(b)) {
+                numbers.push(str_mul(b, std::stod(a)));
                 continue;
             }
             else if(a == parser::null_val || b == parser::null_val) {
