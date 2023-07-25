@@ -1,10 +1,27 @@
 #pragma once
 
 namespace lib {
-    std::string display_num(double num) {
-        if(num == int(num)) {
-            return std::to_string(int(num));
+    std::string trim_num(std::string num) {
+        std::string number;
+        int size = num.size();
+        int index = size - 1;
+
+        while(index && index >= 0) {
+            if(num[index] == '.') {
+                break;
+            }
+            else if(num[index] != '0') {
+                index++;
+                break;
+            }
+            index--;
         }
-        return std::to_string(num);
+
+        if(index == 0) {
+            return num;
+        }
+
+        number = num.substr(0, index);
+        return number;
     }
 }

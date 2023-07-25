@@ -8,6 +8,7 @@
 
 #include "parser.hpp"
 #include "errors.hpp"
+#include "lib/lib_math.hpp"
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
@@ -295,7 +296,7 @@ std::string eval(std::string expr) {
             else if(token == "||")  numbers.push(std::to_string(x || y));
         }
     }
-    result = numbers.top();
+    result = lib::trim_num(numbers.top());
     numbers.pop();
     return result;
 }
