@@ -107,10 +107,12 @@ std::string if_null(std::string& first, std::string& second) {
 }
 
 /// dummy function.
+/// Sample expression: $name[$hey[$inner[1 + 2 * 3] + 5] + 15] * $pi
 std::string get_val(std::string var) {
     if(var == "$inner[7]") { return "10"; }
     else if(var == "$hey[15]") { return "5"; }
     else if(var == "$name[20]") { return "100"; }
+    else if(var == "$pi") { return "3.14"; }
     return "";
 }
 ///
