@@ -138,8 +138,11 @@ std::string fstr(const std::string& text) {
 std::string fstr(const std::string& text) {
     int index = 0;
     std::vector<std::string> values = parser::parse_fstr(text, index);
-    std::string& head = values[0];
     int size = values.size();
+    if(size == 0) {
+        return "";
+    }
+    std::string& head = values[0];
     if(size == 1) {
         return head;
     }
