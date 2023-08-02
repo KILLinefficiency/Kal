@@ -208,24 +208,6 @@ std::string expand_var(std::string var) {
     return variable;
 }
 
-std::string get_second(std::queue<std::string> q) {
-    if(q.size() < 2) {
-        return "";
-    }
-    q.pop();
-    return q.front();
-}
-
-///
-void print_q(std::queue<std::string> rpn) {
-    while(!rpn.empty()) {
-        std::cout << rpn.front() << " ";
-        rpn.pop();        
-    }
-    std::cout << std::endl;
-}
-///
-
 std::string eval(std::string expr) {
     std::string result;
     std::string current_op = "";
@@ -336,9 +318,6 @@ std::string eval(std::string expr) {
     double x = 0, y = 0;
     std::string token;
     std::stack<std::string> numbers;
-    ///
-    print_q(rpn);
-    //
     while(!rpn.empty()) {
         token = rpn.front();
         rpn.pop();
@@ -360,15 +339,7 @@ std::string eval(std::string expr) {
             numbers.push(std::to_string(y));
         }
         else {
-            ///
             if(token == "?") {
-                std::string c = "";
-                std::string next = get_second(rpn);
-                if(next == ":") {
-                    c = rpn.front();
-                    rpn.pop();
-                    rpn.pop();
-                }
                 b = numbers.top();
                 numbers.pop();
                 a = numbers.top();
@@ -377,12 +348,23 @@ std::string eval(std::string expr) {
                 if(a != "0") {
                     numbers.push(b);
                 }
-                else if(next == ":") {
-                    numbers.push(c);
+                else {
+                    numbers.push(a);
                 }
                 continue;
             }
-            ///
+            if(token == ":") {
+                b = numbers.top();
+                numbers.pop();
+                a = numbers.top();
+                numbers.pop();
+                if(a == "0") {
+                    numbers.push(b);
+                } else {
+                    numbers.push(a);
+                }
+                continue;
+            }
 
             b = numbers.top();
             numbers.pop();
