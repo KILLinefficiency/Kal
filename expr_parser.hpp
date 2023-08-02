@@ -73,20 +73,20 @@ bool match(std::string& text, std::string pattern, int& index) {
 }
 
 int order(std::string op) {
-    if (op == ops::if_null)                                                      return 13;
-    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 12;
-    else if (op == ops::exp)                                                     return 11;
-    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 10;
-    else if (op == ops::add || op == ops::sub)                                   return 9;
-    else if (op == ops::l_shift || op == ops::r_shift)                           return 8;
-    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 7;
-    else if (op == ops::eq || op == ops::neq)                                    return 6;
-    else if (op == ops::bit_and)                                                 return 4;
-    else if (op == ops::bit_xor)                                                 return 4;
-    else if (op == ops::bit_or)                                                  return 3;
-    else if (op == ops::log_and)                                                 return 2;
-    else if (op == ops::log_or)                                                  return 1;
-    else if (op == ops::t_if || op == ops::t_else)                               return -1;
+    if (op == ops::if_null)                                                      return 14;
+    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 13;
+    else if (op == ops::exp)                                                     return 12;
+    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 11;
+    else if (op == ops::add || op == ops::sub)                                   return 10;
+    else if (op == ops::l_shift || op == ops::r_shift)                           return 9;
+    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 8;
+    else if (op == ops::eq || op == ops::neq)                                    return 7;
+    else if (op == ops::bit_and)                                                 return 6;
+    else if (op == ops::bit_xor)                                                 return 5;
+    else if (op == ops::bit_or)                                                  return 4;
+    else if (op == ops::log_and)                                                 return 3;
+    else if (op == ops::log_or)                                                  return 2;
+    else if (op == ops::t_if || op == ops::t_else)                               return 1;
     return 0;
 }
 
@@ -107,37 +107,19 @@ std::string if_null(std::string& first, std::string& second) {
     return first;
 }
 
-/*
-std::string fstr(const std::string& text) {
-    int index = 0;
-    std::vector<std::string> values = parser::parse_fstr(text, index);
-    std::string& head = values[0];
-    int size = values.size();
-    if(size == 1) {
-        return head;
+std::string ternary_op(std::string& token, std::string& first, std::string& second) {
+    bool condition = (first != "0" && first != "\"\"");
+
+    if(token == ":") {
+        condition = !condition;
     }
-    std::stringstream fstring;
-    std::string item;
-    int i = 0;
-    int count = 0;
-    int args = size - 1;
-    int head_size = head.size();
-    while(i < head_size) {
-        if(parser::match(i, head, "{}") && count < args) {
-            item = eval(values[count + 1]);
-            if(lib::is_string(item)) {
-                item = lib::resolve_string(item);
-            }
-            fstring << item;
-            count++;
-            continue;
-        }
-        fstring << head[i];
-        i++;
+    if(condition) {
+        return second;
     }
-    return fstring.str();
+
+    return first;
 }
-*/
+
 std::string fstr(const std::string& text) {
     int index = 0;
     std::vector<std::string> values = parser::parse_fstr(text, index);
@@ -324,7 +306,7 @@ std::string eval(std::string expr) {
         if(!order(token)) {
             numbers.push(token);
         }
-        else if(order(token) == 12) {
+        else if(order(token) == 13) {
             y = std::stod(numbers.top());
             numbers.pop();
             if(token == "n") {
@@ -339,38 +321,15 @@ std::string eval(std::string expr) {
             numbers.push(std::to_string(y));
         }
         else {
-            if(token == "?") {
-                b = numbers.top();
-                numbers.pop();
-                a = numbers.top();
-                numbers.pop();
-
-                if(a != "0") {
-                    numbers.push(b);
-                }
-                else {
-                    numbers.push(a);
-                }
-                continue;
-            }
-            if(token == ":") {
-                b = numbers.top();
-                numbers.pop();
-                a = numbers.top();
-                numbers.pop();
-                if(a == "0") {
-                    numbers.push(b);
-                } else {
-                    numbers.push(a);
-                }
-                continue;
-            }
-
             b = numbers.top();
             numbers.pop();
             a = numbers.top();
             numbers.pop();
 
+            if(token == "?" || token == ":") {
+                numbers.push(ternary_op(token, a, b));
+                continue;
+            }
             if(token == "??") {
                 numbers.push(if_null(a, b));
                 continue;
