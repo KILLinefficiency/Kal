@@ -57,6 +57,8 @@ namespace ops {
                       log_and = "&&",
                       log_or = "||",
                       if_null = "??",
+                      t_if = "?",
+                      t_else = ":",
                       left = "(",
                       right = ")";
 }
@@ -84,6 +86,7 @@ int order(std::string op) {
     else if (op == ops::bit_or)                                                  return 3;
     else if (op == ops::log_and)                                                 return 2;
     else if (op == ops::log_or)                                                  return 1;
+    else if (op == ops::t_if || op == ops::t_else)                               return -1;
     return 0;
 }
 
@@ -205,6 +208,24 @@ std::string expand_var(std::string var) {
     return variable;
 }
 
+std::string get_second(std::queue<std::string> q) {
+    if(q.size() < 2) {
+        return "";
+    }
+    q.pop();
+    return q.front();
+}
+
+///
+void print_q(std::queue<std::string> rpn) {
+    while(!rpn.empty()) {
+        std::cout << rpn.front() << " ";
+        rpn.pop();        
+    }
+    std::cout << std::endl;
+}
+///
+
 std::string eval(std::string expr) {
     std::string result;
     std::string current_op = "";
@@ -292,6 +313,8 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::bit_or);
             SET_CURRENT_OP(ops::if_null);
             SET_CURRENT_OP(ops::negative);
+            SET_CURRENT_OP(ops::t_if);
+            SET_CURRENT_OP(ops::t_else);
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
                 rpn.push(operators.top());
@@ -313,6 +336,9 @@ std::string eval(std::string expr) {
     double x = 0, y = 0;
     std::string token;
     std::stack<std::string> numbers;
+    ///
+    print_q(rpn);
+    //
     while(!rpn.empty()) {
         token = rpn.front();
         rpn.pop();
@@ -334,10 +360,35 @@ std::string eval(std::string expr) {
             numbers.push(std::to_string(y));
         }
         else {
+            ///
+            if(token == "?") {
+                std::string c = "";
+                std::string next = get_second(rpn);
+                if(next == ":") {
+                    c = rpn.front();
+                    rpn.pop();
+                    rpn.pop();
+                }
+                b = numbers.top();
+                numbers.pop();
+                a = numbers.top();
+                numbers.pop();
+
+                if(a != "0") {
+                    numbers.push(b);
+                }
+                else if(next == ":") {
+                    numbers.push(c);
+                }
+                continue;
+            }
+            ///
+
             b = numbers.top();
             numbers.pop();
             a = numbers.top();
             numbers.pop();
+
             if(token == "??") {
                 numbers.push(if_null(a, b));
                 continue;
