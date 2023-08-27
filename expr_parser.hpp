@@ -168,20 +168,34 @@ std::string get_val(std::string var) {
     if(var == "$inner[7]") { return "10"; }
     else if(var == "$hey[15]") { return "5"; }
     else if(var == "$name[20]") { return "100"; }
+    else if(var == "$name[20][25]") { return "250"; }
     else if(var == "$pi") { return "3.14"; }
     return "";
 }
 ///
 
+std::string eval_indices(const std::string& text, int& index) {
+    int size = text.size();
+    std::string current, evaluated = "";
+    while(index < size) {
+        current = parser::extract_list(text, index);
+        evaluated += "[" + eval(current.substr(1, current.size() - 2)) + "]";
+        index++;
+    }
+
+    return evaluated;
+}
+
 std::string expand_var(std::string var) {
     int index = 0;
     std::string variable = parser::parse_variable(var, index, false);
-    int size = var.size();
+    //int size = var.size();
     if(var[index] == '[') {
-        index++;
+        /*index++;
         std::string sub = var.substr(index, size - index - 1);
         sub = eval(sub);
-        variable += ("[" + sub + "]");
+        variable += ("[" + sub + "]");*/
+        variable += eval_indices(var, index);
     }
     // get real values here.
     /// dummy call.
