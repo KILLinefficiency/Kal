@@ -222,7 +222,57 @@ namespace parser {
         return values;
     }
 
-    std::unordered_map<std::string, std::string> parse_list(std::string& text, int index = 0) {
+    std::vector<std::string> parse_list(std::string& text, int& index) {
+        std::vector<std::string> items;
+        std::string element;
+        int depth = 0;
+        bool inside_string = false;
+        index++;
+        while(WHITESPACE(index)) {
+            index++;
+        }
+        int begin = index;
+        int end = index;
+        while(text[index] != ']' || depth != 0 || inside_string) {
+            if(text[index] == '"') {
+                inside_string = !inside_string;
+            }
+            if(inside_string) {
+                index++;
+                continue;
+            }
+            if(match(index, text, "f[", false)) {
+                begin++;
+                skip_list(text, '[', index);
+            }
+            if(text[index] == '[') {
+                skip_list(text, text[index], index);
+            }
+            while(text[index] != ',') {
+                if(text[index + 1] == ']') {
+                    break;
+                }
+                index++;
+            }
+            end = index;
+            if(text[index + 1] == ']' && text[index] != ',') {
+                end++;
+            }
+            while(WHITESPACE(end - 1)) {
+                end--;
+            }
+            element = text.substr(begin, end - begin);
+            index++;
+            while(WHITESPACE(index)) {
+                index++;
+            }
+            begin = index;
+            items.emplace_back(element);
+        }
+
+        return items;
+    }
+    /*std::unordered_map<std::string, std::string> parse_list(std::string& text, int index = 0) {
         int pos = -1;
         int depth = 0;
         std::stack<int> indices;
@@ -294,7 +344,7 @@ namespace parser {
         }
 
         return elements;
-    }
+    }*/
 
     std::string parse_value(const std::string& text, int& index) {
         std::string required_token = "";
