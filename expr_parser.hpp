@@ -207,7 +207,7 @@ std::string eval_indices(const std::string& text, int& index) {
     int size = text.size();
     std::string current, evaluated = "";
     while(index < size) {
-        current = parser::extract_list(text, index);
+        current = parser::extract_list(text, '[', index);
         evaluated += "[" + eval(current.substr(1, current.size() - 2)) + "]";
         index++;
     }
@@ -268,7 +268,7 @@ std::string eval(std::string expr) {
             rpn.push(val);
         }
         else if(expr[index] == '[') {
-            rpn.push(parser::extract_list(expr, index));
+            rpn.push(parser::extract_list(expr, '[', index));
         }
         else if(parser::match(index, expr, "f[", false)) {
             std::string line = parser::extract_fstr(expr, index);
