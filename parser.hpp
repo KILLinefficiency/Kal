@@ -262,8 +262,12 @@ namespace parser {
                 continue;
             }
             if(match(index, text, "f[", false)) {
-                begin++;
+                index++;
                 skip_list(text, '[', index);
+            }
+            if(match(index, text, "#(", false)) {
+                index++;
+                skip_list(text, '(', index);
             }
             if(text[index] == '[') {
                 skip_list(text, text[index], index);
