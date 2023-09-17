@@ -448,7 +448,7 @@ namespace parser {
                 }
                 int begin = index;
                 while(text[index] != ',' && index != text_size) {
-                    if(index < text_size && match(index, text, target_operator, false)) {
+                    if(index < text_size && match(index, text, target_operator, false) && !for_dict) {
                         END;
                     }
                     if(text[index] == '"') {
