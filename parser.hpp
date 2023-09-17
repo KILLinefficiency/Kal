@@ -199,6 +199,26 @@ namespace parser {
         }
     }
 
+    void skip_variable(std::string var, int& index) {
+        int size = var.size();
+        while(index < size) {
+            if(var[index] == '$' || var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
+                index++;
+            }
+            else {
+                break;
+            }
+        }
+        if(var[index] == '[') {
+            while(var[index] == '[') {
+                skip_list(var, var[index],index);
+                index++;
+            }
+        }
+        index--;
+    }
+
+
     void skip_dict(std::string& text, int& index) {
         index++;
         skip_list(text, '(', index);
@@ -271,6 +291,9 @@ namespace parser {
             }
             if(text[index] == '[') {
                 skip_list(text, text[index], index);
+            }
+            if(text[index] == '$') {
+                skip_variable(text, index);
             }
             while(text[index] != ',') {
                 if(text[index + 1] == ']') {
