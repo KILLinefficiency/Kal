@@ -287,21 +287,27 @@ std::string Dict::print() {
     for(std::string key : keys) {
         Value*& value = dict[key];
         disp << key << " -> ";
-        if(value->type == "Number") {
+        /*if(value->type == "Number") {
+            disp << ((Number*)value)->print();
+        }*/
+        if(dynamic_cast<Number*>(value)) {
             disp << ((Number*)value)->print();
         }
-        else if(value->type == "String") {
+        else if(dynamic_cast<String*>(value)) {
             disp << ((String*)value)->print();
         }
-        else if(value->type == "List") {
+        else if(dynamic_cast<List*>(value)) {
             disp << ((List*)value)->print();
         }
-        else if(value->type == "Null") {
+        else if(dynamic_cast<Dict*>(value)) {
+            disp << ((Dict*)value)->print();
+        }
+        else if(dynamic_cast<Null*>(value)) {
             disp << ((Null*)value)->print();
         }
-        else {
+        /*else {
             disp << value->print();
-        }
+        }*/
 
         if(last == key) {
             sep = "";
@@ -678,7 +684,9 @@ namespace VarTable {
                     else {
                         // add change_ref() logic here.
                         last_symbol = lib::resolve_string(last_symbol);
-                        delete (dynamic_cast<Dict*>(v))->dict[last_symbol];
+                        Value* old =  (dynamic_cast<Dict*>(v))->dict[last_symbol];
+                        RefTable::change_var(old, value);
+                        delete old;
                         (dynamic_cast<Dict*>(v))->dict[last_symbol] = value;
                         (dynamic_cast<Dict*>(v))->append_unique(last_symbol);
                     }
