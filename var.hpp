@@ -244,10 +244,10 @@ Dict::Dict(std::string dict_val) {
     keys.reserve(size / 2);
     for(int i = 0; i < size; i += 2) {
         // if the key already exists, then free it's value first.
-        append_unique(kv[i], true);
         if(kv[i][0] == '"' && kv[i][kv[i].size() - 1] == '"') {
             kv[i] = lib::resolve_string(kv[i]);
         }
+        append_unique(kv[i], true);
         if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
             dict[kv[i]] = new Number((kv[i + 1]));
         }
@@ -305,9 +305,9 @@ std::string Dict::print() {
         else if(dynamic_cast<Null*>(value)) {
             disp << ((Null*)value)->print();
         }
-        /*else {
-            disp << value->print();
-        }*/
+        else {
+            disp << ((Number*)value)->print();
+        }
 
         if(last == key) {
             sep = "";

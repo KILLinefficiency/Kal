@@ -115,6 +115,67 @@ void test_var() {
     // make something like this work
     // VarTable::set("new", "$second[$first[1][1] / 100]"); => 300
 
+    // Tests for assignment of dictionaries.
+    VarTable::set("my_data", "#(name -> \"Clark Kent\", age -> 25, \"place of origin\" -> \"Krypton\")");
+    actual_string = "#(name -> \"Clark Kent\", age -> 25, place of origin -> \"Krypton\")";
+    found_string = VarTable::print("$my_data");
+    check(found_string, actual_string);
+
+    VarTable::set("bio", "#(jobs -> 9, company -> \"Kal\", positions -> [\"engineering\", \"testing\"])");
+    actual_value = 9;
+    // add error when wrong key (non-string) is passed.
+    found_value = std::stod(VarTable::print("$bio[\"jobs\"]"));
+    check(found_value, actual_value);
+    actual_string = "\"engineering\"";
+    found_string = VarTable::print("$bio[\"positions\"][0]");
+    check(found_string, actual_string);
+
+    // Tests for re-assignment of dictionary items.
+    VarTable::set("$bio[\"jobs\"]", "10");
+    actual_value = 10;
+    found_value = std::stod(VarTable::print("$bio[\"jobs\"]"));
+    check(found_value, actual_value);
+
+    // Tests for variable assignment from dictionary.
+    VarTable::set("bio_name", "$bio[\"company\"]");
+    actual_string = "\"Kal\"";
+    found_string = VarTable::print("$bio_name");
+    check(found_string, actual_string);
+
+    VarTable::set("bio_post", "$bio[\"positions\"][1]");
+    actual_string = "\"testing\"";
+    found_string = VarTable::print("$bio_post");
+    check(found_string, actual_string);
+
+    // Tests for nested dictionaries.
+    VarTable::set("info", "#(name -> \"Superman\", age -> 25, \"real name\" -> #(krypton -> \"Kal-El\", earth -> \"Clark Kent\",))");
+    actual_string = "#(krypton -> \"Kal-El\", earth -> \"Clark Kent\")";
+    found_string = VarTable::print("$info[\"real name\"]");
+    check(found_string, actual_string);
+
+    // Tests for dictionary item to dictionary item assigment.
+    // Will write later when the eval isse is solved.
+    VarTable::gc();
+
+    // Tests for references.
+    VarTable::set("value", "100");
+    VarTable::set("ref_value", "$&value");
+    actual_value = 100;
+    found_value = std::stod(VarTable::print("$ref_value"));
+    check(found_value, actual_value);
+
+    // Tests to check if reference changes with in variable re-assignment.
+    VarTable::set("$value", "200");
+    actual_value = 200;
+    found_value = std::stod(VarTable::print("$ref_value"));
+    check(found_value, actual_value);
+
+    // Tests to check if variable changes with reference re-assignment. 
+    VarTable::set("$ref_value", "300");
+    actual_value = 300;
+    found_value = std::stod(VarTable::print("$value"));
+    check(found_value, actual_value);
+
     progress();
 
     // Test for performing Garbage Collection (GC).
