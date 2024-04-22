@@ -135,6 +135,8 @@ Null::~Null() {}
 ///
 
 /// Number
+// maybe remove that eval.
+// eval will be done at the parser level.
 Number::Number(std::string Val) : val(eval(Val)) {}
 std::string Number::print() {
     return val;
@@ -508,6 +510,19 @@ namespace VarTable {
     }
 
     void set(std::string var, std::string data) {
+        if(var[0] == '$') {
+            // TODO: the same for Strings.
+            // TODO: the impl is done for literals, add resolve code for vars and refs.
+            Value* ptr = VarTable::get(var, {}, true, true);
+            if(dynamic_cast<Ref*>(ptr)) {
+                ptr = (dynamic_cast<Ref*>(ptr))->ref;
+            }
+            if(dynamic_cast<Number*>(ptr)) {
+                (dynamic_cast<Number*>(ptr))->val = data; //(dynamic_cast<Number*>(value))->val;
+                //delete value;
+                return;
+            }
+        }
         if(var[1] == '&') {
             std::cout << "Cannot use `&` while setting a variable.\n";
             exit(0);
@@ -537,6 +552,8 @@ namespace VarTable {
         }
 
         if(var[0] == '$') {
+            //
+            //
             std::string v_name = var.substr(1);
             if(memory[v_name] != nullptr) {
                 if(dynamic_cast<Ref*>(memory[v_name])) {
