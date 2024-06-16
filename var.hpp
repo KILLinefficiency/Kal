@@ -422,7 +422,7 @@ namespace InertTable {
 };
 
 namespace VarTable {
-    void set(std::string, std::string, Type type = VAR);
+    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR);
 
     void gc() {
         std::unordered_map<std::string, Value*>::iterator itr;
@@ -531,18 +531,23 @@ namespace VarTable {
         return var;
     }
 
-    void unpack(std::string list, std::string structure) {
+    void unpack(std::string list, std::string structure, Value* data_ptr = nullptr) {
         int index = 0;
         Value* packed_items = nullptr;
         bool is_literal = false;
         std::vector<std::string> items = parser::parse_list(list, index);
-        int len = items.size();
-        if(structure[0] == '$') {
-            packed_items = get(structure, {}, true, true);
+        uint64_t len = items.size();
+        if(structure != "" && data_ptr == nullptr) {
+            if(structure[0] == '$') {
+                packed_items = get(structure, {}, true, true);
+            }
+            else {
+                packed_items = new List(structure);
+                is_literal = true;
+            }
         }
         else {
-            packed_items = new List(structure);
-            is_literal = true;
+            packed_items = data_ptr;
         }
 
         if(len > (dynamic_cast<List*>(packed_items))->items.size()) {
@@ -555,15 +560,18 @@ namespace VarTable {
             return;
         }
 
-        for(int i = 0; i < len; i++) {
+        for(uint64_t i = 0; i < len; i++) {
             if(items[i] == "_") {
                 continue;
             }
             if(items[i][0] == '[') {
-                unpack(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
+                //unpack(items[i], items[i]);
+                //unpack(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
+                unpack(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
             }
             else {
-                set(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
+                set(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
+                //set(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
             }
         }
 
@@ -572,7 +580,7 @@ namespace VarTable {
         }
     }
 
-    void set(std::string var, std::string data, Type type) {
+    void set(std::string var, std::string data, Value* data_ptr, Type type) {
         //std::cout << "raw: " << data << std::endl;
         if(var[0] == '[') {
             unpack(var, data);
@@ -585,13 +593,15 @@ namespace VarTable {
             return;
             // Need to modify eval to get var reading complete.
         }
-        data = eval(data);
+        if(data != "") {
+            data = eval(data);
+        }
         //std::cout << "eval: " << data << std::endl;
         if(var[0] == '$') {
             // TODO: the same for Strings. (DONE)
             // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
             Value* ptr = VarTable::get(var, {}, true, true);
-            if(data[0] == '$') {
+            if(data != "" && data[0] == '$') {
                 Value* d_ptr = VarTable::get(data, {}, true, true);
                 if(dynamic_cast<Ref*>(d_ptr)) {
                     d_ptr = (dynamic_cast<Ref*>(d_ptr))->ref;
@@ -621,7 +631,10 @@ namespace VarTable {
             exit(0);
         }
         Value* value = nullptr;
-        if(data[0] >= '0' && data[0] <= '9') {
+        if(data == "" && data_ptr != nullptr) {
+            value = copy(data_ptr);
+        }
+        else if(data[0] >= '0' && data[0] <= '9') {
             value = new Number(data);
         }
         else if(data[0] == '"') {
