@@ -542,7 +542,12 @@ namespace VarTable {
                 packed_items = get(structure, {}, true, true);
             }
             else {
-                packed_items = new List(structure);
+                if(structure[0] == '[') {
+                    packed_items = new List(structure);
+                }
+                else if(structure[0] == '#' && structure[1] == '(') {
+                    packed_items = new Dict(structure);
+                }
                 is_literal = true;
             }
         }
@@ -550,28 +555,45 @@ namespace VarTable {
             packed_items = data_ptr;
         }
 
-        if(len > (dynamic_cast<List*>(packed_items))->items.size()) {
-            // add proper error msg here.
-            std::cout << (dynamic_cast<List*>(packed_items))->items.size() << std::endl;
-            std::cerr << "more than enough items to unpack" << std::endl;
-            if(is_literal) {
-                delete packed_items;
+        if(dynamic_cast<List*>(packed_items)) {
+            if(len > (dynamic_cast<List*>(packed_items))->items.size()) {
+                // add proper error msg here.
+                std::cerr << "more than enough items to unpack" << std::endl;
+                if(is_literal) {
+                    delete packed_items;
+                }
+                return;
             }
-            return;
-        }
 
-        for(uint64_t i = 0; i < len; i++) {
-            if(items[i] == "_") {
-                continue;
+            for(uint64_t i = 0; i < len; i++) {
+                if(items[i] == "_") {
+                    continue;
+                }
+                if(items[i][0] == '[') {
+                    unpack(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
+                }
+                else {
+                    set(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
+                }
             }
-            if(items[i][0] == '[') {
-                //unpack(items[i], items[i]);
-                //unpack(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
-                unpack(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
+        }
+        else if(dynamic_cast<Dict*>(packed_items)) {
+            if(len > (dynamic_cast<Dict*>(packed_items))->keys.size()) {
+                std::cerr << "more than enough items to unpack" << std::endl;
+                if(is_literal) {
+                    delete packed_items;
+                }
+                return;
             }
-            else {
-                set(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
-                //set(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
+            for(uint64_t j = 0; j < len; j++) {
+                if(dynamic_cast<Dict*>(packed_items)->dict[items[j]] == nullptr) {
+                    std::cerr << "key \"" << items[j] << "\" does not exits." << std::endl;
+                    if(is_literal) {
+                        delete packed_items;
+                    }
+                    return;
+                }
+                set(items[j], "", dynamic_cast<Dict*>(packed_items)->dict[items[j]]);
             }
         }
 
