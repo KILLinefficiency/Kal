@@ -181,6 +181,7 @@ List::List(std::string list) {
     int index = 0;
     std::vector<std::string> values = parser::parse_list(list, index);
     for(std::string v : values) {
+        v = eval(v);
         if(v[0] >= '0' && v[0] <= '9') {
             items.emplace_back(new Number(v));
         }
@@ -257,6 +258,7 @@ Dict::Dict(std::string dict_val) {
             kv[i] = lib::resolve_string(kv[i]);
         }
         append_unique(kv[i], true);
+        kv[i + 1] = eval(kv[i + 1]);
         if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
             dict[kv[i]] = new Number((kv[i + 1]));
         }
