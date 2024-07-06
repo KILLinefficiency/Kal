@@ -54,7 +54,10 @@ namespace parser {
     }
 
     bool match(int& index, std::string text, const std::string pattern, bool incr = true) {
-        int pattern_len = pattern.size();
+        uint64_t pattern_len = pattern.size();
+        if(index + pattern_len > text.size()) {
+            return false;
+        }
         std::string found_pattern = text.substr(index, pattern_len);
         bool matched = pattern == found_pattern;
         if(matched && incr) {
@@ -401,6 +404,7 @@ namespace parser {
         }
         else if(text[index] == '$') {
             required_token = parse_variable(text, index);
+            index--;
         }
         else if(text[index] == '[') {
             required_token = extract_list(text, '[', index);
@@ -422,7 +426,7 @@ namespace parser {
             return required_token;
         }
         else {
-            std::cout << "unknown token: " << text[index] << std::endl;
+            std::cout << "unknown token: [" << text[index] << "]" << std::endl;
             exit(1);
         }
 
