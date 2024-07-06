@@ -338,6 +338,29 @@ void test_var() {
     actual_string = "3.14";
     found_string = VarTable::print("$pi");
     check(found_string, actual_string);
+    VarTable::gc();
+
+    // Test for upacking Dictionaries nested into Lists.
+    VarTable::set("[_, a, #(b, c)]", "[1, 2, #(b -> \"B\", c -> \"C\")]");
+    actual_string = "2";
+    found_string = VarTable::print("$a");
+    check(found_string, actual_string);
+    actual_string = "\"B\"";
+    found_string = VarTable::print("$b");
+    check(found_string, actual_string);
+    actual_string = "\"C\"";
+    found_string = VarTable::print("$c");
+    check(found_string, actual_string);
+    VarTable::set("[_, #(p, q, r), _]", "[1, #(r -> 10, p -> [2, 2, 5], q -> 30), 3]");
+    actual_string = "10";
+    found_string = VarTable::print("$r");
+    check(found_string, actual_string);
+    actual_string = "30";
+    found_string = VarTable::print("$q");
+    check(found_string, actual_string);
+    actual_string = "[2, 2, 5]";
+    found_string = VarTable::print("$p");
+    check(found_string, actual_string);
 
     progress();
 
