@@ -532,6 +532,10 @@ namespace parser {
                 index++;
                 continue;
             }
+            if(text[index] == '$' && !config->head) {
+                token.init = parse_init(text, index);
+                continue;
+            }
             if(index == 0) {
                 if(!config->head) {
                     END;

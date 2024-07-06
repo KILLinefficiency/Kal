@@ -5,7 +5,7 @@
 #include "exec.hpp"
 #include "kast.hpp"
 #include "errors.hpp"
-#include "variable.hpp"
+//#include "variable.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
 #include "lib/lib_path.hpp"
@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv) {
     ArgParser arg_parser = ArgParser(argc, argv);
-    VarTable var = VarTable();
+    //VarTable var = VarTable();
 
     if(argc == 1) {
         //shell::init_shell();
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     if(is_kast_file) {
         std::vector<Token> tokens;
         kast::decode(file_name, tokens);
-        line_exec(tokens, var);
+        line_exec(tokens);
         return 0;
     }
 
@@ -88,7 +88,9 @@ int main(int argc, char** argv) {
 
     
     std::vector<Token> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens, var);
+    line_exec(tokens);
+
+    VarTable::gc();
 
     return 0;
 }

@@ -75,6 +75,9 @@ namespace p_config {
         else if(cmd == "style" || cmd == "stdout") {
             return &group_3;
         }
+        else if(cmd[0] == '$') {
+            return &group_0;
+        }
 
         return &group_0;
     }

@@ -3,13 +3,17 @@
 #include "config.hpp"
 #include "lexer.hpp"
 #include "errors.hpp"
-#include "variable.hpp"
+#include "var.hpp"
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
-#include "lib/lib_list.hpp"
+//#include "lib/lib_list.hpp"
 
 namespace parser {
     void std_out(std::string out_text) {
+        if(out_text[0] == '$') {
+            std::cout << VarTable::print(out_text);
+            return;
+        }
         std::cout << lib::resolve_string(lib::render_escape_chars(out_text));
     }
 
@@ -18,7 +22,7 @@ namespace parser {
     }
 }
 
-void line_exec(std::vector<Token>& tokens, VarTable& var) {
+void line_exec(std::vector<Token>& tokens) {
     bool warn = true;
     int total_tokens = tokens.size();
 
@@ -70,6 +74,13 @@ void line_exec(std::vector<Token>& tokens, VarTable& var) {
             }
         }
 
+        else if(ins == "var" || (ins == "" && cmd.init.size() != 0)) {
+            int vars = cmd.init.size();
+            for(int each = 0; each < vars; each += 2) {
+                VarTable::set(cmd.init[each], cmd.init[each + 1]);
+            }
+        }
+
         else if(ins == "stdout") {
             if(cmd_size == 0) {
                 std::cout << "";
@@ -82,14 +93,14 @@ void line_exec(std::vector<Token>& tokens, VarTable& var) {
             }
         }
 
-        else if(ins == "stdin" && cmd_size == 1) {
+        /*else if(ins == "stdin" && cmd_size == 1) {
             std::string var_to_read = lexer::get_var_name_from_token(cmd.values[0]);
             if(var.get_mem_type(var_to_read) == "const") {
                 errors::change_const_var_error(var_to_read);
             }
             //var.read_var(var.expand_var(cmd[1]));
             var.read_var(cmd.values[0]);
-        }
+        }*/
 
         line++;
     }

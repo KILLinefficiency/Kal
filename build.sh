@@ -10,7 +10,13 @@ SRC_FILE="kal.cpp"
 BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
 STD="-std=c++20"
-FLAGS="-s -pipe -static -pedantic -Wall -Wextra -Werror"
+
+STATIC="-static"
+if [ $DYN -eq 1 ]; then
+    STATIC=""
+fi
+
+FLAGS="-s -pipe $(echo $STATIC) -pedantic -Wall -Wextra -Werror"
 
 TEST_SRC_FILE="tests/kal_test.cpp"
 TEST_BIN_FILE="bin/kal_test"
