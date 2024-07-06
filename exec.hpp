@@ -11,7 +11,7 @@
 namespace parser {
     void std_out(std::string out_text) {
         if(out_text[0] == '$') {
-            std::cout << VarTable::print(out_text);
+            std::cout << lib::resolve_string(VarTable::print(out_text));
             return;
         }
         std::cout << lib::resolve_string(lib::render_escape_chars(out_text));
