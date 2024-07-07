@@ -7,7 +7,6 @@
 #include <cmath>
 #include <sstream>
 
-//#include "var.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
 #include "lib/lib_math.hpp"

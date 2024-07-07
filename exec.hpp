@@ -3,6 +3,7 @@
 #include "config.hpp"
 #include "lexer.hpp"
 #include "errors.hpp"
+#include "expr_parser.hpp"
 #include "var.hpp"
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
@@ -27,6 +28,8 @@ void line_exec(std::vector<Token>& tokens) {
     int total_tokens = tokens.size();
 
     int line = 0;
+    int depth = 0;
+    int current_depth = 0;
     while(line < total_tokens) {
         Token& cmd = tokens[line];
         std::string& ins = cmd.head;
@@ -35,6 +38,25 @@ void line_exec(std::vector<Token>& tokens) {
             line++;
             continue;
         }
+
+        if(tokens[line].head == "if" && tokens[line].values[tokens[line].values.size() - 1] == "{") {
+            depth += 1;
+            current_depth = depth;
+            // might need to refactor values into a variable.
+            bool condition = eval(tokens[line].values[0]) == "1";
+            if(condition) {
+                line++;
+                continue;
+            }
+            else {
+                while(depth != current_depth - 1) {
+                    line++;
+                    if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                    if(tokens[line].head == "}") { depth--; }
+                }
+            }
+        }
+        if(tokens[line].head == "}") { depth--; }
 
         else if(ins == "exit") {
             if(cmd_size == 0) {
