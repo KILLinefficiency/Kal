@@ -11,12 +11,15 @@ BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
 STD="-std=c++20"
 
-STATIC="-static"
-if [ $DYN -eq 1 ]; then
-    STATIC=""
+STATIC_ELF=""
+if [ -z $STATIC ]; then
+    STATIC=0
+fi
+if [ $STATIC -eq 1 ]; then
+    STATIC_ELF="-static"
 fi
 
-FLAGS="-s -pipe $(echo $STATIC) -pedantic -Wall -Wextra -Werror"
+FLAGS="-s -pipe $(echo $STATIC_ELF) -pedantic -Wall -Wextra -Werror"
 
 TEST_SRC_FILE="tests/kal_test.cpp"
 TEST_BIN_FILE="bin/kal_test"

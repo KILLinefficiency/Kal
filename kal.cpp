@@ -5,7 +5,7 @@
 #include "exec.hpp"
 #include "kast.hpp"
 #include "errors.hpp"
-//#include "variable.hpp"
+#include "var.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
 #include "lib/lib_path.hpp"
@@ -64,6 +64,12 @@ int main(int argc, char** argv) {
     }
 
     file_name = args[1];
+
+    memory["ARGS"] = new List();
+    (dynamic_cast<List*>(memory["ARGS"]))->items.reserve(args.size());
+    for(std::string& arg : args) {
+        (dynamic_cast<List*>(memory["ARGS"]))->items.emplace_back(new String('"' + arg + '"'));
+    }
 
     bool is_kast_file = file_name.substr(file_name.size() - 5) == ".kast";
     if(is_kast_file) {
