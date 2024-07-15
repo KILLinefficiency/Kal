@@ -8,8 +8,8 @@
 #include <algorithm>
 
 #include "expr_parser.hpp"
-
 #include "lib/lib_string.hpp"
+#include "lib/lib_style.hpp"
 
 std::vector<std::string> parse_map(std::string text, int& index) {
     index++;
@@ -879,3 +879,49 @@ namespace VarTable {
         return v->print();
     }
 };
+
+std::string pretty_print(std::string var, Value* value = nullptr, int indent = 0, int step = 2) {
+    std::stringstream text;
+    if(value == nullptr) {
+        value = VarTable::get(var, {}, true, true);
+    }
+
+    if(dynamic_cast<Number*>(value)) {
+        text << style::style["yellow"] << dynamic_cast<Number*>(value)->val << style::style["reset"];
+    }
+    else if(dynamic_cast<String*>(value)) {
+        text << style::style["green"] << dynamic_cast<String*>(value)->str << style::style["reset"];
+    }
+    else if(dynamic_cast<List*>(value)) {
+        text << "[ ";
+        int size = dynamic_cast<List*>(value)->items.size();
+        for(int each = 0; each < size; each++) {
+            text << pretty_print("", dynamic_cast<List*>(value)->items[each]);
+            if(each == (size - 1)) {
+                continue;
+            }
+            text << ", ";
+        }
+        text << " ]";
+    }
+    else if(dynamic_cast<Dict*>(value)) {
+        text << "#(\n";
+        indent += step;
+        int total_keys = dynamic_cast<Dict*>(value)->keys.size();
+        for(int each = 0; each < total_keys; each++) {
+            std::string key = dynamic_cast<Dict*>(value)->keys[each];
+            text << std::string(indent, ' ')
+                    << style::style["bold"] << key << style::style["reset"]
+                    << " -> "
+                    << pretty_print("", dynamic_cast<Dict*>(value)->dict[key], indent);
+            if(each == (total_keys - 1)) {
+                text << "\n";
+                continue;
+            }
+            text << ",\n";
+        }
+        indent -= step;
+        text << std::string(indent, ' ') << ")";
+    }
+    return text.str();
+}
