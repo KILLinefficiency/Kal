@@ -880,7 +880,7 @@ namespace VarTable {
     }
 };
 
-std::string pretty_print(std::string var, Value* value = nullptr, int indent = 0, int step = 2) {
+std::string pretty_print(std::string var, Value* value = nullptr, uint64_t indent = 0, uint64_t step = 2) {
     std::stringstream text;
     if(value == nullptr) {
         value = VarTable::get(var, {}, true, true);
@@ -893,16 +893,35 @@ std::string pretty_print(std::string var, Value* value = nullptr, int indent = 0
         text << style::style["green"] << dynamic_cast<String*>(value)->str << style::style["reset"];
     }
     else if(dynamic_cast<List*>(value)) {
+        bool multi_line = false;
         text << "[ ";
         int size = dynamic_cast<List*>(value)->items.size();
+        if(size > 9) {
+            multi_line = true;
+            indent += step;
+            text << "\n" << std::string(indent, ' ');
+        }
         for(int each = 0; each < size; each++) {
-            text << pretty_print("", dynamic_cast<List*>(value)->items[each]);
+            if(multi_line) {
+                if((each + 1) % 5 == 0) {
+                    text << "\n";
+                    text << std::string(indent, ' ');
+                }
+            }
+            text << pretty_print("", dynamic_cast<List*>(value)->items[each], indent);
             if(each == (size - 1)) {
                 continue;
             }
             text << ", ";
         }
-        text << " ]";
+        indent -= step;
+        if(multi_line) {
+            text << "\n" << std::string(indent, ' ');
+        }
+        if(!multi_line) {
+            text << " ";
+        }
+        text << "]";
     }
     else if(dynamic_cast<Dict*>(value)) {
         text << "#(\n";
