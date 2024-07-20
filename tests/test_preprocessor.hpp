@@ -34,5 +34,18 @@ void test_preprocessor() {
     found = text;
     preproc::remove_comments(found);
     check(found, actual);
+
+    text = "stdout 3.14 ;; this whole part will be ignored till line break";
+    actual = "stdout 3.14                                                   ";
+    found = text;
+    preproc::remove_comments(found);
+    check(found, actual);
+
+    text = "var name = \"Kal\", ;; multi line comments work till they reach a line break\n    type = \"Language\"";
+    actual = "var name = \"Kal\",                                                         \n    type = \"Language\"";
+    found = text;
+    preproc::remove_comments(found);
+    check(found, actual);
+
     progress();
 }
