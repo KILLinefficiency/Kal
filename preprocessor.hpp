@@ -44,7 +44,7 @@ namespace preproc {
                 inside_string = !inside_string;
             }
             if(line[char_index] == ';' && line[char_index + 1] == ';' && !inside_string) {
-                while(line[char_index] != '\n') {
+                while(char_index < line_size && line[char_index] != '\n') {
                     line[char_index] = ' ';
                     char_index++;
                 }
