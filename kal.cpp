@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-//#include "shell.hpp"
+#include "shell.hpp"
 #include "exec.hpp"
 #include "kast.hpp"
 #include "errors.hpp"
@@ -16,8 +16,8 @@ int main(int argc, char** argv) {
     //VarTable var = VarTable();
 
     if(argc == 1) {
-        //shell::init_shell();
-        std::cout << "shell" << std::endl;
+        shell::init_shell();
+        //std::cout << "shell" << std::endl;
         return 0;
     }
     if(arg_parser.args_size() == 0) {
