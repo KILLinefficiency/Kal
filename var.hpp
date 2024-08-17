@@ -954,3 +954,125 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
     }
     return text.str();
 }
+
+bool compare_atom(Value* first, Value* second) {
+    if((dynamic_cast<Number*>(first) && dynamic_cast<String*>(second)) || (dynamic_cast<String*>(first) && dynamic_cast<Number*>(second))) {
+        return false;
+    }
+    if(dynamic_cast<Number*>(first) && dynamic_cast<Number*>(second)) {
+        if(dynamic_cast<Number*>(first)->val != dynamic_cast<Number*>(second)->val) {
+            return false;
+        }
+    }
+    else if(dynamic_cast<String*>(first) && dynamic_cast<String*>(second)) {
+        if(strcmp(dynamic_cast<String*>(first)->str, dynamic_cast<String*>(second)->str)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool compare(Value* first, Value* second) {
+    bool result = true;
+
+    if(dynamic_cast<List*>(first) && dynamic_cast<List*>(second)) {
+        if(dynamic_cast<List*>(first)->items.size() != dynamic_cast<List*>(second)->items.size()) {
+            return false;
+        }
+        int size = dynamic_cast<List*>(first)->items.size();
+        for(int idx = 0; idx < size; idx++) {
+            Value* each_a = dynamic_cast<List*>(first)->items[idx];
+            Value* each_b = dynamic_cast<List*>(second)->items[idx];
+            if((dynamic_cast<Number*>(each_a) && dynamic_cast<Number*>(each_b)) || (dynamic_cast<String*>(each_a) && dynamic_cast<String*>(each_b))) {
+                result = compare_atom(each_a, each_b);
+                if(!result) {
+                    return false;
+                }
+            }
+            else if((dynamic_cast<List*>(each_a) && dynamic_cast<List*>(each_b)) || (dynamic_cast<Dict*>(each_a) && dynamic_cast<Dict*>(each_b))) {
+                result = compare(each_a, each_b);
+                if(!result) {
+                    return false;
+                }
+            }
+            else {
+                result = false;
+            }
+        }
+    }
+    else if(dynamic_cast<Dict*>(first) && dynamic_cast<Dict*>(second)) {
+        if(dynamic_cast<Dict*>(first)->keys.size() != dynamic_cast<Dict*>(second)->keys.size()) {
+            return false;
+        }
+        int size = dynamic_cast<Dict*>(first)->keys.size();
+        std::unordered_map<std::string, Value*>::iterator itr;
+        for(itr = dynamic_cast<Dict*>(first)->dict.begin(); itr != dynamic_cast<Dict*>(first)->dict.end(); itr++) {
+            Value* each_a = itr->second;
+            Value* each_b = dynamic_cast<Dict*>(second)->dict[itr->first];
+            if(each_b == nullptr) {
+                return false;
+            }
+            if((dynamic_cast<Number*>(each_a) && dynamic_cast<Number*>(each_b)) || (dynamic_cast<String*>(each_a) && dynamic_cast<String*>(each_b))) {
+                result = compare_atom(each_a, each_b);
+                if(!result) {
+                    return false;
+                }
+            }
+            else if((dynamic_cast<List*>(first) && dynamic_cast<List*>(second)) || (dynamic_cast<Dict*>(first) && dynamic_cast<Dict*>(second))) {
+                result = compare(each_a, each_b);
+                if(!result) {
+                    return false;
+                }
+            }
+            else {
+                result = false;
+            }
+        }
+    }
+    else {
+        result = false;
+    }
+
+    return result;
+}
+
+bool compare(std::string first, std::string second) {
+    Value* a;
+    Value* b;
+    bool result = true;
+    bool a_temp = false, b_temp = false;
+    if(first[0] == '$') {
+        a = VarTable::get(first, {}, true, true);
+    }
+    else if(first[0] == '[') {
+        a = new List(first);
+        a_temp = true;
+    }
+    else if(first[0] == '#' && first[1] == '(') {
+        a = new Dict(first);
+        a_temp = true;
+    }
+
+    if(second[0] == '$') {
+        b = VarTable::get(second, {}, true, true);
+    }
+    else if(second[0] == '[') {
+        b = new List(second);
+        b_temp = true;
+    }
+    else if(second[0] == '#' && second[1] == '(') {
+        b = new Dict(second);
+        b_temp = true;
+    }
+
+    result = compare(a, b);
+
+    if(a_temp) {
+        delete a;
+    }
+    if(b_temp) {
+        delete b;
+    }
+
+    return result;
+}
