@@ -546,7 +546,13 @@ std::string eval(std::string expr) {
                     }
                 }
                 else {
-                    t_val = std::stod(b);
+                    //t_val = b;
+                    if(is_num(b)) {
+                        t_val = std::stod(b);
+                    }
+                    else {
+                        a_val = b;
+                    }
                 }
                 numbers.push(list_mul(a_val, t_val));
                 continue;
