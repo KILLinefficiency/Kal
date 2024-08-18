@@ -27,33 +27,6 @@ enum Type {
     INERT
 };
 
-/*
-
-TODO: 1. [DONE] Change the VarTable::get() function to get the values via indices as well as keys.
-      2. [DONE] Add dict parsing and eval in list.
-      3. [DONE] Perform some forward declarations to be able to print dicts in lists.
-      4. [DONE] Change the constructors to take in the values in Kal format instead being passed as std::vector.
-      5. [DONE] Think about the key-value order in dict.
-      6. Use dynamic_cast<>() for pointer casting almost everywhere instead of C style casting.
-      7. [DONE] Use std::stringstream to generate string to be displayed instead of printing it.
-      8. [DONE] Add code to copy by reference and copy by value (use get() function when copying instead of fetching from memory (might need forward decl of VarTable class)).
-      9. [DONE] When a reference is assigned to a reference, make sure to resolve it and point the new ref to the underlying value and not the reference.
-      10. Add code to change the real value with the change in reference.
-
-      8. Modify expr parser to parse dicts as they are.
-      9. [DONE] Use a single set function to add all types of data.
-      10. Eval the data before setting.
-
-      a. [DONE] Resolve quotes in keys if passes as a string.
-      b. [DONE] Add null.
-      c. add new pretty print kind of function to print a pretty dict when the items are more than 5 and same for list when items are more than 10 or something.
-
-      Maybe forward Declare VarTable class right after Value class to make memory map a part of the class.
-      In ExprParser, check if in the end if there's only a var left. if so, then assign the given var by using the get() function.
-
-*/
-
-
 Value* copy(Value*);
 std::unordered_map<std::string, Value*> memory;
 namespace VarTable {

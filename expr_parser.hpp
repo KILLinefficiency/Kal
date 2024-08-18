@@ -64,6 +64,21 @@ std::string to_integer(std::string num) {
     return num;
 }
 
+std::string list_mul(std::string& list, double& times) {
+    list = list.substr(1, list.size() - 2);
+    list = lib::trim_trailing(list);
+    std::string new_list = "[";
+    std::string sep = ", ";
+    while(times--) {
+        new_list += (list + sep);
+        if(times == 1) {
+            sep = "";
+        }
+    }
+    return new_list + "]";
+
+}
+
 namespace ops {
     const std::string negative = "n",
                       log_not = "!",
@@ -475,6 +490,41 @@ std::string eval(std::string expr) {
                     numbers.push(result ? "1" : "0");
                     continue;
                 }
+            }
+            else if(token == "*") {
+                Value* a_temp = nullptr;
+                Value* b_temp = nullptr;
+                std::string a_val;
+                double t_val;
+                //std::cout << a << " " << b << std::endl;
+                if(a[0] == '$') {
+                    a_temp = VarTable::get(a, {}, true, true, true);
+                    if(dynamic_cast<List*>(a_temp)) {
+                        a_val = VarTable::print(a);
+                    }
+                }
+                else {
+                    if(a[0] >= '0' && a[0] <= '9') {
+                        t_val = std::stod(a);
+                    }
+                    else {
+                        a_val = a;
+                    }
+                }
+                if(b[0] == '$') {
+                    b_temp = VarTable::get(b, {}, true, true, true);
+                    if(dynamic_cast<Number*>(b_temp)) {
+                        t_val = std::stod(dynamic_cast<Number*>(b_temp)->val);
+                    }
+                    else if(dynamic_cast<List*>(b_temp)) {
+                        a_val = VarTable::print(b);
+                    }
+                }
+                else {
+                    t_val = std::stod(b);
+                }
+                numbers.push(list_mul(a_val, t_val));
+                continue;
             }
 
             if(token == "as") {
