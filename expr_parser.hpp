@@ -289,6 +289,32 @@ bool is_list_or_dict(std::string structure) {
     return false;
 }
 
+bool is_num(std::string& data) {
+    if(data[0] == '$') {
+        Value* data_temp = VarTable::get(data, {}, true, true, true);
+        if(dynamic_cast<Number*>(data_temp)) {
+            return true;
+        }
+    }
+    else if(data[0] >= '0' && data[0] <= '9') {
+        return true;
+    }
+    return false;
+}
+
+bool is_list(std::string& structure) {
+    if(structure[0] == '[') {
+        return true;
+    }
+    else if(structure[0] == '$') {
+        Value* temp = VarTable::get(structure, {}, true, true, true);
+        if(dynamic_cast<List*>(temp)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string eval(std::string expr) {
     std::string result;
     std::string current_op = "";
@@ -491,12 +517,11 @@ std::string eval(std::string expr) {
                     continue;
                 }
             }
-            else if(token == "*") {
+            else if(token == "*" && ((is_list(a) && is_num(b)) || (is_num(a) && is_list(b)))) {
                 Value* a_temp = nullptr;
                 Value* b_temp = nullptr;
                 std::string a_val;
                 double t_val;
-                //std::cout << a << " " << b << std::endl;
                 if(a[0] == '$') {
                     a_temp = VarTable::get(a, {}, true, true, true);
                     if(dynamic_cast<List*>(a_temp)) {
