@@ -97,7 +97,13 @@ void line_exec(std::vector<Token>& tokens) {
                 }
             }
         }
-        else if(tokens[line].head == "}") { depth--; if(depth < 0) { depth = 0; } }
+        else if(tokens[line].head == "}") {
+            VarTable::gc(depth);
+            depth--;
+            if(depth < 0) {
+                depth = 0;
+            }
+        }
 
         else if(ins == "exit") {
             if(cmd_size == 0) {
@@ -140,7 +146,7 @@ void line_exec(std::vector<Token>& tokens) {
         else if(ins == "var" || (ins == "" && cmd.init.size() != 0)) {
             int vars = cmd.init.size();
             for(int each = 0; each < vars; each += 2) {
-                VarTable::set(cmd.init[each], cmd.init[each + 1]);
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, depth);
             }
         }
 

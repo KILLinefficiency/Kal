@@ -332,13 +332,17 @@ namespace InertTable {
     std::unordered_map<std::string, bool> is_hit = {};
 };
 
-namespace VarTable {
-    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false);
+namespace ScopeTable {
+    std::unordered_map<std::string, int> scope = {};
+}
 
-    void gc() {
+namespace VarTable {
+    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
+
+    void gc(int depth = 0) {
         std::unordered_map<std::string, Value*>::iterator itr;
         for(itr = memory.begin(); itr != memory.end(); itr++) {
-            if(itr->second != nullptr) {
+            if(itr->second != nullptr && ScopeTable::scope[itr->first] >= depth) {
                 delete itr->second;
                 memory[itr->first] = nullptr;
             }
@@ -524,7 +528,7 @@ namespace VarTable {
         }
     }
 
-    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy) {
+    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth) {
         //std::cout << "raw: " << data << std::endl;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
@@ -540,6 +544,11 @@ namespace VarTable {
         if(data != "") {
             data = eval(data);
         }
+
+        if(memory[var] == nullptr) {
+            ScopeTable::scope[var] = depth;
+        }
+
         //std::cout << "eval: " << data << std::endl;
         if(var[0] == '$') {
             // TODO: the same for Strings. (DONE)
