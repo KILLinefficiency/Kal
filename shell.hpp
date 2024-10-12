@@ -13,7 +13,6 @@ namespace shell {
         preproc::remove_comments(shell_cmd);
         shell_cmd = lib::trim_leading(shell_cmd);
         shell_cmd = lib::trim_trailing(shell_cmd);
-        //preproc::adjust_strings(shell_cmd);
     }
 
     void init_shell() {
@@ -74,7 +73,7 @@ namespace shell {
                 continue;
             }
 
-            std::vector<std::string> shell_lines = lib::new_split(command);
+            std::vector<std::string> shell_lines = lib::split(command);
             for(std::string& each : shell_lines) {
                 prep_for_shell(each);
             }

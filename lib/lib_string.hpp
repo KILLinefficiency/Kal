@@ -109,14 +109,6 @@ namespace lib {
         return complete_text;
     }
 
-    void expand_tabs(std::string& tabbed_string) {
-        for(uint64_t tabbed_itr = 0; tabbed_itr < tabbed_string.size(); tabbed_itr++) {
-            if(tabbed_string[tabbed_itr] == '\t') {
-                tabbed_string[tabbed_itr] = ' ';
-            }
-        }
-    }
-
     bool exists_in_vector(const std::vector<std::string>& text_list, const std::string& text) {
         for(std::string item : text_list) {
             if(item == text) {
@@ -136,50 +128,7 @@ namespace lib {
         return resolved_string;
     }
 
-    std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
-        int len = -1;
-        int begin = 0;
-        int size = text.size();
-        bool enable_split = true;
-        std::vector<std::string> words;
-
-        if(text[0] != delimiter) {
-            text = delimiter + text;
-            size++;
-        }
-
-        if(text[size - 1] != delimiter) {
-            text += delimiter;
-            size++;
-        }
-
-        for(int current_index = 0; current_index < size; current_index++) {
-            len++;
-
-            if(delimiter == '.' && text[current_index] == delimiter) {
-                if((text[current_index - 1] >= '0' && text[current_index - 1] <= '9') && (text[current_index + 1] >= '0' && text[current_index + 1] <= '9')) {
-                    continue;
-                }
-            }
-
-            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || (text[current_index - 1] == ' ') || !enable_split)) {
-                enable_split = !enable_split;
-            }
-
-            if((text[current_index] == delimiter) && enable_split) {
-                std::string required_string = text.substr(begin, len);
-                if(required_string != "") {
-                    words.emplace_back(required_string);
-                }
-                begin = current_index + 1;
-                len = -1;
-            }
-        }
-
-        return words;
-    }
-
-    std::vector<std::string> new_split(std::string& text, char delimiter = '.', char secondary_id = '@', char secondary_delimiter = '\n', char escape_char = '"') {
+    std::vector<std::string> split(std::string& text, char delimiter = '.', char secondary_id = '@', char secondary_delimiter = '\n', char escape_char = '"') {
         int index = 0;
         int text_size = text.size();
         int begin = 0;
@@ -254,19 +203,4 @@ namespace lib {
 
         return lines;
     }
-
-    std::vector<std::string> str_split(std::string& text, std::string delimiter) {
-        std::vector<std::string> words;
-        char* c_text = &text[0];
-        char* c_delimiter = &delimiter[0];
-
-        char* word = strtok(c_text, c_delimiter);
-        while(word != NULL) {
-            words.emplace_back(std::string(word));
-            word = strtok(NULL, c_delimiter);
-        }
-
-        return words;
-    }
-
 }

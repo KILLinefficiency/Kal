@@ -143,10 +143,11 @@ void line_exec(std::vector<Token>& tokens) {
             }
         }
 
-        else if(ins == "var" || (ins == "" && cmd.init.size() != 0)) {
+        else if(ins == "var" || ins == "static" || (ins == "" && cmd.init.size() != 0)) {
             int vars = cmd.init.size();
+            bool is_static = ins == "static";
             for(int each = 0; each < vars; each += 2) {
-                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, depth);
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth);
             }
         }
 

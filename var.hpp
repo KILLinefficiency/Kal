@@ -12,6 +12,13 @@
 #include "lib/lib_string.hpp"
 #include "lib/lib_style.hpp"
 
+#define TO_NUM(value)  (dynamic_cast<Number*>(value))
+#define TO_STR(value)  (dynamic_cast<String*>(value))
+#define TO_LIST(value) (dynamic_cast<List*>(value))
+#define TO_DICT(value) (dynamic_cast<Dict*>(value))
+#define TO_NULL(value) (dynamic_cast<Null*>(value))
+#define TO_REF(value)  (dynamic_cast<Ref*>(value))
+
 std::vector<std::string> parse_map(std::string text, int& index) {
     index++;
     std::string contents = parser::extract_list(text, '(', index);
@@ -209,19 +216,19 @@ std::string Dict::print() {
         /*if(value->type == "Number") {
             disp << ((Number*)value)->print();
         }*/
-        if(dynamic_cast<Number*>(value)) {
+        if(TO_NUM(value)) {
             disp << ((Number*)value)->print();
         }
-        else if(dynamic_cast<String*>(value)) {
+        else if(TO_STR(value)) {
             disp << ((String*)value)->print();
         }
-        else if(dynamic_cast<List*>(value)) {
+        else if(TO_LIST(value)) {
             disp << ((List*)value)->print();
         }
-        else if(dynamic_cast<Dict*>(value)) {
+        else if(TO_DICT(value)) {
             disp << ((Dict*)value)->print();
         }
-        else if(dynamic_cast<Null*>(value)) {
+        else if(TO_NULL(value)) {
             disp << ((Null*)value)->print();
         }
         else {
@@ -254,28 +261,28 @@ Dict::~Dict() {
 Value* copy(Value* value) {
     Value* duplicate = nullptr;
 
-    if(dynamic_cast<Number*>(value)) {
-        duplicate = new Number((dynamic_cast<Number*>(value))->val);
+    if(TO_NUM(value)) {
+        duplicate = new Number(TO_NUM(value)->val);
     }
-    else if(dynamic_cast<String*>(value)) {
-        duplicate = new String((dynamic_cast<String*>(value))->str);
+    else if(TO_STR(value)) {
+        duplicate = new String(TO_STR(value)->str);
     }
-    else if(dynamic_cast<Null*>(value)) {
+    else if(TO_NULL(value)) {
         duplicate = new Null();
     }
-    else if(dynamic_cast<List*>(value)) {
+    else if(TO_LIST(value)) {
         duplicate = new List();
-        List* list_val = dynamic_cast<List*>(value);
-        List* list_dup = dynamic_cast<List*>(duplicate);
+        List* list_val = TO_LIST(value);
+        List* list_dup = TO_LIST(duplicate);
         list_dup->items.reserve(list_val->items.size());
         for(Value* v : list_val->items) {
             list_dup->items.emplace_back(copy(v));
         }
     }
-    else if(dynamic_cast<Dict*>(value)) {
+    else if(TO_DICT(value)) {
         duplicate = new Dict();
-        Dict* dict_val = dynamic_cast<Dict*>(value);
-        Dict* dict_dup = dynamic_cast<Dict*>(duplicate);
+        Dict* dict_val = TO_DICT(value);
+        Dict* dict_dup = TO_DICT(duplicate);
         dict_dup->keys.reserve(dict_val->keys.size());
         for(std::string& key : dict_val->keys) {
             dict_dup->keys.emplace_back(key);
@@ -284,9 +291,9 @@ Value* copy(Value* value) {
             dict_dup->dict[key_val.first] = copy(key_val.second);
         }
     }
-    else if(dynamic_cast<Ref*>(value)) {
+    else if(TO_REF(value)) {
         // check it it's necessary to copy the parent pointer too.
-        duplicate = new Ref((dynamic_cast<Ref*>(value))->ref);
+        duplicate = new Ref(TO_REF(value)->ref);
     }
 
     if(duplicate == nullptr) { std::cout << "cannot determine type\n"; exit(1); }
@@ -386,21 +393,21 @@ namespace VarTable {
                 //at_parent = true;
             }
             for(int i = 1; i < bound; i++) {
-                if(dynamic_cast<Ref*>(var)) {
-                    var = (dynamic_cast<Ref*>(var))->ref;
+                if(TO_REF(var)) {
+                    var = TO_REF(var)->ref;
                 }
                 if(symbols[i][0] >= '0' && symbols[i][0] <= '9') {
                     int index = std::stoi(symbols[i]);
-                    int size = (dynamic_cast<List*>(var))->items.size();
+                    int size = TO_LIST(var)->items.size();
                     if(index >= size) {
                         std::cout << "index " << symbols[i] << " out of bounds\n";
                         exit(1);
                     }
-                    var = (dynamic_cast<List*>(var))->items[index];
+                    var = TO_LIST(var)->items[index];
                 }
                 else if(symbols[i][0] == '"' && symbols[i][symbols[i].size() - 1] == '"') {
                     std::string key = lib::resolve_string(symbols[i]);
-                    var = (dynamic_cast<Dict*>(var))->dict[key];
+                    var = TO_DICT(var)->dict[key];
                     if(var == nullptr) {
                         std::cout << "key " << symbols[i] << " does not exist\n";
                         exit(1);
@@ -429,8 +436,8 @@ namespace VarTable {
             return var;
         }
 
-        if(get_original && dynamic_cast<Ref*>(var)) {
-            var = (dynamic_cast<Ref*>(var))->ref;
+        if(get_original && TO_REF(var)) {
+            var = TO_REF(var)->ref;
         }
 
         if(!is_ref && !update) {
@@ -440,7 +447,7 @@ namespace VarTable {
             RefTable::add(var);
             Value* tmp = var;
             var = new Ref(var, p);
-            RefTable::add_ref(tmp, dynamic_cast<Ref*>(var));
+            RefTable::add_ref(tmp, TO_REF(var));
         }
 
         return var;
@@ -481,8 +488,8 @@ namespace VarTable {
             packed_items = data_ptr;
         }
 
-        if(dynamic_cast<List*>(packed_items)) {
-            if(len > (dynamic_cast<List*>(packed_items))->items.size()) {
+        if(TO_LIST(packed_items)) {
+            if(len > (TO_LIST(packed_items))->items.size()) {
                 // add proper error msg here.
                 std::cerr << "more than enough items to unpack" << std::endl;
                 if(is_literal) {
@@ -496,15 +503,15 @@ namespace VarTable {
                     continue;
                 }
                 if(items[i][0] == '[' || (items[i][0] == '#' && items[i][1] == '(')) {
-                    unpack(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
+                    unpack(items[i], "", TO_LIST(packed_items)->items[i]);
                 }
                 else {
-                    set(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
+                    set(items[i], "", TO_LIST(packed_items)->items[i]);
                 }
             }
         }
-        else if(dynamic_cast<Dict*>(packed_items)) {
-            if(len > (dynamic_cast<Dict*>(packed_items))->keys.size()) {
+        else if(TO_DICT(packed_items)) {
+            if(len > TO_DICT(packed_items)->keys.size()) {
                 std::cerr << "more than enough items to unpack" << std::endl;
                 if(is_literal) {
                     delete packed_items;
@@ -512,14 +519,14 @@ namespace VarTable {
                 return;
             }
             for(uint64_t j = 0; j < len; j++) {
-                if(dynamic_cast<Dict*>(packed_items)->dict[items[j]] == nullptr) {
+                if(TO_DICT(packed_items)->dict[items[j]] == nullptr) {
                     std::cerr << "key \"" << items[j] << "\" does not exits." << std::endl;
                     if(is_literal) {
                         delete packed_items;
                     }
                     return;
                 }
-                set(items[j], "", dynamic_cast<Dict*>(packed_items)->dict[items[j]]);
+                set(items[j], "", TO_DICT(packed_items)->dict[items[j]]);
             }
         }
 
@@ -556,27 +563,27 @@ namespace VarTable {
             Value* ptr = VarTable::get(var, {}, true, true);
             if(data != "" && data[0] == '$') {
                 Value* d_ptr = VarTable::get(data, {}, true, true);
-                if(dynamic_cast<Ref*>(d_ptr)) {
-                    d_ptr = (dynamic_cast<Ref*>(d_ptr))->ref;
+                if(TO_REF(d_ptr)) {
+                    d_ptr = TO_REF(d_ptr)->ref;
                 }
-                if(dynamic_cast<Number*>(d_ptr)) {
-                    data = (dynamic_cast<Number*>(d_ptr))->val;
+                if(TO_NUM(d_ptr)) {
+                    data = TO_NUM(d_ptr)->val;
                 }
-                else if(dynamic_cast<String*>(d_ptr)) {
-                    data = std::string((dynamic_cast<String*>(d_ptr))->str);
+                else if(TO_STR(d_ptr)) {
+                    data = std::string(TO_STR(d_ptr)->str);
                 }
             }
-            if(dynamic_cast<Ref*>(ptr)) {
-                ptr = (dynamic_cast<Ref*>(ptr))->ref;
+            if(TO_REF(ptr)) {
+                ptr = TO_REF(ptr)->ref;
             }
-            if(dynamic_cast<Number*>(ptr) && data != "") {
+            if(TO_NUM(ptr) && data != "") {
                 // check if the second value is also of the same type. (tbd)
-                (dynamic_cast<Number*>(ptr))->val = data; //(dynamic_cast<Number*>(value))->val;
+                TO_NUM(ptr)->val = data; //(dynamic_cast<Number*>(value))->val;
                 //delete value;
                 return;
             }
-            else if(dynamic_cast<String*>(ptr) && data != "") {
-                strcpy((dynamic_cast<String*>(ptr))->str, data.c_str());
+            else if(TO_STR(ptr) && data != "") {
+                strcpy(TO_STR(ptr)->str, data.c_str());
                 return;
             }
         }
@@ -606,9 +613,9 @@ namespace VarTable {
         }
         else if(data[0] == '$') {
             value = get(data, {});
-            if(dynamic_cast<Ref*>(value)) {
-                RefTable::add((dynamic_cast<Ref*>(value))->ref);
-                RefTable::add_ref((dynamic_cast<Ref*>(value)->ref), dynamic_cast<Ref*>(value));
+            if(TO_REF(value)) {
+                RefTable::add(TO_REF(value)->ref);
+                RefTable::add_ref((TO_REF(value)->ref), TO_REF(value));
             }
         }
 
@@ -617,9 +624,9 @@ namespace VarTable {
             //
             std::string v_name = var.substr(1);
             if(memory[v_name] != nullptr) {
-                if(dynamic_cast<Ref*>(memory[v_name])) {
+                if(TO_REF(memory[v_name])) {
                     std::unordered_map<std::string, Value*>::iterator itr;
-                    Value* oval = (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                    Value* oval = TO_REF(memory[v_name])->ref;
                     std::string ovar = "";
                     bool found_ovar = false;
                     for(itr = memory.begin(); itr != memory.end(); itr++) {
@@ -630,19 +637,19 @@ namespace VarTable {
                         }
                     }
                     if(found_ovar) {
-                        Value* prev = (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                        Value* prev = TO_REF(memory[v_name])->ref;
                         RefTable::change_var(prev, value);
                         delete prev;
                         memory[ovar] = value;
                     }
                     else {
-                        Value* prev_val = (dynamic_cast<Ref*>(memory[v_name]))->ref;
-                        Value* parent_val = (dynamic_cast<Ref*>(memory[v_name]))->parent;
-                        Value* prev =  (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                        Value* prev_val = TO_REF(memory[v_name])->ref;
+                        Value* parent_val = TO_REF(memory[v_name])->parent;
+                        Value* prev =  TO_REF(memory[v_name])->ref;
                         RefTable::change_var(prev, value);
                         delete prev;
                         if(dynamic_cast<List*>(parent_val)) {
-                            List* p_list = dynamic_cast<List*>(parent_val);
+                            List* p_list = TO_LIST(parent_val);
                             for(uint64_t i = 0; i < p_list->items.size(); i++) {
                                 if(prev_val == p_list->items[i]) {
                                     p_list->items[i] = value;
@@ -651,8 +658,8 @@ namespace VarTable {
                             }
                         }
                         // TODO: perform the same operation for dict as done for list above. (done)
-                        else if(dynamic_cast<Dict*>(parent_val)) {
-                            Dict* p_dict = dynamic_cast<Dict*>(parent_val);
+                        else if(TO_DICT(parent_val)) {
+                            Dict* p_dict = TO_DICT(parent_val);
                             std::unordered_map<std::string, Value*>::iterator itr;
                             for(itr = p_dict->dict.begin(); itr != p_dict->dict.end(); itr++) {
                                 if(prev_val == itr->second) {
@@ -681,16 +688,16 @@ namespace VarTable {
                 Value* ov = get("", syms, false, false, false);
                 //std::cout << "---> " << ov->print() << std::endl;
                 bool is_ref = false;
-                if(dynamic_cast<Ref*>(ov)) {
+                if(TO_REF(ov)) {
                     is_ref = true;
                 }
                 delete ov;
 
-                if(dynamic_cast<List*>(v)) {
+                if(TO_LIST(v)) {
                     ////Value* r = new Ref(value); //
                     if(is_ref) {
                         //RefTable::change_var((dynamic_cast<Ref*>(ov))->ref, value);
-                        Value* tmp = dynamic_cast<Ref*>(((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref;
+                        Value* tmp = TO_REF((TO_LIST(v)->items[std::stoi(last_symbol)]))->ref;
                         //
                         bool found = false;
                         std::unordered_map<std::string, Value*>::iterator itr;
@@ -702,10 +709,10 @@ namespace VarTable {
                             }
                         }
                         if(!found) {
-                            Value* tmp_parent = dynamic_cast<Ref*>(((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->parent;
+                            Value* tmp_parent = TO_REF((TO_LIST(v)->items[std::stoi(last_symbol)]))->parent;
                             // NEW TODO: Might need to implement the below logic for Dict and wrap the overall code in a different function.
                             if(dynamic_cast<List*>(tmp_parent)) {
-                                List* tmp_pd = dynamic_cast<List*>(tmp_parent);
+                                List* tmp_pd = TO_LIST(tmp_parent);
                                 for(uint64_t x = 0; x < tmp_pd->items.size(); x++) {
                                     if(tmp_pd->items[x] == tmp) {
                                         tmp_pd->items[x] = value;
@@ -715,25 +722,25 @@ namespace VarTable {
                             }
                         }
                         //
-                        dynamic_cast<Ref*>(((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref = value;
+                        TO_REF((TO_LIST(v)->items[std::stoi(last_symbol)]))->ref = value;
                         //RefTable::change_var( (dynamic_cast<Ref*>((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref, value );
                         RefTable::change_var(tmp, value);
                         delete tmp;
                     }
                     else {
-                        Value* prev_val = (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)];
+                        Value* prev_val = TO_LIST(v)->items[std::stoi(last_symbol)];
                         //delete (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)];
-                        (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)] = value;
+                        TO_LIST(v)->items[std::stoi(last_symbol)] = value;
                         RefTable::change_var(prev_val, value);
                         // maybe this line should not exist, but it also prevents the memory leak from happening... investigate more.
                         // this line cause segfaults (as it should for other cases.)
                         delete prev_val;
                     }
                 }
-                else if(dynamic_cast<Dict*>(v)) {
+                else if(TO_DICT(v)) {
                     // TODO: Write code for replacing when item is Ref as done above in List.
                     if(is_ref) {
-                        Value* tmp = dynamic_cast<Ref*>((dynamic_cast<Dict*>(v))->dict[last_symbol])->ref;
+                        Value* tmp = TO_REF(TO_DICT(v)->dict[last_symbol])->ref;
                         bool found = false;
                         std::unordered_map<std::string, Value*>::iterator itr;
                         for(itr = memory.begin(); itr != memory.end(); itr++) {
@@ -743,10 +750,10 @@ namespace VarTable {
                             }
                         }
                         if(!found) {
-                            Value* tmp_parent = dynamic_cast<Ref*>((dynamic_cast<Dict*>(v))->dict[last_symbol])->parent;
+                            Value* tmp_parent = TO_REF(TO_DICT(v)->dict[last_symbol])->parent;
                             // NEW TODO: Might need to implement the below logic for Dict and wrap the overall code in a different function.
-                            if(dynamic_cast<List*>(tmp_parent)) {
-                                List* tmp_pd = dynamic_cast<List*>(tmp_parent);
+                            if(TO_LIST(tmp_parent)) {
+                                List* tmp_pd = TO_LIST(tmp_parent);
                                 for(uint64_t x = 0; x < tmp_pd->items.size(); x++) {
                                     if(tmp_pd->items[x] == tmp) {
                                         tmp_pd->items[x] = value;
@@ -755,26 +762,26 @@ namespace VarTable {
                                 }
                             }
                         }
-                        dynamic_cast<Ref*>((dynamic_cast<Dict*>(v))->dict[last_symbol])->ref = value;
+                        TO_REF(TO_DICT(v)->dict[last_symbol])->ref = value;
                         RefTable::change_var(tmp, value);
                         delete tmp;
                     }
                     else {
                         // add change_ref() logic here.
                         last_symbol = lib::resolve_string(last_symbol);
-                        Value* old =  (dynamic_cast<Dict*>(v))->dict[last_symbol];
+                        Value* old = TO_DICT(v)->dict[last_symbol];
                         RefTable::change_var(old, value);
                         delete old;
-                        (dynamic_cast<Dict*>(v))->dict[last_symbol] = value;
-                        (dynamic_cast<Dict*>(v))->append_unique(last_symbol);
+                        TO_DICT(v)->dict[last_symbol] = value;
+                        TO_DICT(v)->append_unique(last_symbol);
                     }
                 }
             }
             ///
             RefTable::add(value);
-            if(dynamic_cast<Ref*>(value)) {
-                RefTable::add((dynamic_cast<Ref*>(value))->ref);
-                RefTable::add_ref((dynamic_cast<Ref*>(value)->ref), dynamic_cast<Ref*>(value));
+            if(TO_REF(value)) {
+                RefTable::add(TO_REF(value)->ref);
+                RefTable::add_ref(TO_REF(value)->ref, TO_REF(value));
             }
             ///
         }
@@ -785,9 +792,9 @@ namespace VarTable {
             memory[var] = value;
             ///
             RefTable::add(value);
-            if(dynamic_cast<Ref*>(value)) {
-                RefTable::add((dynamic_cast<Ref*>(value))->ref);
-                RefTable::add_ref((dynamic_cast<Ref*>(value)->ref), dynamic_cast<Ref*>(value));
+            if(TO_REF(value)) {
+                RefTable::add(TO_REF(value)->ref);
+                RefTable::add_ref(TO_REF(value)->ref, TO_REF(value));
             }
             ///
         }
@@ -806,23 +813,23 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
         value = VarTable::get(var, {}, true, true);
     }
 
-    if(dynamic_cast<Null*>(value)) {
+    if(TO_NULL(value)) {
         text << style::style["red"] << style::style["italic"] << "null" << style::style["reset"];
     }
-    else if(dynamic_cast<Number*>(value)) {
-        text << style::style["yellow"] << dynamic_cast<Number*>(value)->val << style::style["reset"];
+    else if(TO_NUM(value)) {
+        text << style::style["yellow"] << TO_NUM(value)->val << style::style["reset"];
     }
-    else if(dynamic_cast<String*>(value)) {
-        std::string str = dynamic_cast<String*>(value)->str;
+    else if(TO_NUM(value)) {
+        std::string str = TO_STR(value)->str;
         if(single) {
             str = str.substr(1, str.size() - 2);
         }
         text << style::style["green"] << str << style::style["reset"];
     }
-    else if(dynamic_cast<List*>(value)) {
+    else if(TO_LIST(value)) {
         bool multi_line = false;
         text << "[ ";
-        int size = dynamic_cast<List*>(value)->items.size();
+        int size = TO_LIST(value)->items.size();
         if(size > 9) {
             multi_line = true;
             indent += step;
@@ -835,7 +842,7 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
                     text << std::string(indent, ' ');
                 }
             }
-            text << pretty_print("", dynamic_cast<List*>(value)->items[each], indent, false);
+            text << pretty_print("", TO_LIST(value)->items[each], indent, false);
             if(each == (size - 1)) {
                 continue;
             }
@@ -850,16 +857,16 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
         }
         text << "]";
     }
-    else if(dynamic_cast<Dict*>(value)) {
+    else if(TO_DICT(value)) {
         text << "#(\n";
         indent += step;
-        int total_keys = dynamic_cast<Dict*>(value)->keys.size();
+        int total_keys = TO_DICT(value)->keys.size();
         for(int each = 0; each < total_keys; each++) {
-            std::string key = dynamic_cast<Dict*>(value)->keys[each];
+            std::string key = TO_DICT(value)->keys[each];
             text << std::string(indent, ' ')
                     << style::style["bold"] << key << style::style["reset"]
                     << " -> "
-                    << pretty_print("", dynamic_cast<Dict*>(value)->dict[key], indent, false);
+                    << pretty_print("", TO_DICT(value)->dict[key], indent, false);
             if(each == (total_keys - 1)) {
                 text << "\n";
                 continue;
@@ -873,16 +880,16 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
 }
 
 bool compare_atom(Value* first, Value* second) {
-    if((dynamic_cast<Number*>(first) && dynamic_cast<String*>(second)) || (dynamic_cast<String*>(first) && dynamic_cast<Number*>(second))) {
+    if((TO_NUM(first) && TO_STR(second)) || (TO_STR(first) && TO_NUM(second))) {
         return false;
     }
-    if(dynamic_cast<Number*>(first) && dynamic_cast<Number*>(second)) {
-        if(dynamic_cast<Number*>(first)->val != dynamic_cast<Number*>(second)->val) {
+    if(TO_NUM(first) && TO_NUM(second)) {
+        if(TO_NUM(first)->val != TO_NUM(second)->val) {
             return false;
         }
     }
-    else if(dynamic_cast<String*>(first) && dynamic_cast<String*>(second)) {
-        if(strcmp(dynamic_cast<String*>(first)->str, dynamic_cast<String*>(second)->str)) {
+    else if(TO_STR(first) && TO_STR(second)) {
+        if(strcmp(TO_STR(first)->str, TO_STR(second)->str)) {
             return false;
         }
     }
@@ -892,21 +899,21 @@ bool compare_atom(Value* first, Value* second) {
 bool compare(Value* first, Value* second) {
     bool result = true;
 
-    if(dynamic_cast<List*>(first) && dynamic_cast<List*>(second)) {
-        if(dynamic_cast<List*>(first)->items.size() != dynamic_cast<List*>(second)->items.size()) {
+    if(TO_LIST(first) && TO_LIST(second)) {
+        if(TO_LIST(first)->items.size() != TO_LIST(second)->items.size()) {
             return false;
         }
-        int size = dynamic_cast<List*>(first)->items.size();
+        int size = TO_LIST(first)->items.size();
         for(int idx = 0; idx < size; idx++) {
-            Value* each_a = dynamic_cast<List*>(first)->items[idx];
-            Value* each_b = dynamic_cast<List*>(second)->items[idx];
-            if((dynamic_cast<Number*>(each_a) && dynamic_cast<Number*>(each_b)) || (dynamic_cast<String*>(each_a) && dynamic_cast<String*>(each_b))) {
+            Value* each_a = TO_LIST(first)->items[idx];
+            Value* each_b = TO_LIST(second)->items[idx];
+            if((TO_NUM(each_a) && TO_NUM(each_b)) || (TO_STR(each_a) && TO_STR(each_b))) {
                 result = compare_atom(each_a, each_b);
                 if(!result) {
                     return false;
                 }
             }
-            else if((dynamic_cast<List*>(each_a) && dynamic_cast<List*>(each_b)) || (dynamic_cast<Dict*>(each_a) && dynamic_cast<Dict*>(each_b))) {
+            else if((TO_LIST(each_a) && TO_LIST(each_b)) || (TO_DICT(each_a) && TO_DICT(each_b))) {
                 result = compare(each_a, each_b);
                 if(!result) {
                     return false;
@@ -917,24 +924,24 @@ bool compare(Value* first, Value* second) {
             }
         }
     }
-    else if(dynamic_cast<Dict*>(first) && dynamic_cast<Dict*>(second)) {
-        if(dynamic_cast<Dict*>(first)->keys.size() != dynamic_cast<Dict*>(second)->keys.size()) {
+    else if(TO_DICT(first) && TO_DICT(second)) {
+        if(TO_DICT(first)->keys.size() != TO_DICT(second)->keys.size()) {
             return false;
         }
         std::unordered_map<std::string, Value*>::iterator itr;
-        for(itr = dynamic_cast<Dict*>(first)->dict.begin(); itr != dynamic_cast<Dict*>(first)->dict.end(); itr++) {
+        for(itr = TO_DICT(first)->dict.begin(); itr != TO_DICT(first)->dict.end(); itr++) {
             Value* each_a = itr->second;
-            Value* each_b = dynamic_cast<Dict*>(second)->dict[itr->first];
+            Value* each_b = TO_DICT(second)->dict[itr->first];
             if(each_b == nullptr) {
                 return false;
             }
-            if((dynamic_cast<Number*>(each_a) && dynamic_cast<Number*>(each_b)) || (dynamic_cast<String*>(each_a) && dynamic_cast<String*>(each_b))) {
+            if((TO_NUM(each_a) && TO_NUM(each_b)) || (TO_STR(each_a) && TO_STR(each_b))) {
                 result = compare_atom(each_a, each_b);
                 if(!result) {
                     return false;
                 }
             }
-            else if((dynamic_cast<List*>(first) && dynamic_cast<List*>(second)) || (dynamic_cast<Dict*>(first) && dynamic_cast<Dict*>(second))) {
+            else if((TO_LIST(first) && TO_LIST(second)) || (TO_DICT(first) && TO_DICT(second))) {
                 result = compare(each_a, each_b);
                 if(!result) {
                     return false;

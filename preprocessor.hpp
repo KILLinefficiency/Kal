@@ -60,35 +60,6 @@ namespace preproc {
         }
     }
 
-    void adjust_strings(std::string& line, char delimiter = ' ') {
-        bool inside = false;
-        const char str_delim[2] = { delimiter, '\0' };
-        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '"' && line[line_itr - 1] != delimiter && line_itr != 0 && !inside) {
-                line.insert(line_itr, str_delim);
-            }
-            if(line[line_itr] == '"') {
-                inside = !inside;
-            }
-        }
-
-        inside = false;
-        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '"') {
-                inside = !inside;
-            }
-            if(line[line_itr] == '"' && line[line_itr + 1] != delimiter && line_itr != line.size() - 1 && !inside) {
-                line.insert(line_itr + 1, str_delim);
-            }
-        }
-
-        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '$' && line[line_itr - 1] != delimiter && line[line_itr - 1] != '#' && line_itr != 0) {
-                line.insert(line_itr, str_delim);
-            }
-        }
-    }
-
     void check_path(std::vector<std::string>& paths, std::string path) {
         uint64_t size = paths.size();
         if(path == paths[size - 1]) {
@@ -116,7 +87,7 @@ namespace preproc {
         std::string file_contents = lib::read_file(abs_file_path);
         remove_comments(file_contents);
 
-        std::vector<std::string> file_lines = lib::new_split(file_contents);
+        std::vector<std::string> file_lines = lib::split(file_contents);
         paths.emplace_back(abs_file_path);
         for(std::string& line : file_lines) {
             line = lib::trim_leading(lib::trim_trailing(line));
