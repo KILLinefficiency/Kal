@@ -302,32 +302,54 @@ Value* copy(Value* value) {
 }
 
 namespace RefTable {
-    std::vector<Value*> variables;
+    //std::vector<Value*> variables;
+    std::unordered_map<Value*, uint64_t> variables;
     std::vector<std::vector<Ref*>> references;
 
     void add(Value*& val) {
-        std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), val);
+        /*std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), val);
         if(idx_itr == variables.end()) {
             variables.emplace_back(val);
+            references.emplace_back(std::vector<Ref*> {});
+        }*/
+        bool exists = variables[val] != 0;
+        if(!exists) {
+            variables[val] = references.size() + 1;
+            // std::cout << val << " : " << variables[val] << "\n";
             references.emplace_back(std::vector<Ref*> {});
         }
     }
 
     void add_ref(Value*& var, Ref* var_ref) {
-        std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), var);
+        /*std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), var);
         if(idx_itr != variables.end()) {
             int idx = idx_itr - variables.begin();
+            references[idx].emplace_back(var_ref);
+        }*/
+        // std::cout << variables.size() << " " << references.size() << "\n";
+        bool exists = variables[var] != 0;
+        if(exists) {
+            int idx = variables[var] - 1;
             references[idx].emplace_back(var_ref);
         }
     }
 
     void change_var(Value* old_var, Value* new_var) {
-        std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), old_var);
+        /*std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), old_var);
         if(idx_itr != variables.end()) {
             int idx = idx_itr - variables.begin();
             // delete variables[idx];
             variables[idx] = new_var;
             for(Ref*& r : references[idx]) {
+                r->ref = new_var;
+            }
+        }*/
+        bool exists = variables[old_var] != 0;
+        if(exists) {
+            int idx = variables[old_var];
+            variables.erase(old_var);
+            variables[new_var] = idx;
+            for(Ref*& r : references[idx - 1]) {
                 r->ref = new_var;
             }
         }
@@ -350,6 +372,7 @@ namespace VarTable {
         std::unordered_map<std::string, Value*>::iterator itr;
         for(itr = memory.begin(); itr != memory.end(); itr++) {
             if(itr->second != nullptr && ScopeTable::scope[itr->first] >= depth) {
+                // std::cout << "GCing... " << itr->first << " " << itr->second << "\n";
                 delete itr->second;
                 memory[itr->first] = nullptr;
             }

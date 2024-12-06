@@ -1,6 +1,7 @@
 #include "../lib/lib_style.hpp"
 #include "../config.hpp"
 #include <cstdint>
+#include <string>
 
 int current = 1;
 int total = 0;
