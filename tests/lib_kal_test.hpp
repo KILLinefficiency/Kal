@@ -13,7 +13,7 @@ void component(std::string kal_component) {
 }
 
 void title(std::string function) {
-    std::cout << style::style["green"]
+    std::cout << style::style["green"] << style::style["bold"]
         << "[" << current << " / " << total << "] "
         << style::style["reset"] << style::style["italic"] << "Testing " 
         << style::style["reset"] << style::style["bold"]
@@ -84,7 +84,7 @@ void check_token(const Token& found, const Token& actual) {
 }
 
 void progress() {
-    std::cout << style::style["green"] << "PASS.\n";
+    std::cout << style::style["green"] << style::style["bold"] << "PASS.\n" << style::style["reset"];
     current++;
 }
 
