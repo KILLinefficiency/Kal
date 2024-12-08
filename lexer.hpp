@@ -25,6 +25,9 @@ namespace lexer {
             else if(current_line.substr(0, 4) == "else") {
                 head = "else";
             }
+            else if(current_line.substr(0, 4) == "loop") {
+                head = "loop";
+            }
             else {
                 while(current_line[get_head] != ' ' && current_line[get_head] != '\t' && current_line[get_head] != '\n') {
                     get_head++;

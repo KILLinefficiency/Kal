@@ -65,26 +65,16 @@ void line_exec(std::vector<Token>& tokens) {
                     //std::cout << "end if: " << line << "\n";
                 }
             }
-            else {
-                if(tokens[line].head == "else") {
-                    //std::cout << "here " << depth << "\n";
-                    std::pair<bool, int> check = conditional_stack.top();
-                    //std::cout << "Stack: " << check.first << " " << check.second << " | Depth: " << depth << "\n";
-                    if(check.second == depth) {
-                        conditional_stack.pop();
-                        if(!check.first) {
-                            line++;
-                            depth++;
-                            continue;
-                        }
-                        else {
-                            while(depth != current_depth - 1) {
-                                line++;
-                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                                if(tokens[line].head == "}") { depth--; }
-                            }
-                            //continue;
-                        }
+            else if(tokens[line].head == "else") {
+                //std::cout << "here " << depth << "\n";
+                std::pair<bool, int> check = conditional_stack.top();
+                //std::cout << "Stack: " << check.first << " " << check.second << " | Depth: " << depth << "\n";
+                if(check.second == depth) {
+                    conditional_stack.pop();
+                    if(!check.first) {
+                        line++;
+                        depth++;
+                        continue;
                     }
                     else {
                         while(depth != current_depth - 1) {
@@ -95,7 +85,16 @@ void line_exec(std::vector<Token>& tokens) {
                         //continue;
                     }
                 }
+                else {
+                    while(depth != current_depth - 1) {
+                        line++;
+                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                        if(tokens[line].head == "}") { depth--; }
+                    }
+                    //continue;
+                }
             }
+            //
         }
         else if(tokens[line].head == "}") {
             VarTable::gc(depth);
