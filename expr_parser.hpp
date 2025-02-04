@@ -563,6 +563,9 @@ std::string eval(std::string expr) {
             }
 
             if(token == "as") {
+                if(a[0] == '$') {
+                    a = VarTable::print(a);
+                }
                 if(b == "int") {
                     numbers.push(to_integer(a));
                 }

@@ -581,6 +581,7 @@ namespace parser {
         return fn_def;
     }
 
+    //int parse_depth = 0;
     Token parse(const std::string& text, Config* config, std::string& head) {
         Token token;
         int index = 0;
@@ -683,6 +684,14 @@ namespace parser {
             required_token = parse_value(text, index);
             index++;
         }
+
+        /*int values_size = token.values.size();
+        if(values_size != 0 && token.values[values_size - 1] == "{") {
+            parse_depth += 1;
+        }
+        if(token.head = "}") {
+            parse_depth -= 1;
+        }*/
 
         return token;
     }

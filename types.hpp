@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sstream>
+#include "config.hpp"
+
 class Value {
     public:
         std::string type = "";
@@ -66,3 +69,40 @@ class Null : public Value {
         std::string print();
         ~Null();
 };
+
+class Fn : public Value {
+    public:
+        std::string type = "Fn";
+        Fn(std::vector<std::string>&);
+        std::string print();
+        std::string name;
+        std::vector<std::string> init;
+        std::vector<Token> body;
+        ~Fn();
+};
+
+Fn::Fn(std::vector<std::string>& fn_init) {
+    name = fn_init[0];
+    init = std::vector<std::string>(fn_init.begin() + 1, fn_init.end() - 1);
+}
+
+std::string Fn::print() {
+    std::stringstream disp;
+    disp << "(" << name << " -> ";
+    int init_size = init.size();
+    for(int each = 0; each < init_size; each += 2) {
+        disp << init[each];
+
+        if(init[each + 1] != "null") {
+            disp << ": " << init[each + 1];
+        }
+
+        if(each != init_size - 1 && each != init_size - 2) {
+            disp << ", ";
+        }
+    }
+    disp << ")";
+    return disp.str();
+}
+
+Fn::~Fn() {}
