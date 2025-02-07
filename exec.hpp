@@ -27,12 +27,13 @@ namespace parser {
     }
 }
 
+int depth = 0;
 void line_exec(std::vector<Token>& tokens) {
     bool warn = true;
     int total_tokens = tokens.size();
 
     int line = 0;
-    int depth = 0;
+    //int depth = 0;
     int current_depth = 0;
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::tuple<bool, int, int>> loop_stack;
@@ -45,6 +46,19 @@ void line_exec(std::vector<Token>& tokens) {
         if(ins[0] == '#' && ins[1] == '!') {
             line++;
             continue;
+        }
+
+        if(cmd.head[0] == ':') {
+            std::string fn_name = cmd.head.substr(1);
+            Fn* fn = Functions::fn[fn_name];
+            int args_size = cmd.values.size();
+            depth++;
+            for(int arg = 0; arg < args_size; arg++) {
+                VarTable::set(fn->init[arg * 2], cmd.values[arg], nullptr, VAR, false, depth);
+            }
+            line_exec(fn->body);
+            VarTable::gc(depth);
+            depth--;
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {

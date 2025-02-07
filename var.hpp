@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "lexer.hpp"
 #include "types.hpp"
 #include "expr_parser.hpp"
 #include "lib/lib_string.hpp"
@@ -376,6 +377,9 @@ namespace VarTable {
                 delete itr->second;
                 memory[itr->first] = nullptr;
             }
+        }
+        if(depth == 0) {
+            Functions::gc();
         }
     }
 
