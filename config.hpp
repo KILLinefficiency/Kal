@@ -84,10 +84,20 @@ Config group_5 = {
     .head = true
 };
 
+/*
+ * Defines a return statement.
+ * Format: <- expression
+ */
+Config group_6 {
+    .id = 6,
+    .head = true,
+    .single_arg = true,
+};
+
 namespace p_config {
     Config* get_config(const std::string& cmd) {
         // refactor this into switch-case.
-        if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue" || cmd == "<-") {
+        if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue"/* || cmd == "<-"*/) {
             return &group_1;
         }
         else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
@@ -101,6 +111,9 @@ namespace p_config {
         }
         else if(cmd == "fn") {
             return &group_5;
+        }
+        else if(cmd == "<-") {
+            return &group_6;
         }
         else if(cmd[0] == '$') {
             return &group_0;

@@ -34,6 +34,9 @@ namespace lexer {
         else if(current_line.substr(0, 4) == "loop") {
             head = "loop";
         }
+        else if(current_line.substr(0, 2) == "<-") {
+            head = "<-";
+        }
         else {
             int head_pos = 0;
             while(current_line[head_pos] != ' ' && current_line[head_pos] != '\t' && current_line[head_pos] != '\n') {

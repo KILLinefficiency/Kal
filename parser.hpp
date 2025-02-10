@@ -591,7 +591,13 @@ namespace parser {
         int end = 0;
         std::string required_token;
 
-        if(config->id == 5) {
+        if(config->id == 6) {
+            // return statement (<-)
+            token.head = head;
+            token.target = text.substr(2);
+            return token;
+        }
+        else if(config->id == 5) {
             token.head = head;
             int idx = 3;
             token.values = parse_fn(text, idx);

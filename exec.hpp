@@ -28,6 +28,8 @@ namespace parser {
 }
 
 int depth = 0;
+std::stack<std::string> call_stack;
+
 void line_exec(std::vector<Token>& tokens) {
     bool warn = true;
     int total_tokens = tokens.size();
@@ -48,26 +50,36 @@ void line_exec(std::vector<Token>& tokens) {
             continue;
         }
 
+        if(cmd.head == "<-") {
+            std::string result = eval(cmd.body);
+            if(result[0] == '$') {
+                result = VarTable::print(result);
+            }
+            // TODO: send this result value to the outer scope and assign it to the target variable.
+        }
+
         if(cmd.head[0] == ':') {
             std::string fn_name = cmd.head.substr(1);
             Fn* fn = Functions::fn[fn_name];
             int args_size = cmd.values.size();
+
             depth++;
             int arg;
             for(arg = 0; arg < args_size; arg++) {
                 VarTable::set(fn->init[arg * 2], cmd.values[arg], nullptr, VAR, false, depth);
             }
+
             int all = (fn->init.size() / 2);
-            /*if(arg != 0) {
-                arg++;
-            }*/
             for(int rest = arg; rest < all; rest++) {
                 VarTable::set(fn->init[rest * 2], fn->init[(rest * 2) + 1], nullptr, VAR, false, depth);
                 //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
             }
+
+            call_stack.push(fn_name);
             line_exec(fn->body);
             VarTable::gc(depth);
             depth--;
+            call_stack.pop();
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
