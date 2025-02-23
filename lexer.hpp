@@ -47,7 +47,7 @@ namespace lexer {
         return head;
     }
 
-    std::vector<Token> tokenize(const std::vector<std::string>& source_lines) {
+    std::vector<Token> tokenize(std::vector<std::string>& source_lines) {
         int lines = source_lines.size();
         Config* config;
         std::vector<Token> all_tokens;

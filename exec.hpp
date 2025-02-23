@@ -19,6 +19,10 @@ namespace parser {
             std::cout << lib::resolve_string(VarTable::print(out_text));
             return;
         }
+        else if(out_text[0] == '(') {
+            std::cout << lib::resolve_string(eval(out_text));
+            return;
+        }
         std::cout << lib::resolve_string(lib::render_escape_chars(out_text));
     }
 
@@ -30,7 +34,7 @@ namespace parser {
 int depth = 0;
 std::stack<std::string> call_stack;
 
-Value* line_exec(std::vector<Token>& tokens) {
+Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
     bool warn = true;
     int total_tokens = tokens.size();
 
@@ -70,24 +74,39 @@ Value* line_exec(std::vector<Token>& tokens) {
             depth++;
             int arg;
             for(arg = 0; arg < args_size; arg++) {
-                VarTable::set(fn->init[arg * 2], cmd.values[arg], nullptr, VAR, false, depth);
+                std::string& r_val = cmd.values[arg];
+                // perhaps eval here is not needed.
+                /*if(r_val[0] == '(' || (r_val[0] == '$' && r_val[1] == '(')) {
+                    //std::cout << "R_Val: " << r_val << "\n";
+                    r_val = eval(r_val);
+                    //std::cout << "R_Val evaled: " << r_val << "\n";
+                }*/
+                // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
+                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth);
             }
 
             int all = (fn->init.size() / 2);
             for(int rest = arg; rest < all; rest++) {
-                VarTable::set(fn->init[rest * 2], fn->init[(rest * 2) + 1], nullptr, VAR, false, depth);
+                std::string& r_val = fn->init[(rest * 2) + 1];
+                if(r_val[0] == '(') {
+                    r_val = eval(r_val);
+                }
+                VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth);
                 //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
             }
 
             call_stack.push(fn_name);
             Value* return_value = line_exec(fn->body);
-            if(return_value != nullptr) {
+            if(return_value != nullptr && !auto_return) {
                 VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
             }
             //delete return_value;
             VarTable::gc(depth);
             depth--;
             call_stack.pop();
+            if(auto_return) {
+                return return_value;
+            }
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {

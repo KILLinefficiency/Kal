@@ -17,7 +17,9 @@ namespace VarTable {
     std::string print(std::string);
     Value* get(std::string, std::vector<std::string>, bool, bool, bool);
 }
+
 bool compare(std::string, std::string);
+Value* line_exec(std::vector<Token>&, bool);
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
@@ -348,6 +350,11 @@ std::string eval(std::string expr) {
             index++;
             continue;
         }
+        else if(expr[index] == '$' && expr[index + 1] == '(') {
+            rpn.push(parser::parse_fexpr(expr, index));
+            index++;
+            continue;
+        }
         else if(expr[index] == '$') {
             std::string var = parser::parse_variable(expr, index);
             std::string val = expand_var(var);
@@ -460,15 +467,33 @@ std::string eval(std::string expr) {
     std::cout << "\n";
     exit(1);*/
 
-    if(rpn.size() == 1) {
+    if(rpn.size() == 1 && rpn.front()[0] >= '0' && rpn.front()[0] <= '9') {
         result = lib::trim_num(rpn.front());
         rpn.pop();
         return result;
     }
 
+    /*while(!rpn.empty()) {
+        std::cout << rpn.front() << " ";
+        rpn.pop();
+    }
+    while(!operators.empty()) {
+        std::cout << operators.top() << " ";
+        operators.pop();
+    }
+    std::cout << "\n";
+    exit(1);*/
     while(!rpn.empty()) {
         token = rpn.front();
-        if(token[0] == '$') {
+        if(token[0] == '$' && token[1] == '(') {
+            std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
+            std::vector<Token> function_call = lexer::tokenize(function_line);
+            Value* result = line_exec(function_call, true);
+            token = result->print();
+            // std::cout << "Ret Val: " << token << "\n";
+            delete result;
+        }
+        else if(token[0] == '$') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
             if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {

@@ -18,6 +18,7 @@ namespace parser {
     // for now.
     std::string extract_list(const std::string&, char, int&);
     std::string parse_value(const std::string&, int&);
+    void skip_string(std::string&, int&);
     // for now.
     std::string general_delimiter = ",";
     std::string str_delimiter = "\"";
@@ -87,14 +88,26 @@ namespace parser {
         return required_string;
     }
 
-    std::string parse_expr(const std::string& text, int& index) {
-        int begin = index + 1;
+    std::string parse_expr(std::string& text, int& index) {
+        int begin = index;
+        int depth = 1;
         index++;
-        while(text[index] != '`') {
+        /*while(text[index] != '`') {
+            index++;
+        }*/
+        while(depth != 0) {
+            if(text[index] == '"') {
+                skip_string(text, index);
+            }
+            if(text[index] == '(') {
+                depth++;
+            }
+            else if(text[index] == ')') {
+                depth--;
+            }
             index++;
         }
-        int end = index - 1;
-        std::string expr = text.substr(begin, end - begin + 1);
+        std::string expr = text.substr(begin, index - begin);
         return expr;
     }
 
@@ -322,6 +335,14 @@ namespace parser {
 
         return items;
     }
+    std::string parse_fexpr(std::string& text, int& index) {
+        index++;
+        return '$' + parser::parse_expr(text, index);
+    }
+
+    std::string resolve_fexpr(std::string& text) {
+        return text.substr(2, text.size() - 3);
+    }
     /*std::unordered_map<std::string, std::string> parse_list(std::string& text, int index = 0) {
         int pos = -1;
         int depth = 0;
@@ -396,11 +417,14 @@ namespace parser {
         return elements;
     }*/
 
-    std::string parse_value(const std::string& text, int& index) {
+    std::string parse_value(std::string& text, int& index) {
         std::string required_token = "";
 
         if(is_num(text[index])) {
             required_token = parse_number(text, index);
+        }
+        else if(text[index] == '$' && text[index + 1] == '(') {
+            required_token = parse_fexpr(text, index);
         }
         else if(text[index] == '$') {
             required_token = parse_variable(text, index);
@@ -409,7 +433,7 @@ namespace parser {
         else if(text[index] == '[') {
             required_token = extract_list(text, '[', index);
         }
-        else if(text[index] == '`') {
+        else if(text[index] == '(') {
             required_token = parse_expr(text, index);
         }
         else if(text[index] == '"') {
@@ -514,7 +538,7 @@ namespace parser {
         return tokens;
     }
 
-    std::vector<std::string> parse_values(const std::string& text, int& index) {
+    std::vector<std::string> parse_values(std::string& text, int& index) {
         int text_size = text.size();
         std::vector<std::string> values;
         std::string required_token = "";
@@ -582,7 +606,7 @@ namespace parser {
     }
 
     //int parse_depth = 0;
-    Token parse(const std::string& text, Config* config, std::string& head) {
+    Token parse(std::string& text, Config* config, std::string& head) {
         Token token;
         int index = 0;
         int text_size = text.size();

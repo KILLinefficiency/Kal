@@ -317,7 +317,7 @@ Value* copy(Value* value) {
         duplicate = new Ref(TO_REF(value)->ref);
     }
 
-    if(duplicate == nullptr) { std::cout << "cannot determine type\n"; exit(1); }
+    if(duplicate == nullptr) { std::cout << "cannot determine type\n"; }
 
     return duplicate;
 }
@@ -849,6 +849,7 @@ namespace VarTable {
 
     std::string print(std::string var) {
         Value* v = get(var, {}, true, true);
+        //std::cout << var << " " << v << std::endl;
         //std::cout << v->print() << std::endl;
         return v->print();
     }
