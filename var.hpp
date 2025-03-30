@@ -35,6 +35,12 @@ enum Type {
     INERT
 };
 
+Value* copy(Value*);
+std::unordered_map<std::string, Value*> memory;
+namespace VarTable {
+    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true);
+}
+
 Value* make_value(std::string value) {
     Value* val = nullptr;
     if(value[0] >= '0' && value[0] <= '9') {
@@ -52,13 +58,10 @@ Value* make_value(std::string value) {
     else if(value == "null") {
         val = new Null();
     }
+    else if(value[0] == '$') {
+        val = VarTable::get(value, {});
+    }
     return val;
-}
-
-Value* copy(Value*);
-std::unordered_map<std::string, Value*> memory;
-namespace VarTable {
-    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true);
 }
 
 ///
@@ -117,8 +120,8 @@ List::List(std::string list) {
     int index = 0;
     std::vector<std::string> values = parser::parse_list(list, index);
     for(std::string v : values) {
-        v = eval(v);
-        if(v[0] >= '0' && v[0] <= '9') {
+        //v = eval(v);
+        /*if(v[0] >= '0' && v[0] <= '9') {
             items.emplace_back(new Number(v));
         }
         else if(v[0] == '"') {
@@ -135,7 +138,9 @@ List::List(std::string list) {
         }
         else if(v[0] == '$') {
             items.emplace_back(VarTable::get(v, {}));
-        }
+        }*/
+        items.emplace_back(make_value(eval(v)));
+        // 1st make_value
     }
 }
 
@@ -194,8 +199,8 @@ Dict::Dict(std::string dict_val) {
             kv[i] = lib::resolve_string(kv[i]);
         }
         append_unique(kv[i], true);
-        kv[i + 1] = eval(kv[i + 1]);
-        if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
+        //kv[i + 1] = eval(kv[i + 1]);
+        /*if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
             dict[kv[i]] = new Number((kv[i + 1]));
         }
         else if(kv[i + 1][0] == '"') {
@@ -212,7 +217,8 @@ Dict::Dict(std::string dict_val) {
         }
         else if(kv[i + 1][0] == '$') {
             dict[kv[i]] = VarTable::get(kv[i + 1], {});
-        }
+        }*/
+        dict[kv[i]] = make_value(eval(kv[i + 1]));
     }
 }
 
@@ -643,7 +649,7 @@ namespace VarTable {
         if(data == "" && data_ptr != nullptr) {
             value = disallow_copy ? data_ptr : copy(data_ptr);
         }
-        else if(data[0] >= '0' && data[0] <= '9') {
+        /*else if(data[0] >= '0' && data[0] <= '9') {
             value = new Number(data);
         }
         else if(data[0] == '"') {
@@ -657,13 +663,16 @@ namespace VarTable {
         }
         else if(data == "null") {
             value = new Null();
-        }
+        }*/
         else if(data[0] == '$') {
             value = get(data, {});
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
                 RefTable::add_ref((TO_REF(value)->ref), TO_REF(value));
             }
+        }
+        else {
+            value = make_value(data);
         }
 
         if(var[0] == '$') {
