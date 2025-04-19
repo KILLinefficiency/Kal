@@ -398,10 +398,20 @@ namespace VarTable {
     void gc(int depth = 0) {
         std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
         for(itr = memory.begin(); itr != end; itr++) {
-            if(itr->second != nullptr && ScopeTable::scope[itr->first] >= depth) {
-                // std::cout << "GCing... " << itr->first << " " << itr->second << "\n";
-                delete itr->second;
-                memory[itr->first] = nullptr;
+            // Track the scope of the shadowed variable here and match the depth.
+            if(itr->second != nullptr /*&& ScopeTable::scope[itr->first] >= depth*/) {
+                //std::cout << "GCing... " << itr->first << " " << itr->second << "Depth: " << depth << "\n";
+                if(itr->second->shadow.size() != 0) {
+                    std::pair<Value*, int> top = itr->second->shadow.top();
+                    if(top.second == depth) {
+                        delete top.first;
+                        itr->second->shadow.pop();
+                    }
+                }
+                else if(ScopeTable::scope[itr->first] >= depth) {
+                    delete itr->second;
+                    memory[itr->first] = nullptr;
+                }
             }
         }
         if(depth == 0) {
@@ -418,6 +428,17 @@ namespace VarTable {
             InertTable::is_hit[Name] = true;
         }
         //
+
+        if(name != "" && memory[name.substr(1)] != nullptr) {
+            Value* fetched_var = memory[name.substr(1)];
+            Value* ret_var = nullptr;
+            if(fetched_var->shadow.size() != 0) {
+                ret_var = fetched_var->shadow.top().first;
+                //fetched_var->shadow.pop();
+                return ret_var;
+            } 
+        }
+
         if(symbols.size() == 0) {
             symbols = get_var_with_indices(name);
         }
@@ -590,6 +611,7 @@ namespace VarTable {
 
     void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth) {
         //std::cout << "raw: " << data << std::endl;
+        bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
             return;
@@ -608,6 +630,7 @@ namespace VarTable {
         if(memory[var] == nullptr) {
             ScopeTable::scope[var] = depth;
         }
+
 
         //std::cout << "eval: " << data << std::endl;
         if(var[0] == '$') {
@@ -645,10 +668,12 @@ namespace VarTable {
             exit(0);
         }
         
+
         Value* value = nullptr;
         if(data == "" && data_ptr != nullptr) {
             value = disallow_copy ? data_ptr : copy(data_ptr);
         }
+
         /*else if(data[0] >= '0' && data[0] <= '9') {
             value = new Number(data);
         }
@@ -673,6 +698,12 @@ namespace VarTable {
         }
         else {
             value = make_value(data);
+        }
+
+        if(memory[var] != nullptr && var[0] != '$') {
+            memory[var]->shadow.push({ value, depth });
+            is_shadowed = true;
+            //return;
         }
 
         if(var[0] == '$') {
@@ -842,10 +873,12 @@ namespace VarTable {
             ///
         }
         else {
-            if(memory[var] != nullptr) {
-                delete memory[var];
+            if(!is_shadowed) {
+                if(memory[var] != nullptr) {
+                    delete memory[var];
+                }
+                memory[var] = value;
             }
-            memory[var] = value;
             ///
             RefTable::add(value);
             if(TO_REF(value)) {

@@ -185,7 +185,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             }
         }
         else if(tokens[line].head == "}") {
+            //std::cout << "Here\n";
             VarTable::gc(depth);
+            //std::cout << "Current Depth: " << depth << "\n";
             depth--;
             if(depth < 0) {
                 depth = 0;
