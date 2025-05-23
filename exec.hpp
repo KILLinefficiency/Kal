@@ -55,7 +55,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
         }
 
         if(cmd.head == "<-") {
+            //std::cout << "\tLine: " << (line + 1) << "\n";
+            //std::cout << "Expression: [" << cmd.target << "]\n";
             std::string result = eval(cmd.target);
+            //std::cout << "Result: " << result << "\n";
             if(result[0] == '$') {
                 //result = VarTable::print(result);
                 //return copy(VarTable::get(result, {}, true, true));

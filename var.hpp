@@ -711,7 +711,7 @@ namespace VarTable {
         }
         else {
             //std::cout << "Shadowing Value 1: " << value << "\n";
-            std::cout << "Data: " << data << "\n";
+            //std::cout << "Data: " << data << "\n";
             value = make_value(data);
             //std::cout << "Shadowing Value 2: " << value << "\n";
         }
