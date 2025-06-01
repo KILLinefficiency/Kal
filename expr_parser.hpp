@@ -322,6 +322,7 @@ bool is_list(std::string& structure) {
 }
 
 std::string eval(std::string expr) {
+    //std::cout << "Expr: [" << expr << "]\n";
     std::string result;
     std::string current_op = "";
     std::queue<std::string> rpn;
@@ -490,6 +491,7 @@ std::string eval(std::string expr) {
     exit(1);*/
     while(!rpn.empty()) {
         token = rpn.front();
+        //std::cout << "Operand: " << token << "\n";
         if(token[0] == '$' && token[1] == '(') {
             std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
             //std::cout << "Resolved Function: " << parser::resolve_fexpr(token) << std::endl;
@@ -507,10 +509,12 @@ std::string eval(std::string expr) {
         else if(token[0] == '$') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
+            //std::cout << "Token Shadow Size: " << temp->shadow.size() << "\n";
             if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
                 //std::cout << "Token: " << token << "\n";
                 token = VarTable::print(token);
             }
+            //token = VarTable::print(token);
         }
         rpn.pop();
         //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
@@ -662,6 +666,7 @@ std::string eval(std::string expr) {
 
             x = std::stod(a);
             y = std::stod(b);
+            //std::cout << "expr [" << expr << "] x: " << x << " y: " << y << " " << token << "\n";
 
             if     (token == "+")   numbers.push(std::to_string(x + y));
             else if(token == "-")   numbers.push(std::to_string(x - y));

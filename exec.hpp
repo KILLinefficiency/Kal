@@ -35,6 +35,7 @@ int depth = 0;
 std::stack<std::string> call_stack;
 
 Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
+    //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
     int total_tokens = tokens.size();
 
@@ -57,7 +58,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
         if(cmd.head == "<-") {
             //std::cout << "\tLine: " << (line + 1) << "\n";
             //std::cout << "Expression: [" << cmd.target << "]\n";
+            //std::cout << "Ret Expr: " << cmd.target << "\n";
             std::string result = eval(cmd.target);
+            //std::cout << "Ret Value: " << result << "\n";
             //std::cout << "Result: " << result << "\n";
             if(result[0] == '$') {
                 //result = VarTable::print(result);
@@ -66,6 +69,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             }
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
+            VarTable::gc(depth);
+            depth--;
             return make_value(result);
         }
 
@@ -85,6 +90,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     //std::cout << "R_Val evaled: " << r_val << "\n";
                 }*/
                 // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
+                //std::cout << "Var: " << fn->init[arg * 2] << " Val: " << eval(r_val) << "\n";
                 VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth);
             }
 

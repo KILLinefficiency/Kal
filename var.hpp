@@ -396,6 +396,7 @@ namespace VarTable {
     void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
 
     void gc(int depth = 0) {
+        //std::cout << "GC called!\n";
         std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
         for(itr = memory.begin(); itr != end; itr++) {
             // Track the scope of the shadowed variable here and match the depth.
@@ -405,16 +406,19 @@ namespace VarTable {
                     std::pair<Value*, int> top = itr->second->shadow.top();
                     //std::cout << "Actual Depth: " << top.second << " Current Depth: " << depth << "\n";
                     // Depth mismatch.
-                    if(top.second == depth) {
+                    if(top.second >= depth) {
                         //std::cout << "[" << itr->first << "] " << depth << "\n";
                         //std::cout << "Top First: " << top.first << "\n";
                         //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
+                        //std::cout << "Top: " << top.first->print() << " Depth: " << depth << "\n";
                         delete top.first;
                         itr->second->shadow.pop();
+                        //std::cout << "Shadow Left: " << itr->second->shadow.size() << "\n";
                     }
                 }
                 else if(ScopeTable::scope[itr->first] >= depth) {
                     //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
+                    //std::cout << itr->first << " Initial Value: " << itr->second->print() << "\n";
                     delete itr->second;
                     memory[itr->first] = nullptr;
                 }
