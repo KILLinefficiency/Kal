@@ -32,7 +32,7 @@ namespace parser {
 }
 
 int depth = 0;
-std::stack<std::string> call_stack;
+std::stack<std::pair<std::string, int>> call_stack;
 
 Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
@@ -60,18 +60,26 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             //std::cout << "Expression: [" << cmd.target << "]\n";
             //std::cout << "Ret Expr: " << cmd.target << "\n";
             std::string result = eval(cmd.target);
+            Value* return_value = nullptr;
+            //std::cout << "Res: " << result << "\n";
             //std::cout << "Ret Value: " << result << "\n";
             //std::cout << "Result: " << result << "\n";
-            if(result[0] == '$') {
+            /*if(result[0] == '$') {
                 //result = VarTable::print(result);
                 //return copy(VarTable::get(result, {}, true, true));
-                return copy(VarTable::get(result, {}, true, true));
-            }
+            }*/
+            return_value = (result[0] == '$') ? copy(VarTable::get(result, {}, true, true)) : make_value(result);
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
-            VarTable::gc(depth);
-            depth--;
-            return make_value(result);
+            int original_depth = call_stack.top().second;
+            while(depth != original_depth) {
+                VarTable::gc(depth);
+                depth--;
+            }
+            //VarTable::gc(depth);
+            //depth--;
+            //return make_value(result);
+            return return_value;
         }
 
         if(cmd.head[0] == ':') {
@@ -104,12 +112,15 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
             }
 
-            call_stack.push(fn_name);
+            call_stack.push(std::pair<std::string, int> { fn_name, depth });
+            //std::cout << "Start Depth: " << depth << "\n";
             Value* return_value = line_exec(fn->body);
+            //std::cout << "End Depth: " << depth << "\n";
             if(return_value != nullptr && !auto_return) {
                 VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
             }
             //delete return_value;
+            // fact value attains accurate value when depth-- here and not after gc().
             VarTable::gc(depth);
             depth--;
             call_stack.pop();
