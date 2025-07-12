@@ -1,12 +1,22 @@
 #pragma once
 
 #include <sstream>
+#include <stack>
+#include <utility>
 #include "config.hpp"
 
 class Value {
     public:
         std::string type = "";
         bool is_ref = false;
+        std::stack<std::pair<Value*, int>>* shadow = nullptr;
+        void init_shadow() {
+            shadow = new std::stack<std::pair<Value*, int>>;
+        }
+        void gc_shadow() {
+            delete shadow;
+            shadow = nullptr;
+        }
         virtual std::string print() = 0;
         virtual ~Value() {}
 };

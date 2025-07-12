@@ -322,6 +322,7 @@ bool is_list(std::string& structure) {
 }
 
 std::string eval(std::string expr) {
+    //std::cout << "Expr: [" << expr << "]\n";
     std::string result;
     std::string current_op = "";
     std::queue<std::string> rpn;
@@ -352,7 +353,7 @@ std::string eval(std::string expr) {
         }
         else if(expr[index] == '$' && expr[index + 1] == '(') {
             rpn.push(parser::parse_fexpr(expr, index));
-            index++;
+            //index++;
             continue;
         }
         else if(expr[index] == '$') {
@@ -490,20 +491,30 @@ std::string eval(std::string expr) {
     exit(1);*/
     while(!rpn.empty()) {
         token = rpn.front();
+        //std::cout << "Operand: " << token << "\n";
         if(token[0] == '$' && token[1] == '(') {
             std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
+            //std::cout << "Resolved Function: " << parser::resolve_fexpr(token) << std::endl;
             std::vector<Token> function_call = lexer::tokenize(function_line);
+            //std::cout << "Function Body:\n" << function_call[0].head << " " << function_call[0].values[0] << "\n";
+            //std::cout << "Shadow: " << VarTable::get("$n", {}, false, true, true)->shadow.size() << std::endl;
             Value* result = line_exec(function_call, true);
             token = result->print();
+            //std::cout << "Eval Token: " << token << std::endl;
+            //std::cout << "Token: " << token << "\n";
             // std::cout << "Ret Val: " << token << "\n";
             delete result;
+            //std::cout << function_call[0].head << " " << function_call[0].values[0] << " [Done]\n";
         }
         else if(token[0] == '$') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
+            //std::cout << "Token Shadow Size: " << temp->shadow.size() << "\n";
             if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
+                //std::cout << "Token: " << token << "\n";
                 token = VarTable::print(token);
             }
+            //token = VarTable::print(token);
         }
         rpn.pop();
         //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
@@ -655,6 +666,7 @@ std::string eval(std::string expr) {
 
             x = std::stod(a);
             y = std::stod(b);
+            //std::cout << "expr [" << expr << "] x: " << x << " y: " << y << " " << token << "\n";
 
             if     (token == "+")   numbers.push(std::to_string(x + y));
             else if(token == "-")   numbers.push(std::to_string(x - y));

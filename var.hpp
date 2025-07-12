@@ -35,9 +35,15 @@ enum Type {
     INERT
 };
 
+Value* copy(Value*);
+std::unordered_map<std::string, Value*> memory;
+namespace VarTable {
+    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true);
+}
+
 Value* make_value(std::string value) {
     Value* val = nullptr;
-    if(value[0] >= '0' && value[0] <= '9') {
+    if((value[0] >= '0' && value[0] <= '9') || value[0] == '-') {
         val = new Number(value);
     }
     else if(value[0] == '"') {
@@ -52,13 +58,10 @@ Value* make_value(std::string value) {
     else if(value == "null") {
         val = new Null();
     }
+    else if(value[0] == '$') {
+        val = VarTable::get(value, {});
+    }
     return val;
-}
-
-Value* copy(Value*);
-std::unordered_map<std::string, Value*> memory;
-namespace VarTable {
-    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true);
 }
 
 ///
@@ -117,8 +120,8 @@ List::List(std::string list) {
     int index = 0;
     std::vector<std::string> values = parser::parse_list(list, index);
     for(std::string v : values) {
-        v = eval(v);
-        if(v[0] >= '0' && v[0] <= '9') {
+        //v = eval(v);
+        /*if(v[0] >= '0' && v[0] <= '9') {
             items.emplace_back(new Number(v));
         }
         else if(v[0] == '"') {
@@ -135,7 +138,9 @@ List::List(std::string list) {
         }
         else if(v[0] == '$') {
             items.emplace_back(VarTable::get(v, {}));
-        }
+        }*/
+        items.emplace_back(make_value(eval(v)));
+        // 1st make_value
     }
 }
 
@@ -194,8 +199,8 @@ Dict::Dict(std::string dict_val) {
             kv[i] = lib::resolve_string(kv[i]);
         }
         append_unique(kv[i], true);
-        kv[i + 1] = eval(kv[i + 1]);
-        if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
+        //kv[i + 1] = eval(kv[i + 1]);
+        /*if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
             dict[kv[i]] = new Number((kv[i + 1]));
         }
         else if(kv[i + 1][0] == '"') {
@@ -212,7 +217,8 @@ Dict::Dict(std::string dict_val) {
         }
         else if(kv[i + 1][0] == '$') {
             dict[kv[i]] = VarTable::get(kv[i + 1], {});
-        }
+        }*/
+        dict[kv[i]] = make_value(eval(kv[i + 1]));
     }
 }
 
@@ -390,12 +396,35 @@ namespace VarTable {
     void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
 
     void gc(int depth = 0) {
+        //std::cout << "GC called!\n";
         std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
         for(itr = memory.begin(); itr != end; itr++) {
-            if(itr->second != nullptr && ScopeTable::scope[itr->first] >= depth) {
-                // std::cout << "GCing... " << itr->first << " " << itr->second << "\n";
-                delete itr->second;
-                memory[itr->first] = nullptr;
+            // Track the scope of the shadowed variable here and match the depth.
+            if(itr->second != nullptr /*&& ScopeTable::scope[itr->first] >= depth*/) {
+                //std::cout << "GCing... " << itr->first << " " << itr->second << "Depth: " << depth << "\n";
+                if(itr->second->shadow != nullptr && itr->second->shadow->size() != 0) {
+                    std::pair<Value*, int> top = itr->second->shadow->top();
+                    //std::cout << "Actual Depth: " << top.second << " Current Depth: " << depth << "\n";
+                    // Depth mismatch.
+                    if(top.second >= depth) {
+                        //std::cout << "[" << itr->first << "] " << depth << "\n";
+                        //std::cout << "Top First: " << top.first << "\n";
+                        //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
+                        //std::cout << "Top: " << top.first->print() << " Depth: " << depth << "\n";
+                        delete top.first;
+                        itr->second->shadow->pop();
+                        if(itr->second->shadow->size() == 0) {
+                            itr->second->gc_shadow();
+                        }
+                        //std::cout << "Shadow Left: " << itr->second->shadow.size() << "\n";
+                    }
+                }
+                else if(ScopeTable::scope[itr->first] >= depth) {
+                    //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
+                    //std::cout << itr->first << " Initial Value: " << itr->second->print() << "\n";
+                    delete itr->second;
+                    memory[itr->first] = nullptr;
+                }
             }
         }
         if(depth == 0) {
@@ -412,6 +441,24 @@ namespace VarTable {
             InertTable::is_hit[Name] = true;
         }
         //
+
+        if(name != "" && memory[name.substr(1)] != nullptr) {
+            Value* fetched_var = memory[name.substr(1)];
+            Value* ret_var = nullptr;
+            if(fetched_var != nullptr && fetched_var->shadow != nullptr && fetched_var->shadow->size() != 0) {
+                ret_var = fetched_var->shadow->top().first;
+                // ret_var is nullptr in this case.
+
+                //std::cout << "stack size: " << fetched_var->shadow.size() << " " << ret_var << "\n";
+                //fetched_var->shadow.pop();
+                //std::cout << "ret_var:" << ret_var << "\n";
+                ///return copy(ret_var);
+                //if(name.substr(1) == "n") { std::cout << "n real val: " << ret_var->print() << "\n"; }
+                //std::cout << "Ret Var: " << ret_var << "\n";
+                return (for_print) ? ret_var : copy(ret_var);
+            } 
+        }
+
         if(symbols.size() == 0) {
             symbols = get_var_with_indices(name);
         }
@@ -584,6 +631,7 @@ namespace VarTable {
 
     void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth) {
         //std::cout << "raw: " << data << std::endl;
+        bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
             return;
@@ -602,6 +650,7 @@ namespace VarTable {
         if(memory[var] == nullptr) {
             ScopeTable::scope[var] = depth;
         }
+
 
         //std::cout << "eval: " << data << std::endl;
         if(var[0] == '$') {
@@ -639,11 +688,13 @@ namespace VarTable {
             exit(0);
         }
         
+
         Value* value = nullptr;
         if(data == "" && data_ptr != nullptr) {
             value = disallow_copy ? data_ptr : copy(data_ptr);
         }
-        else if(data[0] >= '0' && data[0] <= '9') {
+
+        /*else if(data[0] >= '0' && data[0] <= '9') {
             value = new Number(data);
         }
         else if(data[0] == '"') {
@@ -657,13 +708,28 @@ namespace VarTable {
         }
         else if(data == "null") {
             value = new Null();
-        }
+        }*/
         else if(data[0] == '$') {
             value = get(data, {});
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
                 RefTable::add_ref((TO_REF(value)->ref), TO_REF(value));
             }
+        }
+        else {
+            //std::cout << "Shadowing Value 1: " << value << "\n";
+            //std::cout << "Data: " << data << "\n";
+            value = make_value(data);
+            //std::cout << "Shadowing Value 2: " << value << "\n";
+        }
+
+        if(memory[var] != nullptr && var[0] != '$') {
+            if(memory[var]->shadow == nullptr) {
+                memory[var]->init_shadow();
+            }
+            memory[var]->shadow->push({ value, depth });
+            is_shadowed = true;
+            //return;
         }
 
         if(var[0] == '$') {
@@ -833,10 +899,12 @@ namespace VarTable {
             ///
         }
         else {
-            if(memory[var] != nullptr) {
-                delete memory[var];
+            if(!is_shadowed) {
+                if(memory[var] != nullptr) {
+                    delete memory[var];
+                }
+                memory[var] = value;
             }
-            memory[var] = value;
             ///
             RefTable::add(value);
             if(TO_REF(value)) {
@@ -849,8 +917,10 @@ namespace VarTable {
 
     std::string print(std::string var) {
         Value* v = get(var, {}, true, true);
+        ////std::cout << v << "\n";
         //std::cout << var << " " << v << std::endl;
         //std::cout << v->print() << std::endl;
+        //std::cout << "v: " << v << "\n";
         return v->print();
     }
 };

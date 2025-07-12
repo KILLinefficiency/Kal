@@ -121,6 +121,7 @@ void test_var() {
     found_string = VarTable::print("$my_data");
     check(found_string, actual_string);
 
+
     VarTable::set("bio", "#(jobs -> 9, company -> \"Kal\", positions -> [\"engineering\", \"testing\"])");
     actual_value = 9;
     // add error when wrong key (non-string) is passed.
@@ -223,12 +224,14 @@ void test_var() {
     found_string = VarTable::print("$matrix");
     check(found_string, actual_string);
 
+    VarTable::gc();
     VarTable::set("data", "#(name -> \"Superman\")");
     VarTable::set("name", "$&data[\"name\"]");
     VarTable::set("$name", "\"Clark\"");
     actual_string = "#(name -> \"Clark\")";
     found_string = VarTable::print("$data");
     check(found_string, actual_string);
+    VarTable::gc();
 
     VarTable::set("full_name", "#(name -> [\"Clark\", \"Kent\"])");
     VarTable::set("first_name", "$&full_name[\"name\"][0]");
@@ -307,7 +310,7 @@ void test_var() {
     // Tests for swapping two variables using unpacking.
     VarTable::set("first", "10");
     VarTable::set("second", "20");
-    VarTable::set("[first, second]", "[$second, $first]");
+    VarTable::set("[$first, $second]", "[$second, $first]");
     actual_string = "20";
     found_string = VarTable::print("$first");
     check(found_string, actual_string);

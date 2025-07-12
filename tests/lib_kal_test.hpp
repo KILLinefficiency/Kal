@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../lib/lib_style.hpp"
 #include "../config.hpp"
 #include <cstdint>

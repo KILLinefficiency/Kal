@@ -9,6 +9,7 @@
 #include "test_parser.hpp"
 #include "test_var.hpp"
 #include "test_control_flow.hpp"
+#include "test_fn.hpp"
 
 int main() {
     test_arg_parser();
@@ -18,6 +19,8 @@ int main() {
     test_parser();
     test_var();
     test_control_flow();
+    test_shadowing();
+    test_fn();
 
     exit_successfully();
     return 0;
