@@ -54,7 +54,25 @@ namespace lib {
         return absoulte_path;
     }*/
 
+    std::string resolve_package(std::string pkg_import, std::string entry_point = "main.kal") {
+        std::stringstream resolved_path;
+        char sep = '/';
+        std::string kal_pkg_path = std::getenv("KAL_PKG");
+        if(kal_pkg_path[kal_pkg_path.size() - 1] == sep) {
+            kal_pkg_path += sep;
+        }
+        resolved_path << kal_pkg_path
+            << sep
+            << pkg_import.substr(4)
+            << sep
+            << entry_point;
+        return resolved_path.str();
+    }
+
     std::string get_path(std::string given_path, std::string current = "") {
+        if(given_path.substr(0, 4) == "pkg:") {
+            return resolve_package(given_path);
+        }
         std::deque<std::string> abs;
         //std::string current = "";
         if(current == "") {

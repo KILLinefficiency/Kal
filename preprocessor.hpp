@@ -97,7 +97,9 @@ namespace preproc {
 
             if(line[0] == '@') {
                 std::string include_path = line.substr(1);
-                lib::ensure_extension(include_path, ".kal");
+                if(line.substr(1, 4) != "pkg:") {
+                    lib::ensure_extension(include_path, ".kal");
+                }
                 dirs.push(current_path);
                 abs_file_path = include_path;
                 check_path(paths, lib::get_path(abs_file_path));
