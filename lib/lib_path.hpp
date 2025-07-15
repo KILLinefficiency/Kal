@@ -1,5 +1,6 @@
 #pragma once
 #include <deque>
+#include <cstdlib>
 #include <sstream>
 #include <filesystem>
 
@@ -61,7 +62,7 @@ namespace lib {
         }
         //std::cout << given_path << std::endl;
         std::string token;
-        if(given_path[0] != '/') {
+        if(given_path[0] != '/' && given_path[0] != '~') {
             std::stringstream home(current);
             //std::cout << std::filesystem::current_path() << std::endl;
             while(std::getline(home, token, '/')) {
@@ -81,6 +82,10 @@ namespace lib {
             //std::cout << "passed ---\n";
             //std::cout << token << std::endl;
             //}
+            if(abs.back() == "~") {
+                abs.pop_back();
+                abs.push_back(std::getenv("HOME"));
+            }
             if(abs.back() == ".") {
                 abs.pop_back();
             } 
