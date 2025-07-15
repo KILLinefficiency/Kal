@@ -60,13 +60,15 @@ namespace lib {
             current = std::filesystem::current_path();
         }
         //std::cout << given_path << std::endl;
-        std::stringstream home(current);
-        //std::cout << std::filesystem::current_path() << std::endl;
         std::string token;
-        while(std::getline(home, token, '/')) {
-            //std::cout << token << std::endl;
-            if(token != "" || current == "/") {
-                abs.push_back(token);
+        if(given_path[0] != '/') {
+            std::stringstream home(current);
+            //std::cout << std::filesystem::current_path() << std::endl;
+            while(std::getline(home, token, '/')) {
+                //std::cout << token << std::endl;
+                if(token != "" || current == "/") {
+                    abs.push_back(token);
+                }
             }
         }
         //std::cout << "now?\n";
