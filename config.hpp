@@ -107,7 +107,7 @@ namespace p_config {
         else if(cmd[0] == ':' || cmd == "style" || cmd == "stdout") {
             return &group_3;
         }
-        else if(cmd == "if" || cmd == "else" || cmd == "loop" ||cmd == "}") {
+        else if(cmd == "if" || cmd == "else" || cmd == "elif" || cmd == "loop" ||cmd == "}") {
             return &group_4;
         }
         else if(cmd == "fn") {

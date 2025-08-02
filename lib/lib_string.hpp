@@ -161,7 +161,7 @@ namespace lib {
 
             }
 
-            if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else" || text.substr(index, 4) == "loop" || text.substr(index, 2) == "fn")) {
+            if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else" || text.substr(index, 4) == "elif" || text.substr(index, 4) == "loop" || text.substr(index, 2) == "fn")) {
                 while(text[index - 1] != '{') {
                     index++;
                 }

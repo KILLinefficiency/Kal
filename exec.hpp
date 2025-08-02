@@ -150,6 +150,35 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     //std::cout << "end if: " << line << "\n";
                 }
             }
+            else if(tokens[line].head == "elif") {
+                std::pair<bool, int> check = conditional_stack.top();
+                if(check.second == depth) {
+                    if(!check.first /*&& tokens[line].head != "else"*/) {
+                        bool condition = eval(tokens[line].values[0]) == "1";
+                        //std::cout << "Condition: " << tokens[line].values[0] << " Result: " << condition << "\n";
+                        if(condition && tokens[line].head != "else") {
+                            conditional_stack.pop();
+                            conditional_stack.push({ condition, depth });
+                            line++;
+                            continue;
+                        }
+                        else {
+                            while(depth != current_depth - 1) {
+                                line++;
+                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                                if(tokens[line].head == "}") { depth--; }
+                            }
+                        }
+                    }
+                    else {
+                        while(depth != current_depth - 1) {
+                            line++;
+                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                            if(tokens[line].head == "}") { depth--; }
+                        }
+                    }
+                }
+            }
             else if(tokens[line].head == "else") {
                 //std::cout << "here " << depth << "\n";
                 std::pair<bool, int> check = conditional_stack.top();
