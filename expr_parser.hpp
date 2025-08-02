@@ -302,7 +302,7 @@ bool is_num(std::string& data) {
             return true;
         }
     }
-    else if(data[0] >= '0' && data[0] <= '9') {
+    else if(data[0] == '-' || (data[0] >= '0' && data[0] <= '9')) {
         return true;
     }
     return false;
@@ -520,6 +520,7 @@ std::string eval(std::string expr) {
         //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
         if(!order(token)) {
             numbers.push(token);
+            continue;
         }
         /*else if(order(token) == 15) {
             std::string ystr = numbers.top();
@@ -534,6 +535,39 @@ std::string eval(std::string expr) {
                 ystr = to_integer(ystr);
             }
             numbers.push(ystr);
+        }*/
+
+        /*if(token == "||") {
+            std::string second = numbers.top();
+            numbers.pop();
+            std::string first = numbers.top();
+            if(first[0] == '$') {
+                first = VarTable::print(first);
+            }
+            numbers.pop();
+            if(first == "1") {
+                numbers.push(first);
+                continue;
+            }
+            else {
+                numbers.push(first);
+                if(second[0] == '$') {
+                    second = VarTable::print(second);
+                }
+                numbers.push(second);
+            }
+        }
+        if(token[0] == '$') {
+            // avoid getting the print from list and dict types
+            std::cout << "Token: " << token << "\n";
+            Value* temp = VarTable::get(token, {}, true, true, true);
+            //std::cout << "Token Shadow Size: " << temp->shadow.size() << "\n";
+            if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
+                //std::cout << "Token: " << token << "\n";
+                token = VarTable::print(token);
+                //numbers.push(token);
+            }
+            //token = VarTable::print(token);
         }*/
         else if(order(token) == 13) {
             y = std::stod(numbers.top());
@@ -664,6 +698,9 @@ std::string eval(std::string expr) {
                 continue;
             }
 
+            if(!is_num(a) || !is_num(b)) {
+                errors::invalid_operation(call_stack, expr, "values", token, a, b);
+            }
             x = std::stod(a);
             y = std::stod(b);
             //std::cout << "expr [" << expr << "] x: " << x << " y: " << y << " " << token << "\n";

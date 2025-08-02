@@ -10,6 +10,7 @@
 #include "lexer.hpp"
 #include "types.hpp"
 #include "expr_parser.hpp"
+#include "errors.hpp"
 #include "lib/lib_string.hpp"
 #include "lib/lib_style.hpp"
 
@@ -480,6 +481,9 @@ namespace VarTable {
         int bound = size;
 
         //bool at_parent = false;
+        if(var == nullptr) {
+            errors::undefined_var(call_stack, name, name);
+        }
         Value* p = nullptr;
         if(size > 1) {
             if(update && !for_print) {
@@ -494,8 +498,7 @@ namespace VarTable {
                     int index = std::stoi(symbols[i]);
                     int size = TO_LIST(var)->items.size();
                     if(index >= size) {
-                        std::cout << "index " << symbols[i] << " out of bounds\n";
-                        exit(1);
+                        errors::index_error(call_stack, name, symbols[i]);
                     }
                     var = TO_LIST(var)->items[index];
                 }
@@ -503,8 +506,7 @@ namespace VarTable {
                     std::string key = lib::resolve_string(symbols[i]);
                     var = TO_DICT(var)->dict[key];
                     if(var == nullptr) {
-                        std::cout << "key " << symbols[i] << " does not exist\n";
-                        exit(1);
+                        errors::key_error(call_stack, name, key);
                     }
                 }
                 if(!update && bound == 2) {
@@ -921,6 +923,9 @@ namespace VarTable {
         //std::cout << var << " " << v << std::endl;
         //std::cout << v->print() << std::endl;
         //std::cout << "v: " << v << "\n";
+        if(v == nullptr) {
+            errors::undefined_var(call_stack, var, var);
+        }
         return v->print();
     }
 };

@@ -9,6 +9,8 @@
 
 #include "lib/lib_style.hpp"
 
+#define CALL_STACK std::stack<std::pair<std::string, int>>& call_stack
+
 std::string fmt(std::string body, std::vector<std::string> args) {
     std::stringstream text;
     uint64_t i = 0, count = 0, len = body.size(), size = args.size();
@@ -131,5 +133,11 @@ namespace errors {
         throw_err(call_stack, line, "Kal Keyword", "Keyword {} is unidentified.", { keyword });
     }
 
-    //void index_error(std::string& line, int& index) {}
+    void index_error(CALL_STACK, std::string& line, std::string& index) {
+        throw_err(call_stack, line, "Index", "Index {} out of bounds.", { index });
+    }
+
+    void key_error(CALL_STACK, std::string& line, std::string& key) {
+        throw_err(call_stack, line, "Key", "Key {} does not exist.", { key });
+    }
 }
