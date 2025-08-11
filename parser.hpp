@@ -683,8 +683,16 @@ namespace parser {
                     std::cout << "{ expected\n";
                     exit(1);
                 }
-                if(token.head != "else") {
-                    token.values.emplace_back(text.substr(index, text_size - (token.head.size() + 1)));
+                std::string mid_line = text.substr(index, text_size - (token.head.size() + 1));
+                if(token.head == "loop") {
+                    std::vector<std::string> loop_segments = parse_loop_segments(mid_line);
+                    token.values.reserve(4);
+                    for(std::string each_segment : loop_segments) {
+                        token.values.emplace_back(each_segment);
+                    }
+                }
+                else if(token.head != "else") {
+                    token.values.emplace_back(mid_line);
                 }
                 token.values.emplace_back("{");
                 break;
