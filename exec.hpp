@@ -280,6 +280,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 while(loop_stack.size() != 0 && loop_depth != depth + 1) {
                     line++;
                     if(tokens[line].head == "}") {
+                        VarTable::gc(depth);
                         depth--;
                     }
                 }

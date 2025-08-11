@@ -210,4 +210,75 @@ void test_control_flow() {
 
     VarTable::gc();
     progress();
+
+    title("line_exec() - loop");
+
+    lines = {
+        "var i = 1, value = 0",
+        "loop $i <= 10 {",
+            "$value = $value + $i",
+            "$i = $i + 1",
+        "}"
+    };
+    RUN_CASE("55");
+
+    lines = {
+        "$i = 1",
+        "$value = 0",
+        "loop $i <= 10 {",
+            "if $i % 2 == 0 {",
+                "$value = $value + $i",
+            "}",
+            "$i = $i + 1",
+        "}"
+    };
+    RUN_CASE("30");
+
+    lines = {
+        "$i = 1",
+        "$value = 0",
+        "loop $i <= 10 {",
+            "if $i == 4 || $i == 9 {",
+                "$i = $i + 1",
+                "continue",
+            "}",
+            "$value = $value + $i",
+            "$i = $i + 1",
+        "}"
+    };
+    RUN_CASE("42");
+
+    /*lines = {
+        "$i = 1",
+        "$value = 0",
+        "loop $i <= 10 {",
+            "if $i == 6 {",
+                "break",
+            "}",
+            "$value = $value + $i",
+            "$i = $i + 1",
+        "}"
+    };
+    RUN_CASE("15");*/
+
+    lines = {
+        "$i = 1",
+        "$value = 0",
+        "loop $i <= 5 {",
+            "var j = 1",
+            "loop $j <= 5 {",
+                "if $i == $j {",
+                    "$j = $j + 1",
+                    "continue",
+                "}",
+                "$value = $value + $i + $j",
+                "$j = $j + 1",
+            "}",
+            "$i = $i + 1",
+        "}"
+    };
+    RUN_CASE("120");
+
+    VarTable::gc();
+    progress();
 }

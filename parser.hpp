@@ -605,15 +605,15 @@ namespace parser {
         return fn_def;
     }
 
-    std::vector<std::string> parse_loop_segments(std::string& text, int& index) {
+    std::vector<std::string> parse_loop_segments(std::string& text) {
         std::vector<std::string> tokens;
+        int index = 0;
         int begin = index;
         int size = text.size();
         if(text.substr(size - 2) != "--") {
             text += "--";
             size += 2;
         }
-        std::cout << text << "\n";
         while(index < size) {
             if(text[index] == '"') {
                 skip_string(text, index);
@@ -621,10 +621,8 @@ namespace parser {
                 continue;
             }
             if(match(index, text, "--")) {
-                std::cout << begin << "\n";
                 std::string token = text.substr(begin, index - begin - 2);
                 tokens.emplace_back(token);
-                std::cout << index << "\n";
                 begin = index;
             }
             index++;
