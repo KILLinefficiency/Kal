@@ -248,7 +248,7 @@ void test_control_flow() {
     };
     RUN_CASE("42");
 
-    /*lines = {
+    lines = {
         "$i = 1",
         "$value = 0",
         "loop $i <= 10 {",
@@ -259,7 +259,7 @@ void test_control_flow() {
             "$i = $i + 1",
         "}"
     };
-    RUN_CASE("15");*/
+    RUN_CASE("15");
 
     lines = {
         "$i = 1",

@@ -917,6 +917,15 @@ namespace VarTable {
         }
     }
 
+    void init_by_string(std::string& init_string, int depth) {
+        int assign_idx = 0;
+        std::vector<std::string> assignments = parser::parse_init(init_string, assign_idx);
+        int total_assigns = assignments.size();
+        for(int each_assign = 0; each_assign < total_assigns; each_assign += 2) {
+            set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth);
+        }
+    }
+
     std::string print(std::string var) {
         Value* v = get(var, {}, true, true);
         ////std::cout << v << "\n";
