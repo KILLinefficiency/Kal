@@ -182,6 +182,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             }
             else if(tokens[line].head == "else") {
                 //std::cout << "here " << depth << "\n";
+                if(conditional_stack.empty()) {
+                    errors::invalid_else(call_stack, tokens[line].head);
+                }
                 std::pair<bool, int> check = conditional_stack.top();
                 //std::cout << "Stack: " << check.first << " " << check.second << " | Depth: " << depth << "\n";
                 if(check.second == depth) {
