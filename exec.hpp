@@ -213,18 +213,30 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 }
             }
             else if(tokens[line].head == "loop") {
-                bool condition = false;
+                bool condition = true;
                 int segments = tokens[line].values.size() - 1;
                 if(segments == 1) {
                     condition = eval(tokens[line].values[0]) == "1";
                 }
                 else if(segments > 1) {
                     //std::pair<bool, int> init_top = init_loop.top();
-                    if(init_loop.empty() || init_loop.top() != depth) {
-                        VarTable::init_by_string(tokens[line].values[0], depth - 1);
-                        init_loop.push(depth);
+                    if(tokens[line].values[0] != "") {
+                        //std::cout << "Init Size: " << init_loop.size() << "\n";
+                        //if(!init_loop.empty())
+                        //    std::cout << init_loop.top() << " " << depth << "\n";
+                        if(init_loop.empty() || init_loop.top() != depth) {
+                            //std::cout << "[" << tokens[line].values[0] << "]\n";
+                            VarTable::init_by_string(tokens[line].values[0], depth - 1);
+                            init_loop.push(depth);
+                        }
                     }
-                    condition = eval(tokens[line].values[1]) == "1";
+                    if(segments >= 2 && tokens[line].values[1] != "") {
+                        condition = eval(tokens[line].values[1]) == "1";
+                    }
+                    /*else {
+                        condition = true;
+                    }*/
+                    //std::cout << "[" << tokens[line].values[1] << "] " << condition << "\n";
                 }
                 loop_stack.push({ condition, line, depth });
                 //std::cout << "Loop Depth: " << depth << " " << (line + 1) << "\n";
@@ -242,7 +254,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     line++;
                     depth--;
                     loop_stack.pop();
-                    init_loop.pop();
+                    if(!init_loop.empty()) {
+                        init_loop.pop();
+                    }
                     continue;
                 }
             }
@@ -308,6 +322,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     }
                 }
                 loop_stack.pop();
+                if(!init_loop.empty()) {
+                    init_loop.pop();
+                }
                 // std::cout << "Line: " << line << "\n";
                 // std::cout << "Size: " << loop_stack.size() << "\n";
             }

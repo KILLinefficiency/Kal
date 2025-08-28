@@ -324,6 +324,26 @@ void test_control_flow() {
     };
     RUN_CASE("120");
 
+    lines = {
+        "$value = 0",
+        "var itr = 1",
+        "loop -- $itr <= 5 -- $itr = $itr + 1 {",
+            "$value = $value + $itr",
+        "}"
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "$value = 0",
+        "loop idx = 1 -- -- $idx = $idx + 1 {",
+            "if $idx == 6 {",
+                "break",
+            "}",
+            "$value = $value + $idx",
+        "}"
+    };
+    RUN_CASE("15");
+
     VarTable::gc();
     progress();
 }
