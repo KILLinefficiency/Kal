@@ -344,6 +344,49 @@ void test_control_flow() {
     };
     RUN_CASE("15");
 
+    lines = {
+        "$value = 0",
+        "loop index = 1 -- $index <= 5 {",
+            "$value = $value + $index",
+            "$index = $index + 1",
+        "}",
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "$value = 0",
+        "loop a = 1 -- -- {",
+            "if $a == 6 {",
+                "break",
+            "}",
+            "$value = $value + $a",
+            "$a = $a + 1",
+        "}"
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "$value = 0",
+        "var b = 1",
+        "loop -- $b <= 5 -- {",
+            "$value = $value + $b",
+            "$b = $b + 1",
+        "}"
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "$value = 0",
+        "var c = 1",
+        "loop -- -- $c= $c + 1 {",
+            "if $c == 6 {",
+                "break",
+            "}",
+            "$value = $value + $c",
+        "}"
+    };
+    RUN_CASE("15");
+
     VarTable::gc();
     progress();
 }
