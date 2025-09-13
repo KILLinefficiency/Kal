@@ -125,8 +125,10 @@ namespace lib {
 
         std::stringstream path;
         while(!abs.empty()) {
-            path << '/' << abs.front();
-            //std::cout << '/' << abs.front() << std::endl;
+            std::string front = abs.front();
+            if(front != "") {
+                path << '/' << abs.front();
+            }
             abs.pop_front();
         }
         //std::cout << path.str() << std::endl;

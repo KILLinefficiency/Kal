@@ -84,7 +84,8 @@ namespace preproc {
 
             if(line[0] == '@') {
                 std::string include_path = line.substr(1);
-                if(paths[include_path]) {
+                std::string current_abs = lib::get_path(include_path);
+                if(paths[current_abs]) {
                     all_lines.pop_back();
                     continue;
                 }
@@ -97,7 +98,7 @@ namespace preproc {
                 squash_vector(all_lines, vals, all_lines.size() - 1);
                 current_path = dirs.top();
                 dirs.pop();
-                paths[include_path] = true;
+                paths[current_abs] = true;
             }
         }
 
