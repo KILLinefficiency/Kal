@@ -394,7 +394,7 @@ namespace ScopeTable {
 }
 
 namespace VarTable {
-    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
+    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
 
     void gc_value(std::string name, Value* val) {
         if(val != nullptr) {
@@ -433,7 +433,7 @@ namespace VarTable {
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
         // eval the inert var when it's used.
-        if(name != "" && InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name/*.substr(1)*/]) {
+        if(name != "" && InertTable::vars[name/*.substr(1)*/] != "" && !InertTable::is_hit[name/*.substr(1)*/]) {
             std::string Name = name/*.substr(1)*/;
             //std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
             set(Name, InertTable::vars[Name]);
@@ -480,7 +480,8 @@ namespace VarTable {
 
         //bool at_parent = false;
         if(var == nullptr) {
-            errors::undefined_var(call_stack, name, name);
+            //errors::undefined_var(call_stack, name, name);
+            return var;
         }
         Value* p = nullptr;
         if(size > 1) {
@@ -629,7 +630,7 @@ namespace VarTable {
         }
     }
 
-    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth) {
+    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing) {
         //std::cout << "raw: " << data << std::endl;
         //std::cout << "Setting " << var << " to " << data << "\n";
         bool is_shadowed = false;
@@ -654,10 +655,11 @@ namespace VarTable {
 
 
         //std::cout << "eval: " << data << std::endl;
-        if(var[0] == '$') {
+        Value* ptr = VarTable::get(var/*.substr(1)*/, {}, true, true);
+        if(/*var[0] == '$'*/ ptr != nullptr && parser::is_var(var[0])) {
             // TODO: the same for Strings. (DONE)
             // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
-            Value* ptr = VarTable::get(var.substr(1), {}, true, true);
+            //std::cout << "Mem Value = " << ptr << "\n";
             if(data != "" && /*data[0] == '$'*/ parser::is_var(data[0])) {
                 Value* d_ptr = VarTable::get(data, {}, true, true);
                 if(TO_REF(d_ptr)) {
@@ -684,7 +686,7 @@ namespace VarTable {
                 return;
             }
         }
-        if(var[1] == '&') {
+        if(var[0] == '&') {
             std::cout << "Cannot use `&` while setting a variable.\n";
             exit(0);
         }
@@ -724,7 +726,7 @@ namespace VarTable {
             //std::cout << "Shadowing Value 2: " << value << "\n";
         }
 
-        if(memory[var] != nullptr && var[0] != '$') {
+        if(allow_shadowing && memory[var] != nullptr /*&& var[0] != '$'*/) {
             if(memory[var]->shadow == nullptr) {
                 memory[var]->init_shadow();
             }
@@ -733,10 +735,10 @@ namespace VarTable {
             //return;
         }
 
-        if(var[0] == '$') {
+        if(/*var[0] == '$'*/ ptr != nullptr && parser::is_var(var[0])) {
             //
             //
-            std::string v_name = var.substr(1);
+            std::string v_name = var/*.substr(1)*/;
             if(memory[v_name] != nullptr) {
                 if(TO_REF(memory[v_name])) {
                     std::unordered_map<std::string, Value*>::iterator itr;
