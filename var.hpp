@@ -433,16 +433,16 @@ namespace VarTable {
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
         // eval the inert var when it's used.
-        if(name != "" && InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name.substr(1)]) {
-            std::string Name = name.substr(1);
+        if(name != "" && InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name/*.substr(1)*/]) {
+            std::string Name = name/*.substr(1)*/;
             //std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
             set(Name, InertTable::vars[Name]);
             InertTable::is_hit[Name] = true;
         }
         //
 
-        if(name != "" && memory[name.substr(1)] != nullptr) {
-            Value* fetched_var = memory[name.substr(1)];
+        if(name != "" && memory[name/*.substr(1)*/] != nullptr) {
+            Value* fetched_var = memory[name/*.substr(1)*/];
             Value* ret_var = nullptr;
             if(fetched_var != nullptr && fetched_var->shadow != nullptr && fetched_var->shadow->size() != 0) {
                 ret_var = fetched_var->shadow->top().first;
@@ -463,13 +463,13 @@ namespace VarTable {
         }
 
         std::string var_name = symbols[0];
-        if(var_name[0] != '$') {
+        /*if(var_name[0] != '$') {
             std::cout << "expected $\n";
             exit(0);
-        }
+        }*/
         bool is_ref = false;
-        uint8_t pos = 1;
-        if(var_name[1] == '&') {
+        uint8_t pos = /*1*/ 0;
+        if(var_name[/*1*/ 0] == '&') {
             is_ref = true;
             pos++;
         }
@@ -631,6 +631,7 @@ namespace VarTable {
 
     void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth) {
         //std::cout << "raw: " << data << std::endl;
+        //std::cout << "Setting " << var << " to " << data << "\n";
         bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
@@ -656,8 +657,8 @@ namespace VarTable {
         if(var[0] == '$') {
             // TODO: the same for Strings. (DONE)
             // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
-            Value* ptr = VarTable::get(var, {}, true, true);
-            if(data != "" && data[0] == '$') {
+            Value* ptr = VarTable::get(var.substr(1), {}, true, true);
+            if(data != "" && /*data[0] == '$'*/ parser::is_var(data[0])) {
                 Value* d_ptr = VarTable::get(data, {}, true, true);
                 if(TO_REF(d_ptr)) {
                     d_ptr = TO_REF(d_ptr)->ref;
@@ -709,7 +710,7 @@ namespace VarTable {
         else if(data == "null") {
             value = new Null();
         }*/
-        else if(data[0] == '$') {
+        else if(/*data[0] == '$'*/ parser::is_var(data[0])) {
             value = get(data, {});
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
