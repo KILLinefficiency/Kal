@@ -55,6 +55,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             continue;
         }
 
+        //std::cout << "-----\nHead: " << ins << "\n";
+
         if(cmd.head == "<-") {
             //std::cout << "\tLine: " << (line + 1) << "\n";
             //std::cout << "Expression: [" << cmd.target << "]\n";
@@ -118,9 +120,15 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             //std::cout << "End Depth: " << depth << "\n";
             if(/*return_value != nullptr &&*/ !auto_return) {
                 if(return_value == nullptr) {
+                    // causes memory leak because of auto return issue.
                     return_value = new Null();
                 }
-                VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
+                // only set this is target exists.
+                if(cmd.target != "") {
+                    // figure out if i need to allow shadowing or not. [TODO].
+                    // if variable exists, don't allow, if exists, allow.
+                    VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
+                }
             }
             //delete return_value;
             // fact value attains accurate value when depth-- here and not after gc().
@@ -133,6 +141,15 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             call_stack.pop();
             if(auto_return) {
                 return return_value;
+            }
+        }
+
+        else if(ins == "" && cmd.init.size() > 0) {
+            int total_reassigns = cmd.init.size();
+            //std::cout << "Here\n";
+            for(int each_reassign = 0; each_reassign < total_reassigns; each_reassign += 2) {
+                //std::cout << "Reassigning " << "[" << cmd.init[each_reassign] << "] to [" << cmd.init[each_reassign + 1] << "]\n";
+                VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth);
             }
         }
 
@@ -425,12 +442,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             //var.read_var(var.expand_var(cmd[1]));
             var.read_var(cmd.values[0]);
         }*/
-        if(ins == "" && cmd.init.size() > 0) {
-            int total_reassigns = cmd.init.size();
-            for(int each_reassign = 0; each_reassign < total_reassigns; each_reassign += 2) {
-                VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth);
-            }
-        }
 
         line++;
     }

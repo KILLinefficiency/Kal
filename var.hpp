@@ -468,12 +468,13 @@ namespace VarTable {
             exit(0);
         }*/
         bool is_ref = false;
-        uint8_t pos = /*1*/ 0;
+        //uint8_t pos = /*1*/ 0;
         if(var_name[/*1*/ 0] == '&') {
             is_ref = true;
-            pos++;
+            var_name = var_name.substr(1);
+            //pos++;
         }
-        var_name = var_name.substr(pos);
+        //var_name = var_name.substr(pos);
         Value* var = memory[var_name];
         int size = symbols.size();
         int bound = size;
@@ -632,7 +633,11 @@ namespace VarTable {
 
     void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing) {
         //std::cout << "raw: " << data << std::endl;
-        //std::cout << "Setting " << var << " to " << data << "\n";
+        //if(allow_shadowing)
+        //    std::cout << "Setting " << var << " to " << data << "\n";
+        //else
+        //    std::cout << "Re-assigning " << var << " to " << data << "\n";*/
+
         bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
