@@ -10,7 +10,7 @@ void test_lexer() {
     title("lexer::tokenize()");
     std::vector<std::string> source_lines = {
         "var name = \"Kal-El\"",
-        "stdout $name \"\\n\"",
+        "stdout name \"\\n\"",
     };
 
     found = lexer::tokenize(source_lines);
@@ -21,7 +21,7 @@ void test_lexer() {
         },
         {
             .head = "stdout",
-            .values = { "$name", "\"\\n\"" }
+            .values = { "name", "\"\\n\"" }
         }
     };
 

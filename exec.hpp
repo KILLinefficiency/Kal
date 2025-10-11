@@ -254,7 +254,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                         //    std::cout << init_loop.top() << " " << depth << "\n";
                         if(init_loop.empty() || init_loop.top().first != depth) {
                             //std::cout << "[" << tokens[line].values[0] << "]\n";
-                            std::vector<std::string> var_names = VarTable::init_by_string(tokens[line].values[0], depth - 1);
+                            std::vector<std::string> var_names = VarTable::init_by_string(tokens[line].values[0], depth - 1, true);
                             init_loop.push({ depth, var_names });
                         }
                     }

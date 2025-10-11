@@ -200,7 +200,7 @@ std::string fstr(const std::string& text) {
         if(parser::match(i, head, "{}", false) && count < args) {
             fstring += head.substr(begin, i - begin);
             item = eval(values[count + 1]);
-            if(/*item[0] == '$'*/ parser::is_var(item[0])) {
+            if(/*item[0] == '$'*/ parser::is_var(item[0]) && item[1] != '&') {
                 item = VarTable::print(item);
             }
             if(lib::is_string(item)) {
@@ -226,7 +226,7 @@ std::string eval_indices(const std::string& text, int& index) {
     while(index < size) {
         current = parser::extract_list(text, '[', index);
         std::string intermediate = eval(current.substr(1, current.size() - 2));
-        if(/*intermediate[0] == '$'*/ parser::is_var(intermediate[0])) {
+        if(/*intermediate[0] == '$'*/ parser::is_var(intermediate[0]) && intermediate[1] != '&') {
             intermediate = VarTable::print(intermediate);
         }
         evaluated += "[" + intermediate + "]";
@@ -275,7 +275,7 @@ bool is_list_or_dict(std::string structure) {
     if(structure[0] == '[' || (structure[0] == '#' && structure[1] == '(')) {
         return true;
     }
-    if(/*structure[0] == '$'*/ parser::is_var(structure[0])) {
+    if(/*structure[0] == '$'*/ parser::is_var(structure[0]) && structure[1] != '&') {
         Value* temp = VarTable::get(structure, {}, true, true, true);
         if(dynamic_cast<List*>(temp) || dynamic_cast<Dict*>(temp)) {
             return true;
@@ -285,7 +285,7 @@ bool is_list_or_dict(std::string structure) {
 }
 
 bool is_num(std::string& data) {
-    if(/*data[0] == '$'*/ parser::is_var(data[0])) {
+    if(/*data[0] == '$'*/ parser::is_var(data[0]) && data[1] != '&') {
         Value* data_temp = VarTable::get(data, {}, true, true, true);
         if(dynamic_cast<Number*>(data_temp)) {
             return true;
@@ -301,7 +301,7 @@ bool is_list(std::string& structure) {
     if(structure[0] == '[') {
         return true;
     }
-    else if(/*structure[0] == '$'*/ parser::is_var(structure[0])) {
+    else if(/*structure[0] == '$'*/ parser::is_var(structure[0]) && structure[1] != '&') {
         Value* temp = VarTable::get(structure, {}, true, true, true);
         if(dynamic_cast<List*>(temp)) {
             return true;
@@ -314,7 +314,7 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
     std::deque<std::string> expr;
     //rpn.pop_back();
     std::string back = rpn.back();
-    if((back[0] >= '0' && back[0] <= '9') || /*back[0] == '$'*/ parser::is_var(back[0]) || back[0] == '"') {
+    if((back[0] >= '0' && back[0] <= '9') || /*back[0] == '$'*/ (parser::is_var(back[0]) && back[1] != '&') || back[0] == '"') {
         expr.push_back(back);
         rpn.pop_back();
     }
@@ -323,7 +323,7 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
         rpn.pop_back();
 
         std::string second = rpn.back();
-        if(!((second[0] >= '0' && second[0] <= '9') || /*second[0] == '$'*/ parser::is_var(second[0]) || second[0] == '"')) {
+        if(!((second[0] >= '0' && second[0] <= '9') || /*second[0] == '$'*/ (parser::is_var(second[0]) && second[1] != '&') || second[0] == '"')) {
             std::deque<std::string> second_expr = extract_operand(rpn);
             while(!second_expr.empty()) {
                 expr.push_front(second_expr.back());
@@ -337,7 +337,7 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
 
         if(back != "n" && back != "!" && back != "~") {
             std::string first = rpn.back();
-            if(!((first[0] >= '0' && first[0] <= '9') || /*first[0] == '$'*/ parser::is_var(second[0]) || first[0] == '"')) {
+            if(!((first[0] >= '0' && first[0] <= '9') || /*first[0] == '$'*/ (parser::is_var(second[0]) && second[1] != '&') || first[0] == '"')) {
                 std::deque<std::string> first_expr = extract_operand(rpn);
                 //print_rpn(first_expr);
                 while(!first_expr.empty()) {
@@ -411,7 +411,7 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             //index++;
             continue;
         }
-        else if(/*expr[index] == '$'*/ parser::is_var(expr[index])) {
+        else if(/*expr[index] == '$'*/ parser::is_var(expr[index]) && expr[index + 1] != '&') {
             std::string var = parser::parse_variable(expr, index);
             std::string val = expand_var(var);
             rpn.push_back(val);
@@ -568,7 +568,7 @@ std::string eval(std::deque<std::string> rpn) {
             rpn.pop_front();
             return result;
         }
-        else if(parser::is_var(rpn_front[0])) {
+        else if(parser::is_var(rpn_front[0]) && rpn_front[1] != '&') {
             rpn.pop_front();
             return rpn_front;
         }
@@ -598,7 +598,7 @@ std::string eval(std::deque<std::string> rpn) {
             delete result;
             //std::cout << function_call[0].head << " " << function_call[0].values[0] << " [Done]\n";
         }
-        else if(/*token[0] == '$'*/ parser::is_var(token[0])) {
+        else if(/*token[0] == '$'*/ parser::is_var(token[0]) && token[1] != '&') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
             //std::cout << "Token Shadow Size: " << temp->shadow.size() << "\n";
@@ -693,7 +693,7 @@ std::string eval(std::deque<std::string> rpn) {
                 Value* b_temp = nullptr;
                 std::string a_val;
                 double t_val;
-                if(/*a[0] == '$'*/ parser::is_var(a[0])) {
+                if(/*a[0] == '$'*/ parser::is_var(a[0]) && a[1] != '&') {
                     a_temp = VarTable::get(a, {}, true, true, true);
                     if(dynamic_cast<List*>(a_temp)) {
                         a_val = VarTable::print(a);
@@ -707,7 +707,7 @@ std::string eval(std::deque<std::string> rpn) {
                         a_val = a;
                     }
                 }
-                if(/*b[0] == '$'*/ parser::is_var(b[0])) {
+                if(/*b[0] == '$'*/ parser::is_var(b[0]) && b[1] != '&') {
                     b_temp = VarTable::get(b, {}, true, true, true);
                     if(dynamic_cast<Number*>(b_temp)) {
                         t_val = std::stod(dynamic_cast<Number*>(b_temp)->val);
@@ -730,7 +730,7 @@ std::string eval(std::deque<std::string> rpn) {
             }
 
             if(token == "as") {
-                if(/*a[0] == '$'*/ parser::is_var(a[0])) {
+                if(/*a[0] == '$'*/ parser::is_var(a[0]) && a[1] != '&') {
                     a = VarTable::print(a);
                 }
                 if(b == "int") {

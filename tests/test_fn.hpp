@@ -31,13 +31,13 @@ void test_shadowing() {
     lines = {
         "var sum = 0",
         "var value = 10",
-        "$sum = $sum + $value",
+        "sum = sum + value",
         "if 1 == 1 {",
             "var value = 20",
-            "$sum = $sum + $value",
+            "sum = sum + value",
             "if 2 == 2 {",
                 "var value = 30",
-                "$sum = $sum + $value",
+                "sum = sum + value",
             "}",
         "}"
     };
@@ -46,11 +46,11 @@ void test_shadowing() {
     line_exec(tokens);
 
     actual_value = "60";
-    found_value = VarTable::print("$sum");
+    found_value = VarTable::print("sum");
     check(actual_value, found_value);
 
     actual_value = "10";
-    found_value = VarTable::print("$value");
+    found_value = VarTable::print("value");
     check(actual_value, found_value);
 
     VarTable::gc();
@@ -89,7 +89,7 @@ void test_fn() {
     title("Parameters");
     lines = {
         "fn greet -> name {",
-        "<- \"Hello \" + $name + \"!\"",
+        "<- \"Hello \" + name + \"!\"",
         "}"
     };
     make_fn(lines);
@@ -99,7 +99,7 @@ void test_fn() {
 
     lines = {
         "fn add -> x, y {",
-        "<- $x + $y",
+        "<- x + y",
         "}"
     };
     make_fn(lines);
@@ -109,7 +109,7 @@ void test_fn() {
 
     lines = {
         "fn times -> n {",
-        "<- $n * 10",
+        "<- n * 10",
         "}"
     };
     make_fn(lines);
@@ -119,7 +119,7 @@ void test_fn() {
 
     lines = {
         "fn def_args -> a: 10, b: 20 {",
-        "<- $a * $b",
+        "<- a * b",
         "}"
     };
     make_fn(lines);
@@ -136,8 +136,8 @@ void test_fn() {
     lines = {
         "fn compose {",
         ":times 20 -> x",
-        ":add $x 100 -> y",
-        "<- $y",
+        ":add x 100 -> y",
+        "<- y",
         "}"
     };
     make_fn(lines);
@@ -159,10 +159,10 @@ void test_fn() {
     title("Recursive Functions");
     lines = {
         "fn fact -> n {",
-        "if $n == 0 || $n == 1 {",
+        "if n == 0 || n == 1 {",
         "<- 1",
         "}",
-        "<- $n * $(:fact ($n - 1))",
+        "<- n * $(:fact (n - 1))",
         "}"
     };
     make_fn(lines);
@@ -172,10 +172,10 @@ void test_fn() {
 
     lines = {
         "fn fib -> x {",
-        "if $x == 0 || $x == 1 {",
-        "<- $x",
+        "if x == 0 || x == 1 {",
+        "<- x",
         "}",
-        "<- $(:fib ($x - 1)) + $(:fib ($x - 2))",
+        "<- $(:fib (x - 1)) + $(:fib (x - 2))",
         "}"
     };
     make_fn(lines);

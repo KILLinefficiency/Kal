@@ -403,6 +403,7 @@ namespace VarTable {
                 if(top.second >= depth) {
                     delete top.first;
                     val->shadow->pop();
+                    //std::cout << "Shadow Stack Size: " << val->shadow->size();
                     if(val->shadow->size() == 0) {
                         val->gc_shadow();
                     }
@@ -923,14 +924,14 @@ namespace VarTable {
         }
     }
 
-    std::vector<std::string> init_by_string(std::string& init_string, int depth) {
+    std::vector<std::string> init_by_string(std::string& init_string, int depth, bool allow_shadowing = false) {
         int assign_idx = 0;
         std::vector<std::string> var_names;
         std::vector<std::string> assignments = parser::parse_init(init_string, assign_idx);
         int total_assigns = assignments.size();
         var_names.reserve(total_assigns / 2);
         for(int each_assign = 0; each_assign < total_assigns; each_assign += 2) {
-            set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth);
+            set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth, allow_shadowing);
             var_names.emplace_back(assignments[each_assign]);
         }
         return var_names;
