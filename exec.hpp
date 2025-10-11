@@ -153,6 +153,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 //std::cout << "Reassigning " << "[" << cmd.init[each_reassign] << "] to [" << cmd.init[each_reassign + 1] << "]\n";
                 VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth);
             }
+            line++;
+            continue;
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
