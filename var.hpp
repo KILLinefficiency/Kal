@@ -434,6 +434,9 @@ namespace VarTable {
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
         // eval the inert var when it's used.
+        if(name[0] >= '0' && name[0] <= '9') {
+            return nullptr;
+        }
         if(name != "" && InertTable::vars[name/*.substr(1)*/] != "" && !InertTable::is_hit[name/*.substr(1)*/]) {
             std::string Name = name/*.substr(1)*/;
             //std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;

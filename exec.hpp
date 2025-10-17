@@ -58,19 +58,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
         //std::cout << "-----\nHead: " << ins << "\n";
 
         if(cmd.head == "<-") {
-            //std::cout << "\tLine: " << (line + 1) << "\n";
-            //std::cout << "Expression: [" << cmd.target << "]\n";
-            //std::cout << "Ret Expr: " << cmd.target << "\n";
             std::string result = eval(cmd.target);
+            //std::cout << "Target: " << result << "\n";
             Value* return_value = nullptr;
-            //std::cout << "Res: " << result << "\n";
-            //std::cout << "Ret Value: " << result << "\n";
-            //std::cout << "Result: " << result << "\n";
-            /*if(result[0] == '$') {
-                //result = VarTable::print(result);
-                //return copy(VarTable::get(result, {}, true, true));
-            }*/
-            return_value = (/*result[0] == '$'*/ parser::is_var(result[0])) ? copy(VarTable::get(result, {}, true, true)) : make_value(result);
+
+            Value* existing_value = VarTable::get(result, {}, true, true);
+            bool value_exists = (existing_value != nullptr);
+
+            return_value = (/*result[0] == '$'*/ parser::is_var(result[0]) && value_exists) ? copy(existing_value) : make_value(result);
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
             int original_depth = call_stack.top().second;
@@ -78,9 +73,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 VarTable::gc(depth);
                 depth--;
             }
-            //VarTable::gc(depth);
-            //depth--;
-            //return make_value(result);
+
             return return_value;
         }
 
@@ -100,7 +93,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     //std::cout << "R_Val evaled: " << r_val << "\n";
                 }*/
                 // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
-                //std::cout << "Var: " << fn->init[arg * 2] << " Val: " << eval(r_val) << "\n";
                 VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true);
             }
 
@@ -124,9 +116,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 }
                 // only set this is target exists.
                 if(cmd.target != "") {
-                    // figure out if i need to allow shadowing or not. [TODO].
-                    // if variable exists, don't allow, if exists, allow.
-                    VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
+                    // figure out if i need to allow shadowing or not. [TODO]. [DONE]
+                    // if variable exists, don't allow, if exists, allow. [DONE]
+                    bool allow_shadowing = memory[cmd.target] != nullptr;
+                    VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing);
+                    //std::cout << "Targeting " << cmd.target << " to " << return_value->print() << "\n";
+                    //if(fn_name == "add") std::cout << "Here\n";
                 }
                 else {
                     delete return_value;
