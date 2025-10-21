@@ -7,6 +7,7 @@
 #include <cmath>
 #include <sstream>
 
+#include "globals.hpp"
 #include "types.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
@@ -16,6 +17,7 @@
 namespace VarTable {
     std::string print(std::string);
     Value* get(std::string, std::vector<std::string>, bool, bool, bool);
+    void set(std::string, std::string, Value* data_ptrr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
 }
 
 std::string eval(std::deque<std::string>);
@@ -545,7 +547,6 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
     return rpn;
 }
 
-
 std::string eval(std::deque<std::string> rpn) {
     /*expr = lib::trim(expr);
     if(expr == "") {
@@ -601,12 +602,25 @@ std::string eval(std::deque<std::string> rpn) {
         else if(/*token[0] == '$'*/ parser::is_var(token[0]) && token[1] != '&') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
-            //std::cout << "Token Shadow Size: " << temp->shadow.size() << "\n";
-            if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
-                //std::cout << "Token: " << token << "\n";
-                token = VarTable::print(token);
+            if(temp == nullptr) {
+                rpn.pop_front();
+                numbers.push(token);
+                continue;
             }
-            //token = VarTable::print(token);
+            else {
+                rpn.pop_front();
+                std::string operand_y = rpn.front();
+                rpn.pop_front();
+                std::string op = rpn.front();
+                if(op != ":=") {
+                    if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
+                        //std::cout << "Token: " << token << "\n";
+                        token = VarTable::print(token);
+                    }
+                }
+                rpn.push_front(operand_y);
+                rpn.push_front(token);
+            }
         }
         rpn.pop_front();
         //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
@@ -661,7 +675,7 @@ std::string eval(std::deque<std::string> rpn) {
             }
             //token = VarTable::print(token);
         }*/
-        else if(order(token) == 13) {
+        else if(order(token) == 14) {
             y = std::stod(numbers.top());
             numbers.pop();
             if(token == "n") {
@@ -680,8 +694,14 @@ std::string eval(std::deque<std::string> rpn) {
             numbers.pop();
             a = numbers.top();
             numbers.pop();
-            //std::cout << "a: " << a << " b: " << b << " token: " << token << "\n";
-            if(token == "==") {
+            if(token == ":=") {
+                //bool allow_shadowing = VarTable::get(b, {}, true, true, true) != nullptr;
+                VarTable::set(a, b, nullptr, VAR, false, depth, true);
+                //std::cout << a << " = " << b << "\n";
+                numbers.push(b);
+                continue;
+            }
+            else if(token == "==") {
                 if(is_list_or_dict(a) || is_list_or_dict(b)) {
                     bool result = compare(a, b);
                     numbers.push(result ? "1" : "0");

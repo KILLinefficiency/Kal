@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "globals.hpp"
 #include "lexer.hpp"
 #include "types.hpp"
 #include "expr_parser.hpp"
@@ -30,11 +31,6 @@ std::vector<std::string> parse_map(std::string text, int& index) {
     std::vector<std::string> vals = parser::parse_init(contents, pos, "->");
     return vals;
 }
-
-enum Type {
-    VAR,
-    INERT
-};
 
 Value* copy(Value*);
 std::unordered_map<std::string, Value*> memory;
@@ -394,7 +390,7 @@ namespace ScopeTable {
 }
 
 namespace VarTable {
-    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
+    //void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
 
     void gc_value(std::string name, Value* val) {
         if(val != nullptr) {
