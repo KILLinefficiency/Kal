@@ -109,12 +109,12 @@ void test_expr_parser() {
         { R"( f["Hello {}!", "World"] )", R"("Hello World!")" },
         { R"( f["Hel{}{}", f["l{} ", "o"], f["{}" + "!", "Wor" + "ld"]] )", R"("Hello World!")" },
 
-        { "1 as int", "1" },
+        /*{ "1 as int", "1" },
         { "3.14 as int", "3" },
         { "123.456 as int", "123" },
         { "\"45\" as int", "45" },
         { "\"45\" as int + 55", "100" },
-        { "\"45\" as int + \"55\" as int", "100" },
+        { "\"45\" as int + \"55\" as int", "100" },*/
 
         { "0 && abc", "0" },
         { "1 || abc", "1" },

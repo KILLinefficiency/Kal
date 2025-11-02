@@ -643,7 +643,7 @@ std::string eval(std::deque<std::string> rpn) {
                 numbers.push(token);
                 continue;
             }
-            else {
+            else if(rpn.size() >= 3) {
                 rpn.pop_front();
                 std::string operand_y = rpn.front();
                 rpn.pop_front();
@@ -656,6 +656,9 @@ std::string eval(std::deque<std::string> rpn) {
                 }
                 rpn.push_front(operand_y);
                 rpn.push_front(token);
+            }
+            else {
+                token = VarTable::print(token);
             }
         }
         rpn.pop_front();
@@ -887,6 +890,5 @@ std::string eval(std::string expr) {
         return expr;
     }
     std::deque<std::string> rpn = make_rpn(expr);
-    //disp_rpn(rpn);
     return eval(rpn);
 }

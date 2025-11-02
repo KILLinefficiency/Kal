@@ -258,7 +258,7 @@ void test_control_flow() {
     };
     RUN_CASE("30");
 
-    /*lines = {
+    lines = {
         "i = 1",
         "value = 0",
         "loop i <= 10 {",
@@ -270,7 +270,7 @@ void test_control_flow() {
             "i = i + 1",
         "}"
     };
-    RUN_CASE("42");*/
+    RUN_CASE("42");
 
     lines = {
         "i = 1",
@@ -387,7 +387,7 @@ void test_control_flow() {
     };
     RUN_CASE("15");
 
-    /*lines = {
+    lines = {
         "value = 0",
         "var shadowed = 10",
         "loop shadowed = 1 -- shadowed <= 5 -- shadowed = shadowed + 1 {",
@@ -397,7 +397,7 @@ void test_control_flow() {
     RUN_CASE("15");
     std::string found_value = VarTable::print("shadowed");
     std::string actual_value = "10";
-    check(found_value, actual_value);*/
+    check(found_value, actual_value);
 
     VarTable::gc();
     progress();
