@@ -241,19 +241,22 @@ std::string Dict::print() {
             disp << ((Number*)value)->print();
         }*/
         if(TO_NUM(value)) {
-            disp << ((Number*)value)->print();
+            disp << TO_NUM(value)->print();
         }
         else if(TO_STR(value)) {
-            disp << ((String*)value)->print();
+            disp << TO_STR(value)->print();
         }
         else if(TO_LIST(value)) {
-            disp << ((List*)value)->print();
+            disp << TO_LIST(value)->print();
         }
         else if(TO_DICT(value)) {
-            disp << ((Dict*)value)->print();
+            disp << TO_DICT(value)->print();
         }
         else if(TO_NULL(value)) {
-            disp << ((Null*)value)->print();
+            disp << TO_NULL(value)->print();
+        }
+        else if(TO_REF(value)) {
+            disp << TO_REF(value)->print();
         }
         else {
             std::cout << "invalid pointer\n";
