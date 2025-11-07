@@ -22,7 +22,7 @@ namespace VarTable {
 
 std::string eval(std::deque<std::string>);
 bool compare(std::string, std::string);
-Value* line_exec(std::vector<Token>&, bool);
+Value* line_exec(std::vector<Token>&, bool, bool);
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
@@ -614,7 +614,7 @@ std::string eval(std::deque<std::string> rpn) {
             std::vector<Token> function_call = lexer::tokenize(function_line);
             //std::cout << "Function Body:\n" << function_call[0].head << " " << function_call[0].values[0] << "\n";
             //std::cout << "Shadow: " << VarTable::get("$n", {}, false, true, true)->shadow.size() << std::endl;
-            Value* result = line_exec(function_call, true);
+            Value* result = line_exec(function_call, true, true);
             if(result != nullptr) {
                 token = result->print();
             }

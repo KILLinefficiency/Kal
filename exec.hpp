@@ -33,7 +33,7 @@ namespace parser {
 
 std::stack<std::pair<std::string, int>> defer_stack;
 
-Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
+Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
     int total_tokens = tokens.size();
@@ -112,7 +112,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
 
             call_stack.push(std::pair<std::string, int> { fn_name, depth });
             //std::cout << "Start Depth: " << depth << "\n";
-            Value* return_value = line_exec(fn->body);
+            Value* return_value = line_exec(fn->body, false, true);
             //std::cout << "End Depth: " << depth << "\n";
             if(/*return_value != nullptr &&*/ !auto_return) {
                 if(return_value == nullptr) {
@@ -432,16 +432,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             }
         }
 
-        /*else if(ins == "stdin" && cmd_size == 1) {
-            std::string var_to_read = lexer::get_var_name_from_token(cmd.values[0]);
-            if(var.get_mem_type(var_to_read) == "const") {
-                errors::change_const_var_error(var_to_read);
-            }
-            //var.read_var(var.expand_var(cmd[1]));
-            var.read_var(cmd.values[0]);
-        }*/
-
         line++;
+    }
+
+    if(fn_defer) {
+        while(!defer_stack.empty() && defer_stack.top().second >= depth) {
+            eval(defer_stack.top().first);
+            defer_stack.pop();
+        }
     }
 
 
