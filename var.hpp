@@ -389,9 +389,7 @@ namespace ScopeTable {
 }
 
 namespace VarTable {
-    //void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
-
-    void gc_value(std::string name, Value* val) {
+    void gc_value(std::string name, Value* val, std::unordered_map<std::string, Value*>& memory = memory) {
         if(val != nullptr) {
             if(val->shadow != nullptr && val->shadow->size() != 0) {
                 std::pair<Value*, int> top = val->shadow->top();
@@ -411,7 +409,7 @@ namespace VarTable {
         }
     }
 
-    void gc(int depth = 0) {
+    void gc(int depth = 0, std::unordered_map<std::string, Value*>& memory = memory) {
         std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
         for(itr = memory.begin(); itr != end; itr++) {
             gc_value(itr->first, itr->second);
@@ -421,13 +419,13 @@ namespace VarTable {
         }
     }
 
-    void gc_by_names(std::vector<std::string>& var_names) {
+    void gc_by_names(std::vector<std::string>& var_names, std::unordered_map<std::string, Value*>& memory = memory) {
         for(std::string& name : var_names) {
             gc_value(name, memory[name]);
         }
     }
 
-    Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
+    Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original, std::unordered_map<std::string, Value*>& memory) {
         // eval the inert var when it's used.
         if(name[0] >= '0' && name[0] <= '9') {
             return nullptr;
@@ -630,7 +628,7 @@ namespace VarTable {
         }
     }
 
-    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing) {
+    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing, std::unordered_map<std::string, Value*>& memory) {
         //std::cout << "raw: " << data << std::endl;
         //if(allow_shadowing)
         //    std::cout << "Setting " << var << " to " << data << "\n";

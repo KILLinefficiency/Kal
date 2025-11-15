@@ -447,6 +447,7 @@ namespace parser {
         }
         else if(text[index] == '(') {
             required_token = parse_expr(text, index);
+            index--;
         }
         else if(text[index] == '"') {
             required_token = parse_string(text, index);
