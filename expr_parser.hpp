@@ -7,18 +7,12 @@
 #include <cmath>
 #include <sstream>
 
-#include "globals.hpp"
 #include "types.hpp"
+#include "globals.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
 #include "lib/lib_math.hpp"
 #include "lib/lib_string.hpp"
-
-namespace VarTable {
-    std::string print(std::string);
-    Value* get(std::string, std::vector<std::string>, bool, bool, bool);
-    void set(std::string, std::string, Value* data_ptrr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
-}
 
 std::string eval(std::deque<std::string>);
 bool compare(std::string, std::string);

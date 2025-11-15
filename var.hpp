@@ -33,10 +33,6 @@ std::vector<std::string> parse_map(std::string text, int& index) {
 }
 
 Value* copy(Value*);
-std::unordered_map<std::string, Value*> memory;
-namespace VarTable {
-    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true);
-}
 
 Value* make_value(std::string value) {
     Value* val = nullptr;

@@ -1,7 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <stack>
+#include <utility>
+
 #include "errors.hpp"
+
+std::stack<std::pair<std::string, int>> call_stack;
 
 struct Token {
     std::string head = "",
