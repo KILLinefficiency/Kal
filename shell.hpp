@@ -66,7 +66,7 @@ namespace shell {
 
             if(command[0] == '@') {
                 std::string file_name = command.substr(1);
-                std::vector<std::string> preprocessed_lines = preproc::preprocess(file_name);
+                std::vector<std::string> preprocessed_lines = preproc::preprocess_file(file_name);
                 tokens = lexer::tokenize(preprocessed_lines);
                 line_exec(tokens);
                 count++;

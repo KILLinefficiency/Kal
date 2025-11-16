@@ -10,6 +10,8 @@
 #include "lib/lib_string.hpp"
 
 namespace preproc {
+    std::vector<std::string> preprocess_file(std::string);
+
     void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other, int index, bool replace = true) {
         int orignal_size = orignal.size();
         for(int orignal_count = 0; orignal_count < orignal_size; orignal_count++) {
@@ -63,19 +65,20 @@ namespace preproc {
 
     std::stack<std::string> dirs;
     std::unordered_map<std::string, bool> paths;
-    std::vector<std::string> preprocess(std::string file_path) {
+    std::vector<std::string> preprocess(std::string code, std::string abs_file_path = "") {
         std::vector<std::string> all_lines;
-        std::string top = "";
-        if(!dirs.empty()) {
-            top = dirs.top();
+        std::string current_path = "";
+        if(abs_file_path == "") {
+            abs_file_path = lib::get_path(std::filesystem::current_path());
+            current_path = abs_file_path;
         }
-        std::string abs_file_path = lib::get_path(file_path, top);
-        std::string current_path = lib::get_dir(abs_file_path);
+        else {
+            current_path = lib::get_dir(abs_file_path);
+        }
 
-        std::string file_contents = lib::read_file(abs_file_path);
-        remove_comments(file_contents);
+        remove_comments(code);
 
-        std::vector<std::string> file_lines = lib::split(file_contents);
+        std::vector<std::string> file_lines = lib::split(code);
         for(std::string& line : file_lines) {
             line = lib::trim_leading(lib::trim_trailing(line));
             if(line != "") {
@@ -94,7 +97,7 @@ namespace preproc {
                 }
                 dirs.push(current_path);
                 abs_file_path = include_path;
-                std::vector<std::string> vals = preprocess(abs_file_path);
+                std::vector<std::string> vals = preprocess_file(abs_file_path);
                 squash_vector(all_lines, vals, all_lines.size() - 1);
                 current_path = dirs.top();
                 dirs.pop();
@@ -103,6 +106,18 @@ namespace preproc {
         }
 
         return all_lines;
+    }
+
+    std::vector<std::string> preprocess_file(std::string file_path) {
+        std::string top = "";
+        if(!dirs.empty()) {
+            top = dirs.top();
+        }
+
+        std::string abs_file_path = lib::get_path(file_path, top);
+        std::string file_contents = lib::read_file(abs_file_path);
+
+        return preprocess(file_contents, abs_file_path);
     }
 
 
@@ -130,7 +145,7 @@ namespace preproc {
             index--;
         }
         for(std::string dep : deps) {
-            std::vector<std::string> sloc = preprocess(dep);
+            std::vector<std::string> sloc = preprocess_file(dep);
             squash_vector(expanded_contents, sloc, 0, false);
         }
 

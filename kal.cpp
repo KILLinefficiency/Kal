@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> source_lines;
     if(arg_parser.flag_exists("-p")) {
         file_name = arg_parser.get_value("-p");
-        source_lines = preproc::preprocess(file_name);
+        source_lines = preproc::preprocess_file(file_name);
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     if(arg_parser.flag_exists("-k")) {
         std::string kast_file;
         std::string kal_file = arg_parser.get_value("-k");
-        source_lines = preproc::preprocess(kal_file);
+        source_lines = preproc::preprocess_file(kal_file);
         std::vector<Token> tokens = lexer::tokenize(source_lines);
         if(arg_parser.flag_exists("-o")) {
             kast_file = arg_parser.get_value("-o");
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    source_lines = preproc::preprocess(file_name);
+    source_lines = preproc::preprocess_file(file_name);
 
     if(arg_parser.flag_exists("-d")) {
         std::string deps = arg_parser.get_value("-d");
