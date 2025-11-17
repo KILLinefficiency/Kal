@@ -5,7 +5,7 @@
 
 #define RUN_CASE(VALUE) actual_string = VALUE; \
     tokens = lexer::tokenize(lines); \
-    line_exec(tokens); \
+    line_exec(tokens, false, true, false, memory); \
     found_string = VarTable::print("value", memory); \
     check(found_string, actual_string);
 
@@ -232,7 +232,7 @@ void test_control_flow() {
     };
     RUN_CASE("300");
 
-    VarTable::gc();
+    VarTable::gc(0, memory);
     progress();
 
     title("line_exec() - loop");
@@ -395,11 +395,11 @@ void test_control_flow() {
         "}"
     };
     RUN_CASE("15");
-    std::string found_value = VarTable::print("shadowed");
+    std::string found_value = VarTable::print("shadowed", memory);
     std::string actual_value = "10";
     check(found_value, actual_value);
 
-    VarTable::gc();
+    VarTable::gc(0, memory);
     lines = {
         "var value = 0",
         "if (test_value := 100) > 50 {",
@@ -418,6 +418,6 @@ void test_control_flow() {
     };
     RUN_CASE("10");
 
-    VarTable::gc();
+    VarTable::gc(0, memory);
     progress();
 }

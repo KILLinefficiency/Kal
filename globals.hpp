@@ -18,7 +18,9 @@ enum Type {
 };
 
 namespace VarTable {
-    std::string print(std::string, Memory& memory = memory);
-    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true, Memory& = memory);
-    void set(std::string var, std::string data, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false, Memory& memory = memory);
+    std::string print(std::string, Memory& memory);
+    // {}, false, false, true
+    Value* get(std::string, std::vector<std::string>, bool, bool, bool, Memory&);
+    // nullptr, VAR, false, 0, false
+    void set(std::string var, std::string data, Value* data_ptr, Type type , bool disallow_copy, int depth, bool allow_shadowing, Memory& memory);
 }

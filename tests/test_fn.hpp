@@ -13,9 +13,9 @@ void make_fn(std::vector<std::string> lines) {
     lexer::tokenize(lines);
 }
 
-Value* fn_call(std::vector<std::string> lines) {
+Value* fn_call(std::vector<std::string> lines, Memory& memory) {
     std::vector<Token> tokens = lexer::tokenize(lines);
-    return line_exec(tokens, true);
+    return line_exec(tokens, true, true, false, memory);
 }
 
 void test_shadowing() {
@@ -43,17 +43,17 @@ void test_shadowing() {
     };
 
     tokens = lexer::tokenize(lines);
-    line_exec(tokens);
+    line_exec(tokens, false, true, false, memory);
 
     actual_value = "60";
-    found_value = VarTable::print("sum");
+    found_value = VarTable::print("sum", memory);
     check(actual_value, found_value);
 
     actual_value = "10";
-    found_value = VarTable::print("value");
+    found_value = VarTable::print("value", memory);
     check(actual_value, found_value);
 
-    VarTable::gc();
+    VarTable::gc(0, memory);
     progress();
 }
 
@@ -72,7 +72,7 @@ void test_fn() {
     };
     make_fn(lines);
     actual_value = new String("\"Hello\"");
-    found_value = fn_call({ ":greet" });
+    found_value = fn_call({ ":greet" }, memory);
     CHECK;
 
     lines = {
@@ -82,7 +82,7 @@ void test_fn() {
     };
     make_fn(lines);
     actual_value = new Number("100");
-    found_value = fn_call({ ":hundred" });
+    found_value = fn_call({ ":hundred" }, memory);
     CHECK;
 
     progress();
@@ -93,7 +93,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":greet \"Kal\"" });
+    found_value = fn_call({ ":greet \"Kal\"" }, memory);
     actual_value = new String("\"Hello Kal!\"");
     CHECK;
 
@@ -103,7 +103,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":add 200 50" });
+    found_value = fn_call({ ":add 200 50" }, memory);
     actual_value = new Number("250");
     CHECK;
 
@@ -113,7 +113,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":times 5" });
+    found_value = fn_call({ ":times 5" }, memory);
     actual_value = new Number("50");
     CHECK;
 
@@ -123,13 +123,13 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":def_args" });
+    found_value = fn_call({ ":def_args" },memory);
     actual_value = new Number("200");
     CHECK;
-    found_value = fn_call({ ":def_args 30" });
+    found_value = fn_call({ ":def_args 30" }, memory);
     actual_value = new Number("600");
     CHECK;
-    found_value = fn_call({ ":def_args 30 30" });
+    found_value = fn_call({ ":def_args 30 30" }, memory);
     actual_value = new Number("900");
     CHECK;
 
@@ -141,7 +141,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":compose" });
+    found_value = fn_call({ ":compose" }, memory);
     actual_value = new Number("300");
     CHECK;
 
@@ -168,7 +168,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":fact 5" });
+    found_value = fn_call({ ":fact 5" }, memory);
     actual_value = new Number("120");
     CHECK;
 
@@ -181,13 +181,13 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":fib 4" });
+    found_value = fn_call({ ":fib 4" }, memory);
     actual_value = new Number("3");
     CHECK;
-    found_value = fn_call({ ":fib 5" });
+    found_value = fn_call({ ":fib 5" }, memory);
     actual_value = new Number("5");
     CHECK;
-    found_value = fn_call({ ":fib 6" });
+    found_value = fn_call({ ":fib 6" }, memory);
     actual_value = new Number("8");
     CHECK;
 
@@ -218,23 +218,23 @@ void test_fn() {
     };
     make_fn(lines);
 
-    found_value = fn_call({ ":test_defer_a" });
+    found_value = fn_call({ ":test_defer_a" }, memory);
     actual_value = new Number("150");
     CHECK;
 
-    found_value = fn_call({ ":test_defer_b" });
+    found_value = fn_call({ ":test_defer_b" }, memory);
     actual_value = new Number("60");
     CHECK;
 
-    VarTable::set("test_value", "10");
+    VarTable::set("test_value", "10", nullptr, VAR, false, 0, false, memory);
     lines = {
         "fn test_defer_c {",
             "defer $(:incr &test_value)",
         "}"
     };
     make_fn(lines);
-    fn_call({ ":test_defer_c" });
-    found_value = VarTable::get("test_value", {}, true, true, true);
+    fn_call({ ":test_defer_c" }, memory);
+    found_value = VarTable::get("test_value", {}, true, true, true, memory);
     actual_value = new Number("20");
     CHECK;
 
@@ -246,7 +246,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":test_defer_d" });
+    found_value = fn_call({ ":test_defer_d" }, memory);
     actual_value = new Number("50");
     CHECK;
 

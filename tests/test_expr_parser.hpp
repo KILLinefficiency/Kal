@@ -129,7 +129,7 @@ void test_expr_parser() {
     };
 
     for(uint64_t i = 0; i < expr.size(); i++) {
-        found = eval(expr[i][0]);
+        found = eval(expr[i][0], memory);
         check(found, expr[i][1]);
     }
 

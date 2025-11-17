@@ -38,7 +38,7 @@ namespace shell {
             }
 
             if(command == ".reset") {
-                VarTable::gc();
+                VarTable::gc(0, memory);
                 continue;
             }
 
@@ -59,7 +59,7 @@ namespace shell {
                 if(multi_lines.size() != 0) {
                     tokens = lexer::tokenize(multi_lines);
                     std::cout << style::style["bold"] << style::style["blue"] << "\nOut:" << style::style["reset"] << "\n";
-                    line_exec(tokens);
+                    line_exec(tokens, false, true, false, memory);
                 }
                 continue;
             }
@@ -68,7 +68,7 @@ namespace shell {
                 std::string file_name = command.substr(1);
                 std::vector<std::string> preprocessed_lines = preproc::preprocess_file(file_name);
                 tokens = lexer::tokenize(preprocessed_lines);
-                line_exec(tokens);
+                line_exec(tokens, false, true, false, memory);
                 count++;
                 continue;
             }
@@ -78,7 +78,7 @@ namespace shell {
                 prep_for_shell(each);
             }
             tokens = lexer::tokenize(shell_lines);
-            line_exec(tokens);
+            line_exec(tokens, false, true, false, memory);
 
             count++;
         }

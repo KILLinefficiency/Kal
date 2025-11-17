@@ -83,8 +83,8 @@ int main(int argc, char** argv) {
     if(is_kast_file) {
         std::vector<Token> tokens;
         kast::decode(file_name, tokens);
-        line_exec(tokens);
-        VarTable::gc();
+        line_exec(tokens, false, true, false, memory);
+        VarTable::gc(0, memory);
         return 0;
     }
 
@@ -96,9 +96,9 @@ int main(int argc, char** argv) {
     }
     
     std::vector<Token> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens);
+    line_exec(tokens, false, true, false, memory);
 
-    VarTable::gc();
+    VarTable::gc(0, memory);
 
     return 0;
 }

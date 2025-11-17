@@ -132,7 +132,7 @@ List::List(std::string list) {
         else if(v[0] == '$') {
             items.emplace_back(VarTable::get(v, {}));
         }*/
-        items.emplace_back(make_value(eval(v)));
+        items.emplace_back(make_value(eval(v, memory)));
         // 1st make_value
     }
 }
@@ -211,7 +211,7 @@ Dict::Dict(std::string dict_val) {
         else if(kv[i + 1][0] == '$') {
             dict[kv[i]] = VarTable::get(kv[i + 1], {});
         }*/
-        dict[kv[i]] = make_value(eval(kv[i + 1]));
+        dict[kv[i]] = make_value(eval(kv[i + 1], memory));
     }
 }
 
@@ -389,7 +389,7 @@ namespace ScopeTable {
 }
 
 namespace VarTable {
-    void gc_value(std::string name, Value* val, Memory& memory = memory) {
+    void gc_value(std::string name, Value* val, Memory& memory) {
         if(val != nullptr) {
             if(val->shadow != nullptr && val->shadow->size() != 0) {
                 std::pair<Value*, int> top = val->shadow->top();
@@ -409,19 +409,19 @@ namespace VarTable {
         }
     }
 
-    void gc(int depth = 0, Memory& memory = memory) {
+    void gc(int depth, Memory& memory) {
         Memory::iterator itr, end = memory.end();
         for(itr = memory.begin(); itr != end; itr++) {
-            gc_value(itr->first, itr->second);
+            gc_value(itr->first, itr->second, memory);
         }
         if(depth == 0) {
             Functions::gc();
         }
     }
 
-    void gc_by_names(std::vector<std::string>& var_names, Memory& memory = memory) {
+    void gc_by_names(std::vector<std::string>& var_names, Memory& memory) {
         for(std::string& name : var_names) {
-            gc_value(name, memory[name]);
+            gc_value(name, memory[name], memory);
         }
     }
 
@@ -546,7 +546,7 @@ namespace VarTable {
         return var;
     }
 
-    void unpack(std::string list, std::string structure, Value* data_ptr = nullptr, Memory& memory = memory) {
+    void unpack(std::string list, std::string structure, Value* data_ptr, Memory& memory) {
         int index = 0;
         Value* packed_items = nullptr;
         bool is_literal = false;
@@ -596,7 +596,7 @@ namespace VarTable {
                     continue;
                 }
                 if(items[i][0] == '[' || (items[i][0] == '#' && items[i][1] == '(')) {
-                    unpack(items[i], "", TO_LIST(packed_items)->items[i]);
+                    unpack(items[i], "", TO_LIST(packed_items)->items[i], memory);
                 }
                 else {
                     set(items[i], "", TO_LIST(packed_items)->items[i], VAR, false, depth, false, memory);
@@ -637,7 +637,7 @@ namespace VarTable {
 
         bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
-            unpack(var, data);
+            unpack(var, data, nullptr, memory);
             return;
         }
         if(type == INERT) {
@@ -648,7 +648,7 @@ namespace VarTable {
             // Need to modify eval to get var reading complete.
         }
         if(data != "") {
-            data = eval(data);
+            data = eval(data, memory);
         }
 
         if(memory[var] == nullptr) {
@@ -724,7 +724,7 @@ namespace VarTable {
         else {
             //std::cout << "Shadowing Value 1: " << value << "\n";
             //std::cout << "Data: " << data << "\n";
-            value = make_value(data);
+            value = make_value(data, memory);
             //std::cout << "Shadowing Value 2: " << value << "\n";
         }
 
@@ -797,7 +797,7 @@ namespace VarTable {
                 }
             }
             else {
-                std::vector<std::string> syms = get_var_with_indices(expand_var(var));
+                std::vector<std::string> syms = get_var_with_indices(expand_var(var, memory));
                 std::string last_symbol = syms[syms.size() - 1];
                 Value* v = get("", syms, true, false, true, memory);
 
@@ -920,7 +920,7 @@ namespace VarTable {
         }
     }
 
-    std::vector<std::string> init_by_string(std::string& init_string, int depth, bool allow_shadowing = false, Memory& memory = memory) {
+    std::vector<std::string> init_by_string(std::string& init_string, int depth, bool allow_shadowing, Memory& memory) {
         int assign_idx = 0;
         std::vector<std::string> var_names;
         std::vector<std::string> assignments = parser::parse_init(init_string, assign_idx);
@@ -1139,7 +1139,7 @@ bool compare(std::string first, std::string second, Memory& memory) {
     return result;
 }
 
-bool compare(Value* first, std::string second, Memory& memory = memory) {
+bool compare(Value* first, std::string second, Memory& memory) {
     Value* b = nullptr;
     bool temp = false;
     if(/*second[0] == '$'*/ parser::is_var(second)) {
