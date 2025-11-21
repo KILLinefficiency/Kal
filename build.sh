@@ -14,6 +14,10 @@ STD="-std=c++20"
 LIBKAL_SRC="embed/libkal.cpp"
 LIBKAL_OBJ="bin/libkal.o"
 
+DYNAMIC_LIBKAL_SRC="embed/dynamic_libkal.cpp"
+LIBKAL_DYNAMIC_TEMP_OBJ="bin/dynamic_libkal.o"
+LIBKAL_SHARED_OBJ="bin/libkal.so"
+
 STATIC_ELF=""
 if [ -z $STATIC ]; then
     STATIC=0
@@ -41,7 +45,7 @@ function get_help() {
     echo -e "    │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh test         ${GREEN}Runs Tests.                     │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Docker container for Kal.  │"
-    echo -e "    │ ${DEFAULT_BOLD}./build.sh embed        ${GREEN}Compiles libkal.o library.      │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh embed        ${GREEN}Compiles libkal library.        │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
     echo -e "    │                                                         │"
     echo -e "    └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
@@ -66,6 +70,11 @@ function embed() {
     echo -e "${GREEN} * Compiling libkal.o${DEFAULT}"
     ! [ -d bin ] && mkdir bin
     ${CC} -c ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${LIBKAL_SRC} -o ${LIBKAL_OBJ}
+
+    echo -e "${GREEN} * Compiling libkal.so${DEFAULT}"
+    ${CC} -c -fPIC ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${DYNAMIC_LIBKAL_SRC} -o ${LIBKAL_DYNAMIC_TEMP_OBJ}
+    ${CC} -shared ${LIBKAL_DYNAMIC_TEMP_OBJ} -o ${LIBKAL_SHARED_OBJ}
+    rm ${LIBKAL_DYNAMIC_TEMP_OBJ}
 }
 
 function vim_ft() {
