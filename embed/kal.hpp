@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 #include <unordered_map>
 
 class Value;
@@ -8,6 +9,20 @@ struct Token;
 
 using Memory = std::unordered_map<std::string, Value*>;
 using Table = std::unordered_map<std::string, std::string>;
+
+class Result {
+    private:
+    public:
+        double* number = nullptr;
+        std::string* string = nullptr;
+        std::vector<std::string>* list = nullptr;
+        std::unordered_map<std::string, std::string>* dict = nullptr;
+
+        Result(std::string);
+        Result operator[](int);
+        Result operator[](std::string);
+        ~Result();
+};
 
 class Kal {
     private:

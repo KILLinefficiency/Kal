@@ -65,6 +65,67 @@ std::string format_code(std::string& code, Table& table) {
     return formatted_code.str();
 }
 
+Result::Result(std::string value) {
+    int begin = 0;
+    if(is_num(value[0])) {
+        number = new double(std::stod(parser::parse_number(value, begin)));
+    }
+    else if(value[0] == '"') {
+        string = new std::string(parser::parse_string(value, begin));
+    }
+    else if(value[0] == '[') {
+        list = new std::vector<std::string>(parser::parse_list(value, begin));
+    }
+    else if(value[0] == '#' && value[1] == '(') {
+        dict = new std::unordered_map<std::string, std::string>();
+        std::vector<std::string> dict_values = parse_map(value, begin);
+        int size = dict_values.size();
+        for(int idx = 0; idx < size; idx++) {
+            (*dict)[dict_values[idx]] = dict_values[idx + 1];
+            std::cout << dict_values[idx] << " -> " << dict_values[idx + 1] << "\n";
+        }
+    }
+}
+
+Result Result::operator[](int index) {
+    if(list == nullptr) {
+        std::cout << "List not found.\n";
+        exit(1);
+    }
+    int size = list->size();
+    if(index >= size) {
+        std::cout << "List out of bounds.\n";
+    }
+    return Result((*list)[index]);
+}
+
+Result Result::operator[](std::string key) {
+    if(dict == nullptr) {
+        std::cout << "Dict not found.\n";
+        exit(1);
+    }
+    return Result((*dict)[key]);
+}
+
+Result::~Result() {
+    if(number) {
+        delete number;
+        number = nullptr;
+    }
+    else if(string) {
+        delete string;
+        string = nullptr;
+    }
+    else if(list) {
+        delete list;
+        list = nullptr;
+    }
+    else if(dict) {
+        delete dict;
+        dict = nullptr;
+    }
+}
+
 std::string Kal::exec(std::string code, Table table) {
     if(!table.empty()) {
         code = format_code(code, table);

@@ -462,6 +462,7 @@ namespace parser {
         else if(text[index] == '\0') {
             return required_token;
         }
+        // TODO: parse dict.
         else {
             std::cout << "Text: " << text << "\nIndex: " << index << "\n";
             std::cout << "unknown token: [" << text[index] << "]" << std::endl;
