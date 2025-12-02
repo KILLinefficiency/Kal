@@ -24,6 +24,8 @@ class Result {
         ~Result();
 };
 
+std::ostream& operator<<(std::ostream&, Result);
+
 class Kal {
     private:
         Memory k_memory;

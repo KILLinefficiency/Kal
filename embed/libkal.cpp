@@ -106,6 +106,18 @@ Result Result::operator[](std::string key) {
     return Result((*dict)[key]);
 }
 
+std::ostream& operator<<(std::ostream& out, Result result) {
+    out << "Result(";
+    if(result.number != nullptr) {
+        out << *(result.number);
+    }
+    else if(result.string != nullptr) {
+        out << *(result.string);
+    }
+    out << ")";
+    return out;
+}
+
 Result::~Result() {
     if(number) {
         delete number;
