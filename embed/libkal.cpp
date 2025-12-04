@@ -178,7 +178,7 @@ std::unordered_map<std::string, Result> Result::to_dict() {
     std::unordered_map<std::string, Result> dict_result;
     std::unordered_map<std::string, std::string>::iterator dict_itr;
     for(dict_itr = dict->begin(); dict_itr != dict->end(); dict_itr++) {
-        dict_result[dict_itr->first] = Result(dict_result[dict_itr->second]);
+        dict_result[dict_itr->first] = Result(dict_itr->second);
     }
     return dict_result;
 }
