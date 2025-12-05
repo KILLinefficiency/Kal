@@ -67,7 +67,7 @@ class Dict : public Value {
         std::string type = "Dict";
         std::vector<std::string> keys;
         Dict();
-        Dict(std::string);
+        Dict(std::string, Memory&);
         void append_unique(std::string, bool = false);
         std::string print();
         ~Dict();

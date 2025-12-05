@@ -46,7 +46,7 @@ Value* make_value(std::string value, Memory& memory) {
         val = new List(value, memory);
     }
     else if(value[0] == '#' && value[1] == '(') {
-        val = new Dict(value);
+        val = new Dict(value, memory);
     }
     else if(value == "null") {
         val = new Null();
@@ -181,7 +181,7 @@ List::~List() {
 /// Dict
 Dict::Dict() {}
 
-Dict::Dict(std::string dict_val) {
+Dict::Dict(std::string dict_val, Memory& memory) {
     int index = 0;
     std::vector<std::string> kv = parse_map(dict_val, index);
     int size = kv.size();
@@ -572,7 +572,7 @@ namespace VarTable {
                     packed_items = new List(structure, memory);
                 }
                 else if(structure[0] == '#' && structure[1] == '(') {
-                    packed_items = new Dict(structure);
+                    packed_items = new Dict(structure, memory);
                 }
                 is_literal = true;
             }
@@ -1111,7 +1111,7 @@ bool compare(std::string first, std::string second, Memory& memory) {
         a_temp = true;
     }
     else if(first[0] == '#' && first[1] == '(') {
-        a = new Dict(first);
+        a = new Dict(first, memory);
         a_temp = true;
     }
 
@@ -1123,7 +1123,7 @@ bool compare(std::string first, std::string second, Memory& memory) {
         b_temp = true;
     }
     else if(second[0] == '#' && second[1] == '(') {
-        b = new Dict(second);
+        b = new Dict(second, memory);
         b_temp = true;
     }
 
@@ -1150,7 +1150,7 @@ bool compare(Value* first, std::string second, Memory& memory) {
         temp = true;
     }
     else if(second[0] == '#' && second[1] == '(') {
-        b = new Dict(second);
+        b = new Dict(second, memory);
         temp = true;
     }
 
