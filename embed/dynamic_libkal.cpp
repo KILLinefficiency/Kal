@@ -46,7 +46,7 @@ extern "C" {
     void extract_to_dict(ResultDict* dict, Result* result) {
         ResultDict temp_dict = result->to_dict();
         ResultDict::iterator itr;
-        for(itr = dict->begin(); itr != dict->end(); itr++) {
+        for(itr = temp_dict.begin(); itr != temp_dict.end(); itr++) {
             (*dict)[itr->first] = Result(itr->second);
         }
     }
@@ -59,6 +59,33 @@ extern "C" {
         delete dict;
     }
 }
+
+extern "C" {
+    std::vector<std::string>* extract_keys(ResultDict* result_dict) {
+        std::vector<std::string>* keys = new std::vector<std::string>;
+        keys->reserve(result_dict->size());
+
+        ResultDict::iterator itr;
+        for(itr = result_dict->begin(); itr != result_dict->end(); itr++) {
+            keys->emplace_back(itr->first);
+        }
+
+        return keys;
+    }
+
+    int keys_size(std::vector<std::string>* keys) {
+        return keys->size();
+    } 
+
+    const char* index_keys(std::vector<std::string>* keys, int index) {
+        return ((*keys)[index]).c_str();
+    }
+
+    void free_keys(std::vector<std::string>* keys) {
+        delete keys;
+    }
+}
+
 
 extern "C" {
     Result* new_result(const char* value) {
