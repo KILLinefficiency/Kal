@@ -8,11 +8,13 @@ GREEN="\e[01;32m"
 CC="g++"
 SRC_FILE="kal.cpp"
 BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
+O_FILE="bin/libkal.o"
+SO_FILE="bin/libkal.so"
+AR_FILE="bin/libkal.a"
 OPTIMIZATION="-O2"
 STD="-std=c++20"
 
 LIBKAL_SRC="embed/libkal.cpp"
-LIBKAL_OBJ="bin/libkal.o"
 
 DYNAMIC_LIBKAL_SRC="embed/dynamic_libkal.cpp"
 LIBKAL_DYNAMIC_TEMP_OBJ="bin/dynamic_libkal.o"
@@ -69,10 +71,14 @@ function compile() {
 function embed() {
     echo -e "${GREEN} * Compiling libkal.o${DEFAULT}"
     ! [ -d bin ] && mkdir bin
-    ${CC} -c ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${LIBKAL_SRC} -o ${LIBKAL_OBJ}
+    cp ./embed/kal.hpp ./bin/
+    ${CC} -c -s ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${LIBKAL_SRC} -o ${O_FILE}
+
+    echo -e "${GREEN} * Compiling libkal.a${DEFAULT}"
+    ar crf ${AR_FILE} ${O_FILE}
 
     echo -e "${GREEN} * Compiling libkal.so${DEFAULT}"
-    ${CC} -c -fPIC ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${DYNAMIC_LIBKAL_SRC} -o ${LIBKAL_DYNAMIC_TEMP_OBJ}
+    ${CC} -c -s -fPIC ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${DYNAMIC_LIBKAL_SRC} -o ${LIBKAL_DYNAMIC_TEMP_OBJ}
     ${CC} -shared ${LIBKAL_DYNAMIC_TEMP_OBJ} -o ${LIBKAL_SHARED_OBJ}
     rm ${LIBKAL_DYNAMIC_TEMP_OBJ}
 }
@@ -89,8 +95,24 @@ function vim_ft() {
 
 function install() {
     compile
+    embed
     echo -e "${GREEN} * Installing Kal to /usr/local/bin/${DEFAULT}"
     ${SU} cp $BIN_FILE /usr/local/bin/kal
+    
+    for version in /usr/include/c++/*; do
+        if [ -d $version ]; then
+            ${SU} cp ./bin/kal.hpp ${version}/kal
+        fi
+    done
+
+    echo -e "${GREEN} * Installing libkal.o to /usr/local/lib/${DEFAULT}"
+    ${SU} cp $O_FILE /usr/local/lib/libkal.o
+
+    echo -e "${GREEN} * Installing libkal.so to /usr/local/lib/${DEFAULT}"
+    ${SU} cp $SO_FILE /usr/local/lib/libkal.so
+
+    echo -e "${GREEN} * Installing libkal.a to /usr/local/lib/${DEFAULT}"
+    ${SU} cp $AR_FILE /usr/local/lib/libkal.a
     vim_ft
 }
 
