@@ -428,10 +428,13 @@ namespace parser {
         return elements;
     }*/
 
-    std::string parse_value(std::string& text, int& index) {
+    std::string parse_value(std::string& text, int& index, bool allow_spread = true) {
         std::string required_token = "";
 
-        if(is_num(text[index])) {
+        if(allow_spread && match(index, text, "...")) {
+            required_token = "..." + parse_value(text, index, false);
+        }
+        else if(is_num(text[index])) {
             required_token = parse_number(text, index);
         }
         else if(text[index] == '$' && text[index + 1] == '(') {
@@ -470,6 +473,11 @@ namespace parser {
         }
 
         return required_token;
+    }
+
+    std::string parse_spread(std::string& text, int& index) {
+        index += 3;
+        return "..." + parse_value(text, index);
     }
 
     std::vector<std::string> parse_init(std::string text, int& index, /*bool for_dict = false*/ std::string assign_op = "=", int end = 0) {

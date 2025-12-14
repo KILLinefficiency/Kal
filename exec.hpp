@@ -40,6 +40,17 @@ void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth
     }
 }
 
+void spread_values(std::string& operand, std::vector<std::string>& values, uint64_t& index, Memory& memory) {
+    List* args = dynamic_cast<List*>(make_value(operand, memory));
+    values[index] = args->items[0]->print();
+    int size = args->items.size();
+    values.reserve(values.size() + size);
+    for(int arg_index = 1; arg_index < size; arg_index++) {
+        values.insert(values.begin() + (index + arg_index), args->items[arg_index]->print());
+    }
+    delete args;
+}
+
 // false true false
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Memory& memory) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
@@ -57,13 +68,21 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
         Token& cmd = tokens[line];
         std::string& ins = cmd.head;
-        int cmd_size = cmd.values.size();
         if(ins[0] == '#' && ins[1] == '!') {
             line++;
             continue;
         }
 
         //std::cout << "-----\nHead: " << ins << "\n";
+
+        for(uint64_t i = 0; i < cmd.values.size(); i++) {
+            if(cmd.values[i][0] == '.') {
+                std::string operand = cmd.values[i].substr(3);
+                spread_values(operand, cmd.values, i, memory);
+            }
+        }
+
+        int cmd_size = cmd.values.size();
 
         if(cmd.head == "<-") {
             bool is_call_stack_empty = call_stack.empty();
