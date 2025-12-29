@@ -67,6 +67,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     while(line < total_tokens) {
         //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
         Token& cmd = tokens[line];
+        bool cmd_values_modified = false;
+        std::vector<std::string> current_cmd_values;
         std::string& ins = cmd.head;
         if(ins[0] == '#' && ins[1] == '!') {
             line++;
@@ -77,6 +79,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         for(uint64_t i = 0; i < cmd.values.size(); i++) {
             if(cmd.values[i][0] == '.') {
+                cmd_values_modified = true;
+                current_cmd_values = cmd.values;
                 std::string operand = cmd.values[i].substr(3);
                 spread_values(operand, cmd.values, i, memory);
             }
@@ -466,13 +470,16 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
         }
 
+        if(cmd_values_modified) {
+            cmd.values = current_cmd_values;
+        }
+
         line++;
     }
 
     if(fn_defer) {
         exec_defer(defer_stack, depth, memory);
     }
-
 
     std::cout << style::style["reset"];
 
