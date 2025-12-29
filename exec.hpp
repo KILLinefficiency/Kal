@@ -42,6 +42,9 @@ void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth
 
 void spread_values(std::string& operand, std::vector<std::string>& values, uint64_t& index, Memory& memory) {
     List* args = dynamic_cast<List*>(make_value(operand, memory));
+    if(args == nullptr) {
+        return;
+    }
     values[index] = args->items[0]->print();
     int size = args->items.size();
     values.reserve(values.size() + size);
@@ -79,8 +82,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         for(uint64_t i = 0; i < cmd.values.size(); i++) {
             if(cmd.values[i][0] == '.') {
-                cmd_values_modified = true;
-                current_cmd_values = cmd.values;
+                if(!cmd_values_modified) {
+                    cmd_values_modified = true;
+                    current_cmd_values = cmd.values;
+                }
                 std::string operand = cmd.values[i].substr(3);
                 spread_values(operand, cmd.values, i, memory);
             }
