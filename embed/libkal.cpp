@@ -81,7 +81,7 @@ Result::Result(std::string value) {
     }
     else if(value[0] == '#' && value[1] == '(') {
         dict = new std::unordered_map<std::string, std::string>();
-        std::vector<std::string> dict_values = parse_map(value, begin);
+        std::vector<std::string> dict_values = parser::parse_map(value, begin);
         int size = dict_values.size();
         for(int idx = 0; idx < size; idx += 2) {
             (*dict)[dict_values[idx]] = dict_values[idx + 1];

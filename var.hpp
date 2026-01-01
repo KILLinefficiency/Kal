@@ -22,15 +22,15 @@
 #define TO_NULL(value) (dynamic_cast<Null*>(value))
 #define TO_REF(value)  (dynamic_cast<Ref*>(value))
 
-std::vector<std::string> parse_map(std::string text, int& index) {
-    index++;
-    std::string contents = parser::extract_list(text, '(', index);
-    contents = contents.substr(1, contents.size() - 2);
+// std::vector<std::string> parse_map(std::string text, int& index) {
+//     index++;
+//     std::string contents = parser::extract_list(text, '(', index);
+//     contents = contents.substr(1, contents.size() - 2);
 
-    int pos = 0;
-    std::vector<std::string> vals = parser::parse_init(contents, pos, "->");
-    return vals;
-}
+//     int pos = 0;
+//     std::vector<std::string> vals = parser::parse_init(contents, pos, "->");
+//     return vals;
+// }
 
 Value* copy(Value*);
 
@@ -183,7 +183,7 @@ Dict::Dict() {}
 
 Dict::Dict(std::string dict_val, Memory& memory) {
     int index = 0;
-    std::vector<std::string> kv = parse_map(dict_val, index);
+    std::vector<std::string> kv = parser::parse_map(dict_val, index);
     int size = kv.size();
     keys.reserve(size / 2);
     for(int i = 0; i < size; i += 2) {

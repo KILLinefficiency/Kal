@@ -41,10 +41,11 @@ void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth
 }
 
 void spread_values(std::string& operand, std::vector<std::string>& values, uint64_t& index, Memory& memory) {
-    List* args = dynamic_cast<List*>(make_value(operand, memory));
-    if(args == nullptr) {
+    if((operand[0] == '#' && operand[1] == '(') || dynamic_cast<Dict*>(VarTable::get(operand, {}, true, true, true, memory))) {
         return;
     }
+    Value* value = make_value(operand, memory);
+    List* args = dynamic_cast<List*>(value);
     values[index] = args->items[0]->print();
     int size = args->items.size();
     values.reserve(values.size() + size);
@@ -140,6 +141,20 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     //std::cout << "R_Val evaled: " << r_val << "\n";
                 }*/
                 // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
+                if(r_val[0] == '.') {
+                    std::string operand = r_val.substr(3);
+                    Dict* dict_value = dynamic_cast<Dict*>(make_value(operand, memory));
+                    //int size = dice_value->keys.size();
+                    for(const std::string& key : dict_value->keys) {
+                        //std::cout << "Key: " << key << "\n";
+                        Value* value = dict_value->dict[key];
+                        VarTable::set(key, "", value, VAR, false, depth, true, memory);
+                        //std::cout << "Value: " << VarTable::print(key, memory) << "\n";
+                    }
+                    delete dict_value;
+                    arg++;
+                    continue;
+                }
                 VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true, memory);
             }
 

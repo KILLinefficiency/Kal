@@ -448,6 +448,10 @@ namespace parser {
         else if(text[index] == '[') {
             required_token = extract_list(text, '[', index);
         }
+        else if(text[index] == '#' && text[index + 1] == '(') {
+            index++;
+            required_token = '#' + extract_list(text, '(', index);
+        }
         else if(text[index] == '(') {
             required_token = parse_expr(text, index);
             index--;
@@ -560,6 +564,16 @@ namespace parser {
         }
 
         return tokens;
+    }
+
+    std::vector<std::string> parse_map(std::string text, int& index) {
+        index++;
+        std::string contents = extract_list(text, '(', index);
+        contents = contents.substr(1, contents.size() - 2);
+
+        int pos = 0;
+        std::vector<std::string> vals = parse_init(contents, pos, "->");
+        return vals;
     }
 
     std::vector<std::string> parse_values(std::string& text, int& index) {
