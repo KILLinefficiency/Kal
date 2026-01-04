@@ -491,10 +491,13 @@ namespace VarTable {
                 if(TO_REF(var)) {
                     var = TO_REF(var)->ref;
                 }
-                if(symbols[i][0] >= '0' && symbols[i][0] <= '9') {
+                if((symbols[i][0] >= '0' && symbols[i][0] <= '9') || (symbols[i][0] == '-')) {
                     int index = std::stoi(symbols[i]);
                     int size = TO_LIST(var)->items.size();
-                    if(index >= size) {
+                    if(index < 0) {
+                        index = size + index;
+                    }
+                    if((index >= size) || (index < 0)) {
                         errors::index_error(call_stack, name, symbols[i]);
                     }
                     var = TO_LIST(var)->items[index];
