@@ -320,7 +320,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         int index = 0;
                         bool condition = TO_LIST(collection)->items.size() > index;
                         VarTable::set(var, "", TO_LIST(collection)->items[index], VAR, false, depth, true, memory);
-                        std::cout << "Index: " << index << "\n";
                         range_stack.push({ collection, var, depth, index });
                         loop_stack.push({ condition, line, depth });
                     }
@@ -343,12 +342,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             line++;
                             depth--;
                             delete std::get<0>(top_range);
-                            loop_stack.pop();
                             continue;
                         }
-                        VarTable::set(std::get<1>(top_range), "", list->items[index], VAR, false, depth, true, memory);
-                        range_stack.push(top_range);
-                        loop_stack.push({ condition, line, depth });
+                        else {
+                            VarTable::set(std::get<1>(top_range), "", list->items[index], VAR, false, depth, true, memory);
+                            range_stack.push(top_range);
+                            loop_stack.push({ condition, line, depth });
+                        }
                     }
 
                     if(!std::get<0>(loop_stack.top())) {
