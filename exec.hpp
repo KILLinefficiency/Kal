@@ -67,7 +67,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::pair<int, std::vector<std::string>>> init_loop;
     std::stack<std::tuple<bool, int, int>> loop_stack;
-    std::stack<std::tuple<Value*, std::string, int, int>> range_stack;
+    std::stack<std::tuple<Value*, std::string, int, int, bool>> range_stack;
 
     while(line < total_tokens) {
         //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
@@ -314,23 +314,36 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             else if(tokens[line].head == "loop") {
                 if(tokens[line].values[0] == "in") {
                     if(range_stack.empty() || (!range_stack.empty() && (std::get<2>(range_stack.top()) != depth))) {
-                        Value* collection = make_value(eval(tokens[line].values[2], memory), memory);
-                        std::string& var = tokens[line].values[1];
+                        std::string var = tokens[line].values[1];
+                        bool is_ref = var[0] == '&';
+                        if(is_ref) {
+                            var = var.substr(1);
+                        }
+
+                        std::string r_val = eval(tokens[line].values[2], memory);
+                        Value* collection = (is_ref) ?
+                            VarTable::get(r_val, {}, true, true, true, memory) :
+                            make_value(r_val, memory);
 
                         int index = 0;
-                        bool condition = TO_LIST(collection)->items.size() > index;
-                        VarTable::set(var, "", TO_LIST(collection)->items[index], VAR, false, depth, true, memory);
-                        range_stack.push({ collection, var, depth, index });
+                        bool condition = int(TO_LIST(collection)->items.size()) > index;
+                        if(is_ref) {
+                            VarTable::set(var, "", new Ref(TO_LIST(collection)->items[index]), VAR, true, depth, false, memory);
+                        }
+                        else {
+                            VarTable::set(var, "", TO_LIST(collection)->items[index], VAR, false, depth, true, memory);
+                        }
+                        range_stack.push({ collection, var, depth, index, is_ref });
                         loop_stack.push({ condition, line, depth });
                     }
                     else {
-                        std::tuple<Value*, std::string, int, int> top_range = range_stack.top();
+                        std::tuple<Value*, std::string, int, int, bool> top_range = range_stack.top();
                         range_stack.pop();
                         std::get<3>(top_range) += 1;
                         int index = std::get<3>(top_range);
 
                         List* list = TO_LIST(std::get<0>(top_range));
-                        bool condition = index < list->items.size();
+                        bool condition = index < int(list->items.size());
 
                         if(!condition) {
                             int local_depth = 1;
@@ -341,11 +354,18 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             }
                             line++;
                             depth--;
-                            delete std::get<0>(top_range);
+                            if(!std::get<4>(top_range)) {
+                                delete std::get<0>(top_range);
+                            }
                             continue;
                         }
                         else {
-                            VarTable::set(std::get<1>(top_range), "", list->items[index], VAR, false, depth, true, memory);
+                            if(std::get<4>(top_range)) {
+                                VarTable::set(std::get<1>(top_range), "", new Ref(list->items[index]), VAR, true, depth, false, memory);
+                            }
+                            else {
+                                VarTable::set(std::get<1>(top_range), "", list->items[index], VAR, false, depth, true, memory);
+                            }
                             range_stack.push(top_range);
                             loop_stack.push({ condition, line, depth });
                         }
