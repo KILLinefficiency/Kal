@@ -253,4 +253,75 @@ void test_fn() {
     Functions::gc();
 
     progress();
+    title("Spread Operator");
+
+    lines = {
+        "fn add -> ...data {",
+            "var sum = 0",
+            "loop x in data {",
+                "sum = sum + x",
+            "}",
+            "<- sum",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":add 1 2 3" }, memory);
+    actual_value = new Number("6");
+    CHECK;
+
+    found_value = fn_call({ ":add 1 2 3 4" }, memory);
+    actual_value = new Number("10");
+    CHECK;
+
+    found_value = fn_call({ ":add 1 2 3 4 5" }, memory);
+    actual_value = new Number("15");
+    CHECK;
+
+    lines = {
+        "fn test_spread {",
+            "var data = [1, 2, 3]",
+            ":add ...data -> sum",
+            "<- sum",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":test_spread" }, memory);
+    actual_value = new Number("6");
+    CHECK;
+
+    lines = {
+        "fn test_spread_1 {",
+            ":add ...[1, 2, 3] -> sum",
+            "<- sum",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":test_spread_1" }, memory);
+    actual_value = new Number("6");
+    CHECK;
+
+    lines = {
+        "fn add_two -> x, y {",
+            "<- x + y",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":add_two ...#(x -> 45, y -> 55)" }, memory);
+    actual_value = new Number("100");
+    CHECK;
+
+    lines = {
+        "fn test_spread_2 {",
+            "var data = #(x -> 45, y -> 55)",
+            ":add_two ...data -> sum",
+            "<- sum",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":test_spread_2" }, memory);
+    actual_value = new Number("100");
+    CHECK;
+
+    Functions::gc();
+    progress();
 }

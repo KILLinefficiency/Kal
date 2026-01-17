@@ -387,6 +387,75 @@ void test_control_flow() {
     };
     RUN_CASE("15");
 
+    VarTable::gc(0, memory);
+    lines = {
+        "var value = 0",
+        "var info = [1, 2, 3, 4, 5]",
+        "loop x in info {",
+            "value = value + x",
+        "}"
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "value = 0",
+        "loop x in [1, 2, 3, 4, 5] {",
+            "value = value + x",
+        "}"
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "value = 0",
+        "info = [1, 2, 3, 4, 5]",
+        "loop &x in info {",
+            "x = x * 10",
+        "}",
+        "loop y in info {",
+            "value = value + y",
+        "}"
+    };
+    RUN_CASE("150");
+
+    lines = {
+        "value = 0",
+        "info = [[0, 1, 2], [3, 4, 5]]",
+        "loop &x in info {",
+            "loop &y in x {",
+                "y = y + 1",
+            "}",
+        "}",
+
+        "loop a in info {",
+            "loop b in a {",
+                "value = value + b",
+            "}",
+        "}"
+    };
+    RUN_CASE("21");
+
+    lines = {
+        "value = 0",
+        "info = [1, 2, 3]",
+        "loop x in info {",
+            "loop i = 1 -- i < 4 -- i = i + 1 {",
+                "value = value + (x + i)",
+            "}",
+        "}"
+    };
+    RUN_CASE("36");
+
+    lines = {
+        "value = 0",
+        "info = [1, 2, 3]",
+        "loop i = 1 -- i < 4 -- i = i + 1 {",
+            "loop x in info {",
+                "value = value + (i + x)",
+            "}",
+        "}"
+    };
+    RUN_CASE("36");
+
     lines = {
         "value = 0",
         "var shadowed = 10",
