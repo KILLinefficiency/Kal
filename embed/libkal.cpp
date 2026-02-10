@@ -230,7 +230,7 @@ Result Kal::exec(std::string code, Table table) {
 
     std::vector<std::string> lines = preproc::preprocess(code);
     std::vector<Token> tokens = lexer::tokenize(lines);
-    Value* ret_val = line_exec(tokens, false, false, true, k_memory);
+    Value* ret_val = line_exec(tokens, false, false, true, k_globals);
 
     if(ret_val == nullptr) {
         return Result("null");
@@ -242,5 +242,5 @@ Result Kal::exec(std::string code, Table table) {
 }
 
 Kal::~Kal() {
-    VarTable::gc(0, k_memory);
+    VarTable::gc(k_globals);
 }

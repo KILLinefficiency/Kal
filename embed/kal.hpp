@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream&, const Result&);
 
 class Kal {
     private:
-        Memory k_memory;
+        Globals k_globals;
 
     public:
         Result exec(std::string, Table = {});

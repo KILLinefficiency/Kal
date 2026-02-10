@@ -56,7 +56,7 @@ class List : public Value {
         std::vector<Value*> items;
         std::string type = "List";
         List();
-        List(std::string, Memory&);
+        List(std::string, Globals&);
         std::string print();
         ~List();
 };
@@ -67,7 +67,7 @@ class Dict : public Value {
         std::string type = "Dict";
         std::vector<std::string> keys;
         Dict();
-        Dict(std::string, Memory&);
+        Dict(std::string, Globals&);
         void append_unique(std::string, bool = false);
         std::string print();
         ~Dict();

@@ -13,9 +13,9 @@ void make_fn(std::vector<std::string> lines) {
     lexer::tokenize(lines);
 }
 
-Value* fn_call(std::vector<std::string> lines, Memory& memory) {
+Value* fn_call(std::vector<std::string> lines, Globals& globals) {
     std::vector<Token> tokens = lexer::tokenize(lines);
-    return line_exec(tokens, true, true, false, memory);
+    return line_exec(tokens, true, true, false, globals);
 }
 
 void test_shadowing() {
@@ -43,17 +43,18 @@ void test_shadowing() {
     };
 
     tokens = lexer::tokenize(lines);
-    line_exec(tokens, false, true, false, memory);
+    line_exec(tokens, false, true, false, globals);
 
     actual_value = "60";
-    found_value = VarTable::print("sum", memory);
+    found_value = VarTable::print("sum", globals);
     check(actual_value, found_value);
 
     actual_value = "10";
-    found_value = VarTable::print("value", memory);
+    found_value = VarTable::print("value", globals);
     check(actual_value, found_value);
 
-    VarTable::gc(0, memory);
+    globals.depth = 0;
+    VarTable::gc(globals);
     progress();
 }
 
@@ -72,7 +73,7 @@ void test_fn() {
     };
     make_fn(lines);
     actual_value = new String("\"Hello\"");
-    found_value = fn_call({ ":greet" }, memory);
+    found_value = fn_call({ ":greet" }, globals);
     CHECK;
 
     lines = {
@@ -82,7 +83,7 @@ void test_fn() {
     };
     make_fn(lines);
     actual_value = new Number("100");
-    found_value = fn_call({ ":hundred" }, memory);
+    found_value = fn_call({ ":hundred" }, globals);
     CHECK;
 
     progress();
@@ -93,7 +94,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":greet \"Kal\"" }, memory);
+    found_value = fn_call({ ":greet \"Kal\"" }, globals);
     actual_value = new String("\"Hello Kal!\"");
     CHECK;
 
@@ -103,7 +104,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":add 200 50" }, memory);
+    found_value = fn_call({ ":add 200 50" }, globals);
     actual_value = new Number("250");
     CHECK;
 
@@ -113,7 +114,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":times 5" }, memory);
+    found_value = fn_call({ ":times 5" }, globals);
     actual_value = new Number("50");
     CHECK;
 
@@ -123,13 +124,13 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":def_args" },memory);
+    found_value = fn_call({ ":def_args" },globals);
     actual_value = new Number("200");
     CHECK;
-    found_value = fn_call({ ":def_args 30" }, memory);
+    found_value = fn_call({ ":def_args 30" }, globals);
     actual_value = new Number("600");
     CHECK;
-    found_value = fn_call({ ":def_args 30 30" }, memory);
+    found_value = fn_call({ ":def_args 30 30" }, globals);
     actual_value = new Number("900");
     CHECK;
 
@@ -141,7 +142,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":compose" }, memory);
+    found_value = fn_call({ ":compose" }, globals);
     actual_value = new Number("300");
     CHECK;
 
@@ -168,7 +169,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":fact 5" }, memory);
+    found_value = fn_call({ ":fact 5" }, globals);
     actual_value = new Number("120");
     CHECK;
 
@@ -181,13 +182,13 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":fib 4" }, memory);
+    found_value = fn_call({ ":fib 4" }, globals);
     actual_value = new Number("3");
     CHECK;
-    found_value = fn_call({ ":fib 5" }, memory);
+    found_value = fn_call({ ":fib 5" }, globals);
     actual_value = new Number("5");
     CHECK;
-    found_value = fn_call({ ":fib 6" }, memory);
+    found_value = fn_call({ ":fib 6" }, globals);
     actual_value = new Number("8");
     CHECK;
 
@@ -218,23 +219,23 @@ void test_fn() {
     };
     make_fn(lines);
 
-    found_value = fn_call({ ":test_defer_a" }, memory);
+    found_value = fn_call({ ":test_defer_a" }, globals);
     actual_value = new Number("150");
     CHECK;
 
-    found_value = fn_call({ ":test_defer_b" }, memory);
+    found_value = fn_call({ ":test_defer_b" }, globals);
     actual_value = new Number("60");
     CHECK;
 
-    VarTable::set("test_value", "10", nullptr, VAR, false, 0, false, memory);
+    VarTable::set("test_value", "10", nullptr, VAR, false, 0, false, globals);
     lines = {
         "fn test_defer_c {",
             "defer $(:incr &test_value)",
         "}"
     };
     make_fn(lines);
-    fn_call({ ":test_defer_c" }, memory);
-    found_value = VarTable::get("test_value", {}, true, true, true, memory);
+    fn_call({ ":test_defer_c" }, globals);
+    found_value = VarTable::get("test_value", {}, true, true, true, globals);
     actual_value = new Number("20");
     CHECK;
 
@@ -246,7 +247,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":test_defer_d" }, memory);
+    found_value = fn_call({ ":test_defer_d" }, globals);
     actual_value = new Number("50");
     CHECK;
 
@@ -265,15 +266,15 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":add 1 2 3" }, memory);
+    found_value = fn_call({ ":add 1 2 3" }, globals);
     actual_value = new Number("6");
     CHECK;
 
-    found_value = fn_call({ ":add 1 2 3 4" }, memory);
+    found_value = fn_call({ ":add 1 2 3 4" }, globals);
     actual_value = new Number("10");
     CHECK;
 
-    found_value = fn_call({ ":add 1 2 3 4 5" }, memory);
+    found_value = fn_call({ ":add 1 2 3 4 5" }, globals);
     actual_value = new Number("15");
     CHECK;
 
@@ -285,7 +286,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":test_spread" }, memory);
+    found_value = fn_call({ ":test_spread" }, globals);
     actual_value = new Number("6");
     CHECK;
 
@@ -296,7 +297,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":test_spread_1" }, memory);
+    found_value = fn_call({ ":test_spread_1" }, globals);
     actual_value = new Number("6");
     CHECK;
 
@@ -306,7 +307,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":add_two ...#(x -> 45, y -> 55)" }, memory);
+    found_value = fn_call({ ":add_two ...#(x -> 45, y -> 55)" }, globals);
     actual_value = new Number("100");
     CHECK;
 
@@ -318,7 +319,7 @@ void test_fn() {
         "}"
     };
     make_fn(lines);
-    found_value = fn_call({ ":test_spread_2" }, memory);
+    found_value = fn_call({ ":test_spread_2" }, globals);
     actual_value = new Number("100");
     CHECK;
 

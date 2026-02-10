@@ -13,6 +13,7 @@
 #include "lib/lib_string.hpp"
 
 int main(int argc, char** argv) {
+    Memory& memory = globals.memory;
     ArgParser arg_parser = ArgParser(argc, argv);
     //VarTable var = VarTable();
 
@@ -83,8 +84,10 @@ int main(int argc, char** argv) {
     if(is_kast_file) {
         std::vector<Token> tokens;
         kast::decode(file_name, tokens);
-        line_exec(tokens, false, true, false, memory);
-        VarTable::gc(0, memory);
+        line_exec(tokens, false, true, false, globals);
+
+        globals.depth = 0;
+        VarTable::gc(globals);
         return 0;
     }
 
@@ -96,9 +99,10 @@ int main(int argc, char** argv) {
     }
     
     std::vector<Token> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens, false, true, false, memory);
+    line_exec(tokens, false, true, false, globals);
 
-    VarTable::gc(0, memory);
+    globals.depth = 0;
+    VarTable::gc(globals);
 
     return 0;
 }

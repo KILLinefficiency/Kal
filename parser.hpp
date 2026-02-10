@@ -12,7 +12,7 @@
 
 #define WHITESPACE(text, position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n' || text[position] == '\r')
 
-std::string eval(std::string expr, Memory& memory);
+std::string eval(std::string expr, Globals& globals);
 
 namespace parser {
     // for now.
