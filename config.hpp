@@ -106,35 +106,75 @@ Config group_7 {
 };
 
 namespace p_config {
+    std::unordered_map<std::string, Config*> all_config = {
+        { "exit", &group_1 },
+        { "warn", &group_1 },
+        { "stdin", &group_1 },
+        { "break", &group_1 },
+        { "continue", &group_1 },
+
+        { "var", &group_2 },
+        { "const", &group_2 },
+        { "static", &group_2 },
+        { "inert", &group_2 },
+
+        { "style", &group_3 },
+        { "stdout", &group_3 },
+        { "defer", &group_3 },
+        { "push", &group_3 },
+        { "len", &group_3 },
+        { "first", &group_3 },
+        { "last", &group_3 },
+
+        { "if", &group_4 },
+        { "else", &group_4 },
+        { "elif", &group_4 },
+        { "loop", &group_4 },
+        { "}", &group_4 },
+
+        { "fn", &group_5 },
+        { "<-", &group_6 },
+        { "{", &group_7 },
+    };
+
     Config* get_config(std::string& line, std::string& cmd) {
-        // refactor this into switch-case.
-        if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue"/* || cmd == "<-"*/) {
-            return &group_1;
-        }
-        else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
-            return &group_2;
-        }
-        else if(cmd[0] == ':' || cmd == "style" || cmd == "stdout" || cmd == "defer") {
-            return &group_3;
-        }
-        else if(cmd == "if" || cmd == "else" || cmd == "elif" || cmd == "loop" || cmd == "}") {
-            return &group_4;
-        }
-        else if(cmd == "fn") {
-            return &group_5;
-        }
-        else if(cmd == "<-") {
-            return &group_6;
-        }
-        else if(cmd == "{") {
-            return &group_7;
-        }
-        else {
-            return &group_0;
-        }
+        // if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue"/* || cmd == "<-"*/) {
+        //     return &group_1;
+        // }
+        // else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
+        //     return &group_2;
+        // }
+        // else if(cmd[0] == ':' || cmd == "style" || cmd == "stdout" || cmd == "defer" || cmd == "push" || cmd == "len") {
+        //     return &group_3;
+        // }
+        // else if(cmd == "if" || cmd == "else" || cmd == "elif" || cmd == "loop" || cmd == "}") {
+        //     return &group_4;
+        // }
+        // else if(cmd == "fn") {
+        //     return &group_5;
+        // }
+        // else if(cmd == "<-") {
+        //     return &group_6;
+        // }
+        // else if(cmd == "{") {
+        //     return &group_7;
+        // }
+        // else {
+        //     return &group_0;
+        // }
         /*else if(cmd[0] == '$') {
             return &group_0;
         }*/
+        if(cmd[0] == ':') {
+            return &group_3;
+        }
+        else {
+            Config* config = all_config[cmd];
+            if(config != nullptr) {
+                return config;
+            }
+            return &group_0;
+        }
 
         errors::unidentified_keyword(call_stack, line, cmd);
         return &group_0;

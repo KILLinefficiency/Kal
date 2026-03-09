@@ -207,6 +207,12 @@ namespace lib {
                 }
             }
 
+            if((text_size - index >= 2) && text[index] == '.' && delimiter == '.') {
+                if(text[index + 1] == '.') {
+                    index += 2;
+                }
+            }
+
             if(!inside_string && text[index] == delimiter) {
                 end = index;
                 required_line = text.substr(begin, end - begin);

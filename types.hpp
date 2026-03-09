@@ -37,6 +37,7 @@ class Number : public Value {
         std::string type = "Number";
         std::string val;
         Number(std::string);
+        Number();
         std::string print();
         ~Number();
 };

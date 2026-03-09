@@ -76,6 +76,8 @@ Null::~Null() {}
 /// Number
 // maybe remove that eval.
 // eval will be done at the parser level.
+Number::Number() {}
+
 Number::Number(std::string Val) : val(Val) {}
 std::string Number::print() {
     return val;
@@ -132,6 +134,9 @@ List::List(std::string list, Globals& globals) {
         else if(v[0] == '$') {
             items.emplace_back(VarTable::get(v, {}));
         }*/
+        if(v[0] == '.' && v[1] == '.' && v[2] == '.') {
+            v = v.substr(3);
+        }
         items.emplace_back(make_value(eval(v, globals), globals));
         // 1st make_value
     }
@@ -188,6 +193,15 @@ Dict::Dict(std::string dict_val, Globals& globals) {
     keys.reserve(size / 2);
     for(int i = 0; i < size; i += 2) {
         // if the key already exists, then free it's value first.
+        if(kv[i].size() > 3 && kv[i][0] == '.' && kv[i][1] == '.' && kv[i][2] == '.') {
+            std::string spread_dict_name = kv[i].substr(3);
+            Dict* spread_dict = TO_DICT(VarTable::get(spread_dict_name, {}, true, true, true, globals));
+            for(std::string& key : spread_dict->keys) {
+                append_unique(key, true);
+                dict[key] = copy(spread_dict->dict[key]);
+            }
+            continue;
+        }
         if(kv[i][0] == '"' && kv[i][kv[i].size() - 1] == '"') {
             kv[i] = lib::resolve_string(kv[i]);
         }
@@ -964,6 +978,21 @@ namespace VarTable {
     }
 };
 
+List* make_range(double begin, double end, double step) {
+    List* list = new List();
+    int size = (end - begin + 1) / step;
+    if(size < 0) {
+        size = -size;
+    }
+    list->items.reserve(size);
+    while(begin < end) {
+        list->items.push_back(new Number(std::to_string(begin)));
+        begin += step;
+    }
+
+    return list;
+}
+
 std::string pretty_print(Globals& globals, std::string var, Value* value = nullptr, uint64_t indent = 0, bool single = true, uint64_t step = 2) {
     std::stringstream text;
     if(value == nullptr) {
@@ -1179,4 +1208,15 @@ bool compare(Value* first, std::string second, Globals& globals) {
     }
 
     return result;
+}
+
+Value* get_or_make(std::string var, Globals& globals) {
+    Value* value = nullptr;
+    if(parser::is_var(var)) {
+        value = VarTable::get(var, {}, true, true, true, globals);
+    }
+    else {
+        value = make_value(var, globals);
+    }
+    return value;
 }

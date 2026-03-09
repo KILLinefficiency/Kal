@@ -584,6 +584,59 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
         }
 
+        else if(ins == "push") {
+            Value* list = VarTable::get(cmd.values[0], {}, true, true, true, globals);
+            if(TO_LIST(list)) {
+                TO_LIST(list)->items.emplace_back(make_value(eval(cmd.values[1], globals), globals));
+            }
+        }
+
+        else if(ins == "len") {
+            Value* list = get_or_make(cmd.values[0], globals);
+            int size = TO_LIST(list)->items.size();
+            Value* ret_size = make_value(std::to_string(size), globals);
+
+            if(cmd.target == "") {
+                return ret_size;
+            }
+
+            //VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true, globals);
+            VarTable::set(cmd.target, "", ret_size, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "first") {
+            Value* list = get_or_make(cmd.values[0], globals);
+
+            int size = TO_LIST(list)->items.size();
+            if(size == 0) {
+                std::cerr << "error\n";
+                exit(1);
+            }
+
+            Value* first = copy(TO_LIST(list)->items[0]);
+            if(cmd.target == "") {
+                return first;
+            }
+
+            VarTable::set(cmd.target, "", first, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "last") {
+            Value* list = get_or_make(cmd.values[0], globals);
+
+            int size = TO_LIST(list)->items.size();
+            if(size == 0) {
+                std::cerr << "error\n";
+            }
+
+            Value* last = copy(TO_LIST(list)->items[size - 1]);
+            if(cmd.target == "") {
+                return last;
+            }
+
+            VarTable::set(cmd.target, "", last, VAR, true, depth, true, globals);
+        }
+
         if(cmd_values_modified) {
             cmd.values = current_cmd_values;
         }

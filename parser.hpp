@@ -80,7 +80,14 @@ namespace parser {
 
     std::string parse_number(const std::string& text, int& index) {
         int begin = index;
-        while(is_number(text[index]) || text[index] == '.') {
+        // bool got_radix = false;
+        while(is_number(text[index]) || (text[index] == '.' && is_number(text[index + 1]))) {
+            /*if(got_radix) {
+                break;
+            }*/
+            /*if(text[index] == '.') {
+                got_radix = true;
+            }*/
             index++;
         }
         int end = index;
@@ -219,7 +226,7 @@ namespace parser {
             if(text[index] == open) {
                 depth++;
             }
-            else if(text[index + 1] == close) {
+            if(text[index + 1] == close) {
                 depth--;
             }
             index++;
@@ -249,6 +256,33 @@ namespace parser {
     void skip_dict(std::string& text, int& index) {
         index++;
         skip_list(text, '(', index);
+    }
+    
+    std::vector<std::string> parse_range(std::string& text, int& index) {
+        std::vector<std::string> segments;
+        segments.reserve(3);
+        int size = text.size();
+        while(index < size) {
+            if(is_num(text[index])) {
+                std::string num = parse_number(text, index);
+                segments.emplace_back(num);
+                index++;
+            }
+            if(text[index] == '.' && text[index + 1] == '.') {
+                index += 2;
+            }
+            else if(WHITESPACE(text, index)) {
+                index++;
+            }
+            /*else {
+                break;
+            }*/
+        }
+        if(segments.size() == 2) {
+            segments.emplace_back("1");
+        }
+
+        return segments;
     }
 
     std::vector<std::string> parse_fstr(const std::string& text, int& index) {
@@ -498,7 +532,10 @@ namespace parser {
                 required_token = "..." + parse_value(text, index);
                 tokens.emplace_back(required_token);
                 tokens.emplace_back(null_val);
-                index++;
+                while(index < text_size && text[index] != ',') {
+                    index++;
+                }
+                // index++;
                 continue;
             }
             else if(/*for_dict*/ assign_op != "=" && text[index] == '"') {
@@ -576,7 +613,7 @@ namespace parser {
         contents = contents.substr(1, contents.size() - 2);
 
         int pos = 0;
-        std::vector<std::string> vals = parse_init(contents, pos, "->");
+        std::vector<std::string> vals = parse_init(contents, pos, "->", 0, true);
         return vals;
     }
 
