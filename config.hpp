@@ -125,6 +125,10 @@ namespace p_config {
         { "len", &group_3 },
         { "first", &group_3 },
         { "last", &group_3 },
+        { "pop", &group_3 },
+        { "popFirst", &group_3 },
+        { "reverse", &group_3 },
+        { "extend", &group_3 },
 
         { "if", &group_4 },
         { "else", &group_4 },
