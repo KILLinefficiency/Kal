@@ -1210,13 +1210,27 @@ bool compare(Value* first, std::string second, Globals& globals) {
     return result;
 }
 
-Value* get_or_make(std::string var, Globals& globals) {
+struct FetchedValue {
     Value* value = nullptr;
+    bool to_gc = false;
+
+    void gc() {
+        if(to_gc && value != nullptr) {
+            delete value;
+        }
+    }
+};
+
+FetchedValue get_or_make(std::string var, Globals& globals) {
+    FetchedValue fetched_value;
+
     if(parser::is_var(var)) {
-        value = VarTable::get(var, {}, true, true, true, globals);
+        fetched_value.value = VarTable::get(var, {}, true, true, true, globals);
     }
     else {
-        value = make_value(var, globals);
+        fetched_value.value = make_value(var, globals);
+        fetched_value.to_gc = true;
     }
-    return value;
+
+    return fetched_value;
 }
