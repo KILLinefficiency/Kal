@@ -1210,7 +1210,7 @@ bool compare(Value* first, std::string second, Globals& globals) {
     return result;
 }
 
-struct FetchedValue {
+struct BoxedValue {
     Value* value = nullptr;
     bool to_gc = false;
 
@@ -1221,8 +1221,8 @@ struct FetchedValue {
     }
 };
 
-FetchedValue get_or_make(std::string var, Globals& globals) {
-    FetchedValue fetched_value;
+BoxedValue get_or_make(std::string var, Globals& globals) {
+    BoxedValue fetched_value;
 
     if(parser::is_var(var)) {
         fetched_value.value = VarTable::get(var, {}, true, true, true, globals);

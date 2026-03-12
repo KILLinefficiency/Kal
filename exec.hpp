@@ -586,37 +586,20 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "push") {
-            // Value* list = VarTable::get(cmd.values[0], {}, true, true, true, globals);
-            // if(TO_LIST(list)) {
-            //     TO_LIST(list)->items.emplace_back(make_value(eval(cmd.values[1], globals), globals));
-            // }
             lib::list_push(cmd.values[0], cmd.values[1], globals);
         }
 
         else if(ins == "len") {
-            // Value* list = get_or_make(cmd.values[0], globals);
-            // int size = TO_LIST(list)->items.size();
-            // Value* ret_size = make_value(std::to_string(size), globals);
             Value* ret_size = lib::list_len(cmd.values[0], globals);
 
             if(cmd.target == "") {
                 return ret_size;
             }
 
-            //VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true, globals);
             VarTable::set(cmd.target, "", ret_size, VAR, true, depth, true, globals);
         }
 
         else if(ins == "first") {
-            // Value* list = get_or_make(cmd.values[0], globals);
-
-            // int size = TO_LIST(list)->items.size();
-            // if(size == 0) {
-            //     std::cerr << "error\n";
-            //     exit(1);
-            // }
-
-            // Value* first = copy(TO_LIST(list)->items[0]);
             Value* first = lib::list_first(cmd.values[0], globals);
             if(cmd.target == "") {
                 return first;
@@ -626,14 +609,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "last") {
-            // Value* list = get_or_make(cmd.values[0], globals);
-
-            // int size = TO_LIST(list)->items.size();
-            // if(size == 0) {
-            //     std::cerr << "error\n";
-            // }
-
-            // Value* last = copy(TO_LIST(list)->items[size - 1]);
             Value* last = lib::list_last(cmd.values[0], globals);
             if(cmd.target == "") {
                 return last;
@@ -643,64 +618,26 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "pop") {
-            // Value* list = VarTable::get(cmd.values[0], {}, true, true, true, globals);
-            // int size = TO_LIST(list)->items.size();
-            // if(size == 0) {
-            //     std::cerr << "error\n";
-            // }
-            // delete TO_LIST(list)->items[size - 1];
-            // TO_LIST(list)->items.erase(TO_LIST(list)->items.begin() + size - 1);
             lib::list_pop(cmd.values[0], globals);
         }
 
         else if(ins == "popFirst") {
-            // Value* list = get_or_make(cmd.values[0], globals);
-            // int size = TO_LIST(list)->items.size();
-            // if(size == 0) {
-            //     std::cerr << "error\n";
-            // }
-            // delete TO_LIST(list)->items[0];
-            // TO_LIST(list)->items.erase(TO_LIST(list)->items.begin());
             lib::list_pop_first(cmd.values[0], globals);
         }
 
-        // else if(ins == "reverse") {
-        //     Value* list = get_or_make(cmd.values[0], globals);
-        //     int size = TO_LIST(list)->items.size();
-        //     int half_size = size / 2;
-
-        //     Value* temp = nullptr;
-        //     for(int index = 0; index < half_size; index++) {
-        //         temp = TO_LIST(list)->items[index];
-        //         TO_LIST(list)->items[index] = TO_LIST(list)->items[size - index - 1];
-        //         TO_LIST(list)->items[size - index - 1] = temp;
-        //     }
-        // }
+        else if(ins == "reverse") {
+            lib::list_reverse(cmd.values[0], globals);
+        }
         
-        // else if(ins == "extend") {
-        //     Value* extended_list = new List();
-        //     std::queue<Value*> all_lists;
-        //     int total_items = 0;
-        //     for(std::string& each : cmd.values) {
-        //         Value* list = get_or_make(each, globals);
-        //         all_lists.push(list);
-        //         total_items += TO_LIST(list)->items.size();
-        //     }
-        //     TO_LIST(extended_list)->items.reserve(total_items);
-        //     while(!all_lists.empty()) {
-        //         List* top = TO_LIST(all_lists.front());
-        //         for(Value*& each_val : top->items) {
-        //             TO_LIST(extended_list)->items.emplace_back(copy(each_val));
-        //         }
-        //         all_lists.pop();
-        //     }
+        else if(ins == "extend") {
+            Value* extended_list = lib::list_extend(cmd.values, globals);
 
-        //     if(cmd.target == "") {
-        //         return extended_list;
-        //     }
+            if(cmd.target == "") {
+                return extended_list;
+            }
 
-        //     VarTable::set(cmd.target, "", extended_list, VAR, true, depth, true, globals);
-        // }
+            VarTable::set(cmd.target, "", extended_list, VAR, true, depth, true, globals);
+        }
 
         if(cmd_values_modified) {
             cmd.values = current_cmd_values;
