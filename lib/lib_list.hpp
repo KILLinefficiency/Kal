@@ -107,12 +107,11 @@ namespace lib {
         return extended_list;
     }
 
-    Value* list_flat(std::string list_name, Globals& globals) {
-        BoxedValue list = get_or_make(list_name, globals);
+    Value* list_flat_by_ptr(Value* list, int level, Globals& globals) {
         Value* flat_list = new List();
 
-        for(int index = 0; index < TO_LIST(list.value)->items.size(); index++) {
-            List* nested_list = TO_LIST(TO_LIST(list.value)->items[index]);
+        for(int index = 0; index < TO_LIST(list)->items.size(); index++) {
+            List* nested_list = TO_LIST(TO_LIST(list)->items[index]);
             if(nested_list) {
                 int nested_size = nested_list->items.size();
                 for(int nested_index = 0; nested_index < nested_size; nested_index++) {
@@ -120,11 +119,25 @@ namespace lib {
                 }
             }
             else {
-                TO_LIST(flat_list)->items.emplace_back(copy(TO_LIST(list.value)->items[index]));
+                TO_LIST(flat_list)->items.emplace_back(copy(TO_LIST(list)->items[index]));
             }
         }
 
+        if(level > 1) {
+            Value* flat_list_top = flat_list;
+            flat_list = list_flat_by_ptr(flat_list, level - 1, globals);
+            delete flat_list_top;
+        }
+
+        return flat_list;
+    }
+
+    Value* list_flat(std::string list_name, int level, Globals& globals) {
+        BoxedValue list = get_or_make(list_name, globals);
+
+        Value* flat_list = list_flat_by_ptr(list.value, level, globals);
         list.gc();
+
         return flat_list;
     }
 }

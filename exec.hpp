@@ -647,7 +647,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
         
         else if(ins == "flat") {
-            Value* flat_list = lib::list_flat(cmd.values[0], globals);
+            int level = 1;
+            if(cmd.values.size() == 2) {
+                level = std::stoi(cmd.values[1]);
+            }
+
+            Value* flat_list = lib::list_flat(cmd.values[0], level, globals);
 
             if(cmd.target == "") {
                 return flat_list;
