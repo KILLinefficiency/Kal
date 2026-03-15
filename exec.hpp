@@ -8,6 +8,7 @@
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
 #include "lib/lib_list.hpp"
+#include "lib/lib_dict.hpp"
 
 #include <stack>
 #include <utility>
@@ -659,6 +660,46 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
 
             VarTable::set(cmd.target, "", flat_list, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "keys") {
+            Value* keys = lib::dict_keys(cmd.values[0], globals);
+            if(cmd.target == "") {
+                return keys;
+            }
+            VarTable::set(cmd.target, "", keys, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "values") {
+            Value* values = lib::dict_values(cmd.values[0], globals);
+            if(cmd.target == "") {
+                return values;
+            }
+            VarTable::set(cmd.target, "", values, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "items") {
+            Value* items = lib::dict_items(cmd.values[0], globals);
+            if(cmd.target == "") {
+                return items;
+            }
+            VarTable::set(cmd.target, "", items, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "update") {
+            Value* updated_dict = lib::dict_update(cmd.values[0], cmd.values[1], globals);
+            if(cmd.target == "") {
+                return updated_dict;
+            }
+            VarTable::set(cmd.target, "", updated_dict, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "exists") {
+            Value* exists = lib::dict_key_exists(cmd.values[0], cmd.values[1], globals);
+            if(cmd.target == "") {
+                return exists;
+            }
+            VarTable::set(cmd.target, "", exists, VAR, true, depth, true, globals);
         }
 
         if(cmd_values_modified) {

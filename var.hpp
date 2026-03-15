@@ -234,8 +234,10 @@ void Dict::append_unique(std::string key, bool del_val) {
         keys.emplace_back(key);
     }
     else if(del_val) {
-        delete dict[key];
-        dict[key] = nullptr;
+        if(dict[key] != nullptr) {
+            delete dict[key];
+            dict[key] = nullptr;
+        }
     }
 }
 
