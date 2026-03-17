@@ -530,6 +530,9 @@ namespace VarTable {
                 }
                 else if(symbols[i][0] == '"' && symbols[i][symbols[i].size() - 1] == '"') {
                     std::string key = lib::resolve_string(symbols[i]);
+                    if(TO_DICT(var) && update && (i == (bound - 1)) && (TO_DICT(var)->dict[key] == nullptr)) {
+                        return var;
+                    }
                     var = TO_DICT(var)->dict[key];
                     if(var == nullptr) {
                         errors::key_error(call_stack, name, key);
@@ -830,7 +833,12 @@ namespace VarTable {
             }
             else {
                 std::vector<std::string> syms = get_var_with_indices(expand_var(var, globals));
-                std::string last_symbol = syms[syms.size() - 1];
+                std::string last_symbol = lib::resolve_string(syms[syms.size() - 1]);
+                if(TO_DICT(ptr) && (TO_DICT(ptr)->dict[last_symbol] == nullptr)) {
+                    TO_DICT(ptr)->append_unique(last_symbol, true);
+                    TO_DICT(ptr)->dict[last_symbol] = value;//make_value(data, globals);
+                    return;
+                }
                 Value* v = get("", syms, true, false, true, globals);
 
 
