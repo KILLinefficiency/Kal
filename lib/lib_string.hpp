@@ -14,12 +14,29 @@ namespace lib {
 
         for(int current_char = 0; current_char < text_size; current_char++) {
             if(text[current_char] == '\\') {
-                if(text[current_char + 1] == 'n') {
+                char& next = text[current_char + 1];
+                if(next == 'n') {
                     text[current_char] = '\n';
                     text[current_char + 1] = '\0';
                 }
-                else if(text[current_char + 1] == 't') {
+                else if(next == 't') {
                     text[current_char] = '\t';
+                    text[current_char + 1] = '\0';
+                }
+                else if(next == 'b') {
+                    text[current_char] = '\b';
+                    text[current_char + 1] = '\0';
+                }
+                else if(next == '\\') {
+                    text[current_char] = '\\';
+                    text[current_char + 1] = '\0'; 
+                }
+                else if(next == '"') {
+                    text[current_char] = '"';
+                    text[current_char + 1] = '\0';
+                }
+                else if(next == 'r') {
+                    text[current_char] = '\r';
                     text[current_char + 1] = '\0';
                 }
             }

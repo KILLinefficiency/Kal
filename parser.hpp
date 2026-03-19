@@ -99,6 +99,9 @@ namespace parser {
         int begin = index;
         index++;
         while(text[index] != '"') {
+            if(text[index] == '\\') {
+                index++;
+            }
             index++;
         }
         int end = index;
