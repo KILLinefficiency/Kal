@@ -46,10 +46,24 @@ class String : public Value {
     public:
         char* str;
         std::string type = "String";
+        String();
         String(std::string);
         std::string print();
         std::string val();
         ~String();
+};
+
+class Char : public Value {
+    public:
+        char char_val;
+        char* str;
+        int index;
+        Char();
+        Char(String*, int);
+        Char(char, char*, int);
+        void change(char);
+        std::string print();
+        ~Char();
 };
 
 class List : public Value {

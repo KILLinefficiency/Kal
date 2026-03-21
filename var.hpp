@@ -17,6 +17,7 @@
 
 #define TO_NUM(value)  (dynamic_cast<Number*>(value))
 #define TO_STR(value)  (dynamic_cast<String*>(value))
+#define TO_CHAR(value) (dynamic_cast<Char*>(value))
 #define TO_LIST(value) (dynamic_cast<List*>(value))
 #define TO_DICT(value) (dynamic_cast<Dict*>(value))
 #define TO_NULL(value) (dynamic_cast<Null*>(value))
@@ -86,6 +87,8 @@ Number::~Number() {}
 ///
 
 /// String
+String::String() {}
+
 String::String(std::string Str) {
     int len = Str.size();
     str = new char[len + 1];
@@ -105,6 +108,27 @@ String::~String() {
     delete[] str;
     str = nullptr;
 }
+///
+
+/// Char
+
+Char::Char() {}
+
+Char::Char(char current_char, char* current_string, int current_index) : char_val(current_char), str(current_string), index(current_index + 1) {}
+
+Char::Char(String* string, int idx) : char_val(string->str[idx + 1]), str(string->str), index(idx + 1) {}
+
+std::string Char::print() {
+    return '"' + std::string(1, char_val) + '"';
+}
+
+void Char::change(char new_char) {
+    char_val = new_char;
+    str[index] = new_char;
+}
+
+Char::~Char() {}
+
 ///
 
 /// List
@@ -305,6 +329,9 @@ Value* copy(Value* value) {
     }
     else if(TO_STR(value)) {
         duplicate = new String(TO_STR(value)->str);
+    }
+    else if(TO_CHAR(value)) {
+        duplicate = new Char(TO_CHAR(value)->char_val, TO_CHAR(value)->str, TO_CHAR(value)->index);
     }
     else if(TO_NULL(value)) {
         duplicate = new Null();
@@ -535,7 +562,7 @@ namespace VarTable {
                         var = TO_LIST(var)->items[index];
                     }
                     else if(TO_STR(var)) {
-                        var = new String('"' + std::string(1, TO_STR(var)->val()[index]) + '"');
+                        var = new Char(TO_STR(var), index);
                     }
                 }
                 else if(access[0] == '"' && access[access.size() - 1] == '"') {
@@ -731,6 +758,10 @@ namespace VarTable {
             else if(TO_STR(ptr) && data != "") {
                 strcpy(TO_STR(ptr)->str, data.c_str());
                 return;
+            }
+            else if(TO_CHAR(ptr)) {
+                // validate so that size is only 3 e.g "X" -> 3.
+                TO_CHAR(ptr)->change(data[1]);
             }
         }
         if(var[0] == '&') {
