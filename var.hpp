@@ -563,6 +563,7 @@ namespace VarTable {
                     }
                     else if(TO_STR(var)) {
                         var = new Char(TO_STR(var), index);
+                        return var;
                     }
                 }
                 else if(access[0] == '"' && access[access.size() - 1] == '"') {
@@ -762,6 +763,8 @@ namespace VarTable {
             else if(TO_CHAR(ptr)) {
                 // validate so that size is only 3 e.g "X" -> 3.
                 TO_CHAR(ptr)->change(data[1]);
+                //delete ptr;
+                //return;
             }
         }
         if(var[0] == '&') {
