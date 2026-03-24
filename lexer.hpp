@@ -47,7 +47,7 @@ namespace lexer {
         return head;
     }
 
-    std::vector<Token> tokenize(std::vector<std::string>& source_lines) {
+    std::vector<Token> tokenize(std::vector<std::string>& source_lines/*, Globals& globals*/) {
         int lines = source_lines.size();
         Config* config;
         std::vector<Token> all_tokens;
@@ -56,7 +56,7 @@ namespace lexer {
         while(line < lines) {
             std::string current_line = source_lines[line];
             std::string head = get_head(current_line);
-            config = p_config::get_config(current_line, head);
+            config = p_config::get_config(current_line, head/*, globals*/);
             Token token = parser::parse(current_line, config, head);
             token.line = &source_lines[line];
 
@@ -67,7 +67,7 @@ namespace lexer {
                 line++;
                 while(fn_depth != 0) {
                     std::string inner_head = get_head(source_lines[line]);
-                    Config* inner_config = p_config::get_config(source_lines[line], inner_head);
+                    Config* inner_config = p_config::get_config(source_lines[line], inner_head/*, globals*/);
                     fn_line = parser::parse(source_lines[line], inner_config, inner_head);
                     int values_size = fn_line.values.size();
                     if(values_size != 0 && fn_line.values[values_size - 1] == "{") {

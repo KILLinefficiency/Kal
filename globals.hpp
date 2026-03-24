@@ -7,12 +7,15 @@
 
 class Value;
 using Memory = std::unordered_map<std::string, Value*>;
+using CallStack = std::stack<std::pair<std::string, int>>;
 using DeferStack = std::stack<std::pair<std::string, int>>;
 
 struct Globals {
     int depth;
     Memory memory;
     DeferStack defer_stack;
+    CallStack call_stack;
+    bool error_exit = true;
     std::string* current_line;
 };
 

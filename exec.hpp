@@ -105,7 +105,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         int cmd_size = cmd.values.size();
 
         if(cmd.head == "<-") {
-            bool is_call_stack_empty = call_stack.empty();
+            bool is_call_stack_empty = globals.call_stack.empty();
             if(is_call_stack_empty && !top_return) {
                 std::cout << "cannot return at top level\n";
                 exit(1);
@@ -121,7 +121,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
             if(!is_call_stack_empty) {
-                int original_depth = call_stack.top().second;
+                int original_depth = globals.call_stack.top().second;
                 while(depth != original_depth) {
                     VarTable::gc(globals);
                     depth--;
@@ -194,7 +194,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 VarTable::set(variadic_arg, "", variadic_values, VAR, true, depth, true, globals);
             }
 
-            call_stack.push(std::pair<std::string, int> { fn_name, depth });
+            globals.call_stack.push(std::pair<std::string, int> { fn_name, depth });
             //std::cout << "Start Depth: " << depth << "\n";
             Value* return_value = line_exec(fn->body, false, true, false, globals);
             //std::cout << "End Depth: " << depth << "\n";
@@ -218,7 +218,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
             VarTable::gc(globals);
             depth--;
-            call_stack.pop();
+            globals.call_stack.pop();
             if(auto_return) {
                 return return_value;
             }
@@ -291,7 +291,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             else if(tokens[line].head == "else") {
                 //std::cout << "here " << depth << "\n";
                 if(conditional_stack.empty()) {
-                    errors::invalid_else(call_stack, tokens[line].head);
+                    // errors::invalid_else(globals, tokens[line].head);
+                    errors::invalid_else(globals);
                 }
                 std::pair<bool, int> check = conditional_stack.top();
                 //std::cout << "Stack: " << check.first << " " << check.second << " | Depth: " << depth << "\n";

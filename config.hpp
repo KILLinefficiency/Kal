@@ -152,7 +152,10 @@ namespace p_config {
         { "{", &group_7 },
     };
 
-    Config* get_config(std::string& line, std::string& cmd) {
+    Config* get_config(std::string& line, std::string& cmd/*, Globals& globals*/) {
+        if(false) {
+            std::cout << line << "\n";
+        }
         // if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue"/* || cmd == "<-"*/) {
         //     return &group_1;
         // }
@@ -191,7 +194,7 @@ namespace p_config {
             return &group_0;
         }
 
-        errors::unidentified_keyword(call_stack, line, cmd);
+        //errors::unidentified_keyword(globals, cmd);
         return &group_0;
     }
 }

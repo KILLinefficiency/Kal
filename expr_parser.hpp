@@ -819,7 +819,7 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
                 }
                 else {
                     std::string line = a + " " + token + " " + b;
-                    errors::invalid_operation(call_stack, line, "strings", token, a, b);
+                    errors::invalid_operation(globals, "strings", token, a, b);
                 }
                 continue;
             }
@@ -840,14 +840,14 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
                 }
                 else {
                     std::string line = a + " " + token + " " + b;
-                    errors::invalid_operation(call_stack, line, "values", token, a, b);
+                    errors::invalid_operation(globals, "values", token, a, b);
                 }
                 continue;
             }
 
             if(!is_num(a, globals) || !is_num(b, globals)) {
                 std::string expr = a + " " + token + " " + b;
-                errors::invalid_operation(call_stack, expr, "values", token, a, b);
+                errors::invalid_operation(globals, "values", token, a, b);
             }
             x = std::stod(a);
             y = std::stod(b);

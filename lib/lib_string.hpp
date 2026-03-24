@@ -67,7 +67,7 @@ namespace lib {
             if(by_interpreter) {
                 errors::kal_error("File `" + file_path + "` does not exist.");
             }
-            errors::file_does_not_exist_error(call_stack, file_path);
+            errors::file_does_not_exist_error(globals, file_path);
         }
         std::stringstream file_contents;
         file_contents << source_file.rdbuf();

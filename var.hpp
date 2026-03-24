@@ -557,7 +557,7 @@ namespace VarTable {
                             index = size + index;
                         }
                         if((index >= size) || (index < 0)) {
-                            errors::index_error(call_stack, name, symbols[i]);
+                            errors::index_error(globals, symbols[i]);
                         }
                         var = TO_LIST(var)->items[index];
                     }
@@ -573,7 +573,7 @@ namespace VarTable {
                     }
                     var = TO_DICT(var)->dict[key];
                     if(var == nullptr) {
-                        errors::key_error(call_stack, name, key);
+                        errors::key_error(globals, key);
                     }
                 }
                 if(!update && bound == 2) {
@@ -1026,7 +1026,7 @@ namespace VarTable {
         //std::cout << v->print() << std::endl;
         //std::cout << "v: " << v << "\n";
         if(v == nullptr) {
-            errors::undefined_var(call_stack, var, var);
+            errors::undefined_var(globals, var);
         }
         return v->print();
     }

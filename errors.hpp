@@ -61,23 +61,24 @@ namespace warnings {
 }
 
 namespace errors {
-    void throw_err(std::stack<std::pair<std::string, int>>& call_stack, std::string& line, std::string head, std::string body, std::initializer_list<std::string> list = {}, bool quit = true) {
+    void throw_err(Globals& globals, std::string head, std::string body, std::initializer_list<std::string> list = {}) {
+    //void throw_err(std::stack<std::pair<std::string, int>>& call_stack, std::string& line, std::string head, std::string body, std::initializer_list<std::string> list = {}, bool quit = true) {
         std::vector<std::string> args(list);
         for(std::string& each : args) {
             each = style::style["bold"] + style::style["yellow"] + each + style::style["reset"];
         }
         std::cerr << "\n\u250C\u2500\n\u2502 " << style::style["red"] << style::style["bold"] << style::style["underline"] << head << " Error" << style::style["reset"] << "\n\u2502 "
-            << style::style["green"] << style::style["bold"] << "Line: " << write_line(line) << style::style["reset"] << "\n\u2502 "
+            << style::style["green"] << style::style["bold"] << "Line: " << write_line(*globals.current_line) << style::style["reset"] << "\n\u2502 "
             << fmt(body, args) << "\n\u2514\u2500\n" << std::endl; 
-        if(call_stack.size() != 0) {
+        if(globals.call_stack.size() != 0) {
             std::cerr << "\u2502\n\u2502 " << style::style["bold"] << "Call Stack" << style::style["reset"] << "\n";
-            while(call_stack.size() != 0) {
-                std::cerr << "\u2502 " << call_stack.top().first << "\n";
-                call_stack.pop();
+            while(globals.call_stack.size() != 0) {
+                std::cerr << "\u2502 " << globals.call_stack.top().first << "\n";
+                globals.call_stack.pop();
             }
             std::cerr << "\u2502\n";
         }
-        if(quit) exit(1);
+        if(globals.error_exit) exit(1);
     }
 
     void kal_error(std::string kal_err) {
@@ -94,8 +95,8 @@ namespace errors {
         throw_err("Expression", "Cannot use operator " + token + " on strings " + a + " and " + b);
     }*/
 
-    void invalid_operation(std::stack<std::pair<std::string, int>>& call_stack, std::string& line, std::string type, std::string& op, std::string& val1, std::string& val2) {
-        throw_err(call_stack, line, "Expression", "Cannot use operator {} on " + type + " {} and {}.", { op, val1, val2 });
+    void invalid_operation(Globals& globals, std::string type, std::string& op, std::string& val1, std::string& val2) {
+        throw_err(globals, "Expression", "Cannot use operator {} on " + type + " {} and {}.", { op, val1, val2 });
     }
     
     void var_redeclare(std::string var_name, std::string var_type) {
@@ -103,8 +104,8 @@ namespace errors {
         exit(1);
     }
 
-    void undefined_var(std::stack<std::pair<std::string, int>>& call_stack, std::string& line, std::string& var_name) {
-        throw_err(call_stack, line, "Variable Undefined", "Variable {} is undefined.", { var_name });
+    void undefined_var(Globals& globals, std::string& var_name) {
+        throw_err(globals, "Variable Undefined", "Variable {} is undefined.", { var_name });
     }
 
     void cannot_write_to_literal_error(const std::string& literal) {
@@ -122,26 +123,26 @@ namespace errors {
         exit(1);
     }
 
-    void file_does_not_exist_error(std::stack<std::pair<std::string, int>>& call_stack, std::string& file_name) {
+    void file_does_not_exist_error(Globals& globals, std::string& file_name) {
         //std::cerr << style::style["red"] << style::style["bold"] << "File: " << style::style["reset"] << style::style["red"] << " File `" << file_name << "` does not exist." << style::style["reset"] << std::endl;
         std::string line = "-";
-        throw_err(call_stack, line, "File Not Found", "File {} not found.", { file_name });
+        throw_err(globals, "File Not Found", "File {} not found.", { file_name });
     }
 
-    void unidentified_keyword(std::stack<std::pair<std::string, int>>& call_stack, std::string& line, std::string& keyword) {
+    void unidentified_keyword(Globals& globals, std::string& keyword) {
         //std::cerr << style::style["red"] << style::style["bold"] << "Kal:" << style::style["reset"] << style::style["red"] << " Keyword `" << keyword << "` is unidentified." << style::style["reset"] << std::endl;
-        throw_err(call_stack, line, "Kal Keyword", "Keyword {} is unidentified.", { keyword });
+        throw_err(globals, "Kal Keyword", "Keyword {} is unidentified.", { keyword });
     }
 
-    void index_error(CALL_STACK, std::string& line, std::string& index) {
-        throw_err(call_stack, line, "Index", "Index {} out of bounds.", { index });
+    void index_error(Globals& globals, std::string& index) {
+        throw_err(globals, "Index", "Index {} out of bounds.", { index });
     }
 
-    void key_error(CALL_STACK, std::string& line, std::string& key) {
-        throw_err(call_stack, line, "Key", "Key {} does not exist.", { key });
+    void key_error(Globals& globals, std::string& key) {
+        throw_err(globals, "Key", "Key {} does not exist.", { key });
     }
 
-    void invalid_else(CALL_STACK, std::string& line) {
-        throw_err(call_stack, line, "Invalid Control Flow", "Cannot use an {} without a valid {}.", { "else", "if" });
+    void invalid_else(Globals& globals) {
+        throw_err(globals, "Invalid Control Flow", "Cannot use an {} without a valid {}.", { "else", "if" });
     }
 }
