@@ -46,7 +46,7 @@ void exec_defer(Globals& globals) {
 }
 
 void spread_values(std::string& operand, std::vector<std::string>& values, uint64_t& index, Globals& globals) {
-    if((operand[0] == '#' && operand[1] == '(') || dynamic_cast<Dict*>(VarTable::get(operand, {}, true, true, true, globals))) {
+    if((operand[0] != '[') && ((operand[0] == '#' && operand[1] == '(') || dynamic_cast<Dict*>(VarTable::get(operand, {}, true, true, true, globals)))) {
         return;
     }
     Value* value = make_value(operand, globals);
@@ -92,7 +92,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         //std::cout << "-----\nHead: " << ins << "\n";
 
         for(uint64_t i = 0; i < cmd.values.size(); i++) {
-            if(cmd.values[i][0] == '.') {
+            if(cmd.values[i][0] == '.' && cmd.values[i][1] == '.' && cmd.values[i][2] == '.') {
                 if(!cmd_values_modified) {
                     cmd_values_modified = true;
                     current_cmd_values = cmd.values;

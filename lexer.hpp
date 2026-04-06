@@ -24,6 +24,7 @@ namespace Functions {
 
 namespace lexer {
     std::string get_head(std::string current_line) {
+        int line_size = current_line.size();
         std::string head = "";
         if(current_line.substr(0, 2) == "if") {
             head = "if";
@@ -39,7 +40,7 @@ namespace lexer {
         }
         else {
             int head_pos = 0;
-            while(current_line[head_pos] != ' ' && current_line[head_pos] != '\t' && current_line[head_pos] != '\n' && current_line[head_pos] != '=') {
+            while(head_pos < line_size && current_line[head_pos] != ' ' && current_line[head_pos] != '\t' && current_line[head_pos] != '\n' && current_line[head_pos] != '=') {
                 head_pos++;
             }
             head = current_line.substr(0, head_pos);

@@ -15,14 +15,14 @@
 int main(int argc, char** argv) {
     Memory& memory = globals.memory;
     ArgParser arg_parser = ArgParser(argc, argv);
-    //VarTable var = VarTable();
+    int arg_size = arg_parser.args_size();
 
     if(argc == 1) {
         shell::init_shell();
         //std::cout << "shell" << std::endl;
         return 0;
     }
-    if(arg_parser.args_size() == 0) {
+    if(arg_size == 0) {
         errors::kal_error("Invalid argument passed.");
         return 1;
     }
@@ -63,6 +63,12 @@ int main(int argc, char** argv) {
         kast::encode(kast_file, tokens);
 
         return 0;
+    }
+
+    if(arg_size == 1) {
+        // ERR
+        std::cerr << "no file provided\n";
+        exit(1);
     }
 
     file_name = args[1];

@@ -68,6 +68,7 @@ namespace parser {
     }
 
     bool is_var(std::string& token, int index = 0) {
+        int size = token.size();
         if(index == 0) {
             bool is_special = (parser::match(index, token, "as", false) || parser::match(index, token, "int", false));
             if(is_special) {
@@ -75,7 +76,7 @@ namespace parser {
             }
         }
         char& first = token[index];
-        return /*!is_special &&*/ (token[index + 1] != '&') && ((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || (first == '&' || first == '_'));
+        return /*!is_special &&*/ ((index < size) && token[index + 1] != '&') && ((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || (first == '&' || first == '_'));
     }
 
     std::string parse_number(const std::string& text, int& index) {
@@ -171,6 +172,7 @@ namespace parser {
     }
 
     std::string extract_list(const std::string& text, char open, int& index) {
+        int size = text.size();
         char close = '\0';
         if(open == '[') {
             close = ']';
@@ -189,6 +191,11 @@ namespace parser {
             }
             index++;
         }
+        if(index >= size) {
+            // ERR:
+            std::cerr << "List EOL\n";
+            exit(1);
+        }
         return text.substr(start, index - start + 1);
     }
 
@@ -205,15 +212,18 @@ namespace parser {
         return required_dict;
     }
 
-
     void skip_string(std::string& text, int& index) {
         index++;
         while(text[index] != '"') {
+            if(text[index] == '\\' && text[index + 1] == '"') {
+                index++;
+            }
             index++;
         }
     }
 
     void skip_list(std::string& text, char open, int& index) {
+        int text_size = text.size();
         char close = '\0';
         if(open == '[') {
             close = ']';
@@ -223,6 +233,11 @@ namespace parser {
         }
         int depth = 0;
         while(text[index] != close || depth != 0) {
+            if(index >= text_size) {
+                // ERR:
+                std::cerr << "List EOL\n";
+                exit(1);
+            }
             if(text[index] == '"') {
                 skip_string(text, index);
             }

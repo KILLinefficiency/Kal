@@ -7,7 +7,7 @@
 #include "../lexer.hpp"
 #include "../exec.hpp"
 
-#define CHECK check(found_value->print(), actual_value->print()); delete actual_value; delete found_value;
+#define CHECK check(found_value->print(), actual_value->print()); delete actual_value; delete found_value; actual_value = nullptr; found_value = nullptr;
 
 void make_fn(std::vector<std::string> lines) {
     lexer::tokenize(lines);
@@ -75,6 +75,7 @@ void test_fn() {
     actual_value = new String("\"Hello\"");
     found_value = fn_call({ ":greet" }, globals);
     CHECK;
+    Functions::gc();
 
     lines = {
         "fn hundred -> {",
@@ -235,7 +236,7 @@ void test_fn() {
     };
     make_fn(lines);
     fn_call({ ":test_defer_c" }, globals);
-    found_value = VarTable::get("test_value", {}, true, true, true, globals);
+    found_value = VarTable::get("test_value", {}, false, false, false, globals);
     actual_value = new Number("20");
     CHECK;
 

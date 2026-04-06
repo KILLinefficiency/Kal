@@ -17,6 +17,7 @@ namespace shell {
 
     void init_shell() {
         int count = 1;
+        globals.error_exit = false;
         //VarTable var = VarTable();
 
         while(true) {

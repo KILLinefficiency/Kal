@@ -485,5 +485,6 @@ void test_var() {
     actual_string = "60";
     check(found_string, actual_string);
 
+    VarTable::gc(globals);
     progress();
 }

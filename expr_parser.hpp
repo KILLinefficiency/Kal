@@ -588,12 +588,17 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
     std::string rpn_front = rpn.front();
     //std::cout << "RPN Front: " << rpn_front << "\n";
     if(rpn.size() == 1 && (rpn_front[0] != '$' || rpn_front[1] != '(')) {
+        if(order(rpn_front)) {
+            // ERR:
+            std::cerr << "invalid operator\n";
+            exit(1);
+        }
         if(rpn_front[0] >= '0' && rpn_front[0] <= '9') {
             result = lib::trim_num(rpn_front);
             rpn.pop_front();
             return result;
         }
-        else if(parser::is_var(rpn_front) /*&& rpn_front[1] != '&'*/) {
+        else if(parser::is_var(rpn_front)) {
             rpn.pop_front();
             return rpn_front;
         }
@@ -725,10 +730,16 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
             numbers.push(std::to_string(y));
         }
         else {
+            if(numbers.size() < 2) {
+                // ERR:
+                std::cerr << "missing operands\n";
+                exit(1);
+            }
             b = numbers.top();
             numbers.pop();
             a = numbers.top();
             numbers.pop();
+            //std::cout << "A: " << a << " B: " << b << " Token: " << token << "\n";
             if(token == ":=") {
                 //bool allow_shadowing = VarTable::get(b, {}, true, true, true) != nullptr;
                 VarTable::set(a, b, nullptr, VAR, false, depth, true, globals);
@@ -873,6 +884,11 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
             else if(token == "&&")  numbers.push(std::to_string(x && y));
             else if(token == "||")  numbers.push(std::to_string(x || y));
         }
+    }
+
+    if(numbers.size() != 1) {
+        std::cerr << "Invalid Expression\n";
+        exit(1);
     }
 
     result = lib::trim_num(numbers.top());

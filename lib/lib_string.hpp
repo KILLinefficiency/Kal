@@ -184,6 +184,7 @@ namespace lib {
             }
 
             if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else" || text.substr(index, 4) == "elif" || text.substr(index, 4) == "loop" || text.substr(index, 2) == "fn")) {
+                index++;
                 while(text[index - 1] != '{') {
                     index++;
                 }
@@ -239,8 +240,13 @@ namespace lib {
                 begin = end + 1;
             }
 
-            if(text[index] == escape_char) {
+            if(text[index] == escape_char && text[index - 1] != '\\') {
                 inside_string = !inside_string;
+            }
+            if(inside_string && (index == (text_size - 1))) {
+                // ERR:
+                std::cerr << "string EOL\n";
+                exit(1);
             }
             index++;
         }

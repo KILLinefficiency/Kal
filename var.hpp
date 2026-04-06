@@ -41,7 +41,7 @@ Value* make_value(std::string value, Globals& globals) {
         val = new Number(value);
     }
     else if(value[0] == '"') {
-        val = new String(value.c_str());
+        val = new String(value);
     }
     else if(value[0] == '[') {
         val = new List(value, globals);
@@ -91,13 +91,13 @@ String::String() {}
 
 String::String(std::string Str) {
     int len = Str.size();
-    str = new char[len + 1];
-    strcpy(str, Str.c_str());
+    str = new char[len + 3];
+    strncpy(str, Str.c_str(), len);
     str[len] = '\0';
 }
 
 std::string String::print() {
-    return std::string(str);
+    return str;
 }
 
 std::string String::val() {
@@ -432,7 +432,7 @@ namespace ScopeTable {
 }
 
 namespace VarTable {
-    void gc_value(std::string name, Value* val, Globals& globals) {
+    void gc_value(std::string name, Value*& val, Globals& globals) {
         int& depth = globals.depth;
         Memory& memory = globals.memory;
 
