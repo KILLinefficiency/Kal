@@ -16,9 +16,10 @@ std::string eval(std::string expr, Globals& globals);
 
 namespace parser {
     // for now.
-    std::string extract_list(const std::string&, char, int&);
+    std::string extract_list(const std::string&, char, int&, bool);
     std::string parse_value(const std::string&, int&);
     void skip_string(std::string&, int&);
+    void skip_variable(std::string, int&);
     // for now.
     std::string general_delimiter = ",";
     std::string str_delimiter = "\"";
@@ -67,7 +68,7 @@ namespace parser {
         return matched;
     }
 
-    bool is_var(std::string& token, int index = 0) {
+    bool is_var(const std::string& token, int index = 0) {
         int size = token.size();
         if(index == 0) {
             bool is_special = (parser::match(index, token, "as", false) || parser::match(index, token, "int", false));
@@ -75,7 +76,7 @@ namespace parser {
                 return false;
             }
         }
-        char& first = token[index];
+        char first = token[index];
         return /*!is_special &&*/ ((index < size) && token[index + 1] != '&') && ((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || (first == '&' || first == '_'));
     }
 
@@ -163,7 +164,7 @@ namespace parser {
         std::string required_string = text.substr(begin, end - begin);
         if(text[index] == '[' && with_sub && index != begin) {
             while(text[index] == '[') {
-                std::string sub_body = extract_list(text, '[', index);
+                std::string sub_body = extract_list(text, '[', index, true);
                 index++;
                 required_string += sub_body;
             }
@@ -171,7 +172,7 @@ namespace parser {
         return required_string;
     }
 
-    std::string extract_list(const std::string& text, char open, int& index) {
+    std::string extract_list(const std::string& text, char open, int& index, bool for_access = false) {
         int size = text.size();
         char close = '\0';
         if(open == '[') {
@@ -183,10 +184,25 @@ namespace parser {
         int depth = 0;
         int start = index;
         while(text[index] != close || depth != 0) {
+            if(for_access) {
+                if(text[index] == ',') {
+                    // ERR:
+                    std::cerr << "Sub cannot contain commas\n";
+                    exit(1);
+                }
+                if(is_var(text, index)) {
+                    skip_variable(text, index);
+                }
+                if((index != start) && (text[index] == '[' || (text[index] == '#' && text[index + 1] == '('))) {
+                    // ERR:
+                    std::cerr << "Cannot accept list or dict for access\n";
+                    exit(1);
+                }
+            }
             if(text[index] == open) {
                 depth++;
             }
-            if(text[index + 1] == close) {
+            if(index < size && text[index + 1] == close) {
                 depth--;
             }
             index++;
@@ -263,7 +279,7 @@ namespace parser {
         }
         if(var[index] == '[') {
             while(var[index] == '[') {
-                skip_list(var, var[index],index);
+                skip_list(var, var[index], index);
                 index++;
             }
         }
@@ -605,6 +621,11 @@ namespace parser {
                     if(match(index, text, "#(", false)) {
                         skip_dict(text, index);
                     }
+                    if(match(index, text, assign_op)) {
+                        // ERR:
+                        std::cerr << "Invalid Assignment\n";
+                        exit(1);
+                    }
                     index++;
                 }
                 int end = index;
@@ -651,19 +672,30 @@ namespace parser {
         return values;
     }
 
-    std::vector<std::string> parse_fn(const std::string& text, int& index) {
+    std::vector<std::string> parse_fn(const std::string& text, int& index, bool allow_anonymous = false) {
         while(WHITESPACE(text, index)) {
             index++;
         }
         int initial_index = index;
         int text_size = text.size();
         std::vector<std::string> fn_def;
-        while(index < text_size - 1 && !match(index, text, target_operator, false)) {
+        while(index < text_size - 1 && !match(index, text, target_operator, false) /*&& !WHITESPACE(text, index)*/) {
             index++;
         }
         int fn_name_len = index - initial_index;
         int step = text[index - 1] == ' ' && fn_name_len != 0 ? 1 : 0;
-        fn_def.emplace_back(text.substr(initial_index, fn_name_len - step));
+        std::string fn_name = text.substr(initial_index, fn_name_len - step);
+        /*if(index == text_size - 1 && fn_name == "") {
+            // ERR:
+            std::cerr << "no params\n";
+            exit(1);
+        }*/
+        if(!allow_anonymous && fn_name == "") {
+            // ERR:
+            std::cerr << "anonymous function not allowed\n";
+            exit(1);
+        }
+        fn_def.emplace_back(fn_name);
         index += 2;
         /// maybe just parse init values...?
         /*while(index < text_size - 1) {
@@ -732,6 +764,11 @@ namespace parser {
                 begin = index;
             }
             index++;
+        }
+        if(tokens.size() > 3) {
+            // ERR:
+            std::cerr << "Too many loop segments\n";
+            exit(1);
         }
         return tokens;
     }
