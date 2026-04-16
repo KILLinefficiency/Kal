@@ -138,6 +138,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         if(cmd.head[0] == ':') {
             std::string fn_name = cmd.head.substr(1);
             Fn* fn = Functions::fn[fn_name];
+            if(fn == nullptr) {
+                errors::undefined_function(globals, fn_name);
+            }
             int args_size = cmd.values.size();
 
             bool is_variadic = false;

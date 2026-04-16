@@ -62,7 +62,6 @@ namespace warnings {
 
 namespace errors {
     void throw_err(Globals& globals, std::string head, std::string body, std::initializer_list<std::string> list = {}) {
-    //void throw_err(std::stack<std::pair<std::string, int>>& call_stack, std::string& line, std::string head, std::string body, std::initializer_list<std::string> list = {}, bool quit = true) {
         std::vector<std::string> args(list);
         for(std::string& each : args) {
             each = style::style["bold"] + style::style["yellow"] + each + style::style["reset"];
@@ -79,6 +78,57 @@ namespace errors {
             std::cerr << "\u2502\n";
         }
         if(globals.error_exit) exit(1);
+    }
+
+    void throw_parser_error(std::string error_message, const std::string& line) {
+        std::cerr << "\n\u250C\u2500\n\u2502 " << style::style["red"] << style::style["bold"] << style::style["underline"] << "Parser Error" << style::style["reset"] << "\n\u2502 "
+            << style::style["green"] << style::style["bold"] << "Line: " << line << style::style["reset"] << "\n\u2502 "  
+            << "Error: " << error_message << "\n\u2514\u2500" << std::endl;
+        exit(1);
+    }
+
+    void missing_operands(const std::string& line) {
+        throw_parser_error("Missing Operators.", line);
+    }
+
+    void access_commas(const std::string& line) {
+        throw_parser_error("Access cannot contain commas.", line);
+    }
+
+    void only_primitive_access(const std::string& line) {
+        throw_parser_error("Only primitive values allowed for access.", line);
+    }
+
+    void list_eol(const std::string& line) {
+        throw_parser_error("Unclosed List.", line);
+    }
+
+    void invalid_assignment(const std::string& line) {
+        throw_parser_error("Invalid Assignment.", line);
+    }
+
+    void no_anon_fn(const std::string& line) {
+        throw_parser_error("Invalid use of anonymous function.", line);
+    }
+
+    void high_loop_segments(const std::string& line) {
+        throw_parser_error("Too many loop segments.", line);
+    }
+
+    void string_eol(const std::string& line) {
+        throw_parser_error("Unclosed String.", line);
+    }
+
+    void invalid_expression(const std::string& line) {
+        throw_parser_error("Invalid Expression.", line);
+    }
+
+    void invalid_operator(const std::string& line) {
+        throw_parser_error("Invalid Operator", line);
+    }
+
+    void unidentified_keyword(const std::string& line) {
+        throw_parser_error("Unidentified Keyword.", line);
     }
 
     void kal_error(std::string kal_err) {
@@ -144,5 +194,9 @@ namespace errors {
 
     void invalid_else(Globals& globals) {
         throw_err(globals, "Invalid Control Flow", "Cannot use an {} without a valid {}.", { "else", "if" });
+    }
+
+    void undefined_function(Globals& globals, std::string& fn_name) {
+        throw_err(globals, "Undefined Function", "Function {} not found.", { fn_name });
     }
 }

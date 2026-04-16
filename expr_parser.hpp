@@ -590,8 +590,7 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
     if(rpn.size() == 1 && (rpn_front[0] != '$' || rpn_front[1] != '(')) {
         if(order(rpn_front)) {
             // ERR:
-            std::cerr << "invalid operator\n";
-            exit(1);
+            errors::invalid_operator(rpn_front);
         }
         if(rpn_front[0] >= '0' && rpn_front[0] <= '9') {
             result = lib::trim_num(rpn_front);
@@ -731,9 +730,7 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
         }
         else {
             if(numbers.size() < 2) {
-                // ERR:
-                std::cerr << "missing operands\n";
-                exit(1);
+                errors::missing_operands(numbers.top());
             }
             b = numbers.top();
             numbers.pop();
@@ -887,8 +884,8 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
     }
 
     if(numbers.size() != 1) {
-        std::cerr << "Invalid Expression\n";
-        exit(1);
+        // ERR:
+        errors::invalid_expression(numbers.top());
     }
 
     result = lib::trim_num(numbers.top());

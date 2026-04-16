@@ -245,8 +245,7 @@ namespace lib {
             }
             if(inside_string && (index == (text_size - 1))) {
                 // ERR:
-                std::cerr << "string EOL\n";
-                exit(1);
+                errors::string_eol(text);
             }
             index++;
         }

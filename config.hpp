@@ -195,6 +195,8 @@ namespace p_config {
         }
 
         //errors::unidentified_keyword(globals, cmd);
+        // TODO
+        errors::unidentified_keyword(line);
         return &group_0;
     }
 }

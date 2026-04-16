@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "config.hpp"
+#include "errors.hpp"
 #include "lib/lib_string.hpp"
 
 #define WHITESPACE(text, position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n' || text[position] == '\r')
@@ -187,16 +188,14 @@ namespace parser {
             if(for_access) {
                 if(text[index] == ',') {
                     // ERR:
-                    std::cerr << "Sub cannot contain commas\n";
-                    exit(1);
+                    errors::access_commas(text);
                 }
                 if(is_var(text, index)) {
                     skip_variable(text, index);
                 }
                 if((index != start) && (text[index] == '[' || (text[index] == '#' && text[index + 1] == '('))) {
                     // ERR:
-                    std::cerr << "Cannot accept list or dict for access\n";
-                    exit(1);
+                    errors::only_primitive_access(text);
                 }
             }
             if(text[index] == open) {
@@ -209,8 +208,7 @@ namespace parser {
         }
         if(index >= size) {
             // ERR:
-            std::cerr << "List EOL\n";
-            exit(1);
+            errors::list_eol(text);
         }
         return text.substr(start, index - start + 1);
     }
@@ -251,8 +249,7 @@ namespace parser {
         while(text[index] != close || depth != 0) {
             if(index >= text_size) {
                 // ERR:
-                std::cerr << "List EOL\n";
-                exit(1);
+                errors::list_eol(text);
             }
             if(text[index] == '"') {
                 skip_string(text, index);
@@ -623,8 +620,7 @@ namespace parser {
                     }
                     if(match(index, text, assign_op)) {
                         // ERR:
-                        std::cerr << "Invalid Assignment\n";
-                        exit(1);
+                        errors::invalid_assignment(text);
                     }
                     index++;
                 }
@@ -692,8 +688,7 @@ namespace parser {
         }*/
         if(!allow_anonymous && fn_name == "") {
             // ERR:
-            std::cerr << "anonymous function not allowed\n";
-            exit(1);
+            errors::no_anon_fn(text);
         }
         fn_def.emplace_back(fn_name);
         index += 2;
@@ -767,8 +762,7 @@ namespace parser {
         }
         if(tokens.size() > 3) {
             // ERR:
-            std::cerr << "Too many loop segments\n";
-            exit(1);
+            errors::high_loop_segments(text);
         }
         return tokens;
     }
