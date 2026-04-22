@@ -107,8 +107,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         if(cmd.head == "<-") {
             bool is_call_stack_empty = globals.call_stack.empty();
             if(is_call_stack_empty && !top_return) {
-                std::cout << "cannot return at top level\n";
-                exit(1);
+                // ERR:
+                errors::top_return(globals);
             } 
             exec_defer(globals);
             std::string result = eval(cmd.target, globals);
@@ -518,8 +518,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         else if(ins == "defer") {
             int total = cmd.values.size();
             if(depth == 0) {
-                std::cout << "defer must be used inside a function.\n";
-                exit(0);
+                // ERR:
+                errors::defer_outside_fn(globals);
             }
             for(int idx = total - 1; idx >= 0; idx--) {
                 defer_stack.push(std::pair<std::string, int> { cmd.values[idx], depth });

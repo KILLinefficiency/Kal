@@ -219,4 +219,12 @@ namespace errors {
     void undefined_function(Globals& globals, std::string& fn_name) {
         throw_err(globals, "Undefined Function", "Function {} not found.", { fn_name });
     }
+
+    void top_return(Globals& globals) {
+        throw_err(globals, "Return", "Cannot return at the top level.");
+    }
+
+    void defer_outside_fn(Globals& globals) {
+        throw_err(globals, "Defer", "defer cannot be used outside a function.");
+    }
 }
