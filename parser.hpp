@@ -835,7 +835,8 @@ namespace parser {
             }
             if(index == 0) {
                 if(!config->head) {
-                    END;
+                    // ERR:
+                    errors::no_keyword_required(text);
                 }
                 begin = index;
                 while(!WHITESPACE(text, index) && index != text_size) {
@@ -848,7 +849,8 @@ namespace parser {
 
             if(token.head == "var" || token.head == "const" || token.head == "static" || token.head == "inert") {
                 if(!config->init_list) {
-                    END;
+                    // ERR:
+                    errors::no_init_required(text);
                 }
                 index++;
                 while(WHITESPACE(text, index)) {
@@ -860,13 +862,15 @@ namespace parser {
             else {
                 token.values = parse_values(text, index);
                 if(config->single_arg && token.values.size() > 1) {
-                    END;
+                    // ERR:
+                    errors::single_arg_required(text);
                 }
             }
 
             if(match(index, text, target_operator)) {
                 if(!config->target) {
-                    END;
+                    // ERR:
+                    errors::invalid_target_op(text);
                 }
                 begin = index;
                 while(text[index] != '\0') {

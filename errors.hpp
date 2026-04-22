@@ -139,6 +139,18 @@ namespace errors {
         throw_parser_error("Invalid use of target operator.", line);
     }
 
+    void no_init_required(const std::string& line) {
+        throw_parser_error("Invalid use of variable initialization", line);
+    }
+
+    void no_keyword_required(const std::string& line) {
+        throw_parser_error("Invalid use of keyword.", line);
+    }
+
+    void single_arg_required(const std::string& line) {
+        throw_parser_error("Statement takes only single argument.", line);
+    }
+
     void kal_error(std::string kal_err) {
         std::cerr << style::style["red"] << style::style["bold"] << "Kal:" << style::style["reset"] << style::style["red"] << " " << kal_err << style::style["reset"] << std::endl;
         exit(1);
