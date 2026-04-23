@@ -63,11 +63,12 @@ namespace warnings {
 namespace errors {
     void throw_err(Globals& globals, std::string head, std::string body, std::initializer_list<std::string> list = {}) {
         std::vector<std::string> args(list);
+        std::string blank = "-";
         for(std::string& each : args) {
             each = style::style["bold"] + style::style["yellow"] + each + style::style["reset"];
         }
         std::cerr << "\n\u250C\u2500\n\u2502 " << style::style["red"] << style::style["bold"] << style::style["underline"] << head << " Error" << style::style["reset"] << "\n\u2502 "
-            << style::style["green"] << style::style["bold"] << "Line: " << write_line(*globals.current_line) << style::style["reset"] << "\n\u2502 "
+            << style::style["green"] << style::style["bold"] << "Line: " << write_line(globals.current_line != nullptr ? *globals.current_line : blank) << style::style["reset"] << "\n\u2502 "
             << fmt(body, args) << "\n\u2514\u2500\n" << std::endl; 
         if(globals.call_stack.size() != 0) {
             std::cerr << "\u2502\n\u2502 " << style::style["bold"] << "Call Stack" << style::style["reset"] << "\n";
@@ -165,6 +166,18 @@ namespace errors {
         throw_err("Expression", "Cannot use operator " + token + " on strings " + a + " and " + b);
     }*/
 
+    void no_cmd_arg(const std::string& line) {
+        throw_parser_error("Incomplete command line arguments.", line);
+    }
+
+    void unparsable_token(const std::string& line) {
+        throw_parser_error("Unparsable Token.", line);
+    }
+
+    void closing_scope(const std::string& line) {
+        throw_parser_error("Closing { expected.", line);
+    }
+
     void invalid_operation(Globals& globals, std::string type, std::string& op, std::string& val1, std::string& val2) {
         throw_err(globals, "Expression", "Cannot use operator {} on " + type + " {} and {}.", { op, val1, val2 });
     }
@@ -226,5 +239,9 @@ namespace errors {
 
     void defer_outside_fn(Globals& globals) {
         throw_err(globals, "Defer", "defer cannot be used outside a function.");
+    }
+
+    void invalid_ref_assign(Globals& globals) {
+        throw_err(globals, "Assignment", "Cannot use & for variable naming.");
     }
 }

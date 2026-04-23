@@ -536,9 +536,8 @@ namespace parser {
         }
         // TODO: parse dict.
         else {
-            std::cout << "Text: " << text << "\nIndex: " << index << "\n";
-            std::cout << "unknown token: [" << text[index] << "]" << std::endl;
-            exit(1);
+            // ERR:
+            errors::unparsable_token(text);
         }
 
         return required_token;
@@ -816,8 +815,8 @@ namespace parser {
                 required_token = text.substr(begin, end - begin);
                 token.head = required_token;
                 if(text[text_size - 1] != '{') {
-                    std::cout << "{ expected\n";
-                    exit(1);
+                    // ERR:
+                    errors::closing_scope(text);
                 }
                 std::string mid_line = text.substr(index, text_size - (token.head.size() + 1));
                 if(token.head == "loop") {
@@ -868,8 +867,10 @@ namespace parser {
             }
 
             if(match(index, text, target_operator)) {
+                std::cout << "here\n";
                 if(!config->target) {
                     // ERR:
+                    std::cout << "a\n";
                     errors::invalid_target_op(text);
                 }
                 begin = index;

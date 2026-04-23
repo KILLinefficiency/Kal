@@ -768,8 +768,7 @@ namespace VarTable {
             }
         }
         if(var[0] == '&') {
-            std::cout << "Cannot use `&` while setting a variable.\n";
-            exit(0);
+            errors::invalid_ref_assign(globals);
         }
         
 

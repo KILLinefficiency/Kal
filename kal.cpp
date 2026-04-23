@@ -66,9 +66,9 @@ int main(int argc, char** argv) {
     }
 
     if(arg_size == 1) {
-        // ERR
-        std::cerr << "no file provided\n";
-        exit(1);
+        // ERR:
+        std::string line = "-";
+        errors::no_cmd_arg(line);
     }
 
     file_name = args[1];

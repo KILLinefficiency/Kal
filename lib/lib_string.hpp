@@ -185,8 +185,12 @@ namespace lib {
 
             if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else" || text.substr(index, 4) == "elif" || text.substr(index, 4) == "loop" || text.substr(index, 2) == "fn")) {
                 index++;
-                while(text[index - 1] != '{') {
+                // std::cout << "--Text: " << text.substr(0, index) << "--\n";
+                while(index < text_size && text[index - 1] != '{') {
                     index++;
+                }
+                if(index >= text_size) {
+                    errors::closing_scope(text);
                 }
                 required_line = text.substr(begin, index - begin);
                 lines.emplace_back(required_line);
