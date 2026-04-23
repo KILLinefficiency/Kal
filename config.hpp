@@ -19,7 +19,6 @@ struct Token {
 };
 
 struct Config {
-    //std::string id = "";
     int id = 0;
     bool head           =  false,
          optional_arg   =  false,
@@ -156,33 +155,7 @@ namespace p_config {
         if(false) {
             std::cout << line << "\n";
         }
-        // if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue"/* || cmd == "<-"*/) {
-        //     return &group_1;
-        // }
-        // else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
-        //     return &group_2;
-        // }
-        // else if(cmd[0] == ':' || cmd == "style" || cmd == "stdout" || cmd == "defer" || cmd == "push" || cmd == "len") {
-        //     return &group_3;
-        // }
-        // else if(cmd == "if" || cmd == "else" || cmd == "elif" || cmd == "loop" || cmd == "}") {
-        //     return &group_4;
-        // }
-        // else if(cmd == "fn") {
-        //     return &group_5;
-        // }
-        // else if(cmd == "<-") {
-        //     return &group_6;
-        // }
-        // else if(cmd == "{") {
-        //     return &group_7;
-        // }
-        // else {
-        //     return &group_0;
-        // }
-        /*else if(cmd[0] == '$') {
-            return &group_0;
-        }*/
+
         if(cmd[0] == ':') {
             return &group_3;
         }
@@ -194,8 +167,6 @@ namespace p_config {
             return &group_0;
         }
 
-        //errors::unidentified_keyword(globals, cmd);
-        // TODO
         errors::unidentified_keyword(line);
         return &group_0;
     }

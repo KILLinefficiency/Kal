@@ -19,7 +19,6 @@ int main(int argc, char** argv) {
 
     if(argc == 1) {
         shell::init_shell();
-        //std::cout << "shell" << std::endl;
         return 0;
     }
     if(arg_size == 0) {

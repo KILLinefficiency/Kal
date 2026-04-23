@@ -13,11 +13,10 @@
 #include <stack>
 #include <utility>
 #include <tuple>
-//#include "lib/lib_list.hpp"
 
 namespace parser {
     void std_out(std::string out_text, Globals& globals) {
-        if(/*out_text[0] == '$'*/ parser::is_var(out_text)) {
+        if(parser::is_var(out_text)) {
             std::cout << lib::resolve_string(VarTable::print(out_text, globals));
             return;
         }
@@ -32,8 +31,6 @@ namespace parser {
         std::cerr << lib::resolve_string(lib::render_escape_chars(err_text));
     }
 }
-
-// std::stack<std::pair<std::string, int>> defer_stack;
 
 void exec_defer(Globals& globals) {
     int& depth = globals.depth;
@@ -62,7 +59,6 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
 
 // false true false
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
-    //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
 
@@ -70,7 +66,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     int total_tokens = tokens.size();
 
     int line = 0;
-    //int depth = 0;
     int current_depth = 0;
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::pair<int, std::vector<std::string>>> init_loop;
@@ -78,7 +73,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     std::stack<std::tuple<Value*, std::string, int, uint64_t, bool>> range_stack;
 
     while(line < total_tokens) {
-        //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
         Token& cmd = tokens[line];
         globals.current_line = tokens[line].line;
         bool cmd_values_modified = false;
@@ -88,8 +82,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             line++;
             continue;
         }
-
-        //std::cout << "-----\nHead: " << ins << "\n";
 
         for(uint64_t i = 0; i < cmd.values.size(); i++) {
             if(cmd.values[i][0] == '.' && cmd.values[i][1] == '.' && cmd.values[i][2] == '.') {
@@ -117,9 +109,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             Value* existing_value = VarTable::get(result, {}, true, true, true, globals);
             bool value_exists = (existing_value != nullptr);
 
-            return_value = (/*result[0] == '$'*/ parser::is_var(result) && value_exists) ? copy(existing_value) : make_value(result, globals);
-            // TODO: send this result value to the outer scope and assign it to the target variable.
-            //return new Value();
+            return_value = (parser::is_var(result) && value_exists) ? copy(existing_value) : make_value(result, globals);
             if(!is_call_stack_empty) {
                 int original_depth = globals.call_stack.top().second;
                 while(depth != original_depth) {
@@ -198,21 +188,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
 
             globals.call_stack.push(std::pair<std::string, int> { fn_name, depth });
-            //std::cout << "Start Depth: " << depth << "\n";
             Value* return_value = line_exec(fn->body, false, true, false, globals);
-            //std::cout << "End Depth: " << depth << "\n";
-            if(/*return_value != nullptr &&*/ !auto_return) {
+            if(!auto_return) {
                 if(return_value == nullptr) {
                     return_value = new Null();
                 }
-                // only set this is target exists.
                 if(cmd.target != "") {
-                    // figure out if i need to allow shadowing or not. [TODO]. [DONE]
-                    // if variable exists, don't allow, if exists, allow. [DONE]
                     bool allow_shadowing = VarTable::get(cmd.target, {}, true, true, true, globals) != nullptr;
                     VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing, globals);
-                    //std::cout << "Targeting " << cmd.target << " to " << return_value->print() << "\n";
-                    //if(fn_name == "add") std::cout << "Here\n";
                 }
                 else {
                     delete return_value;
@@ -229,9 +212,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         else if(ins == "" && cmd.init.size() > 0) {
             int total_reassigns = cmd.init.size();
-            //std::cout << "Here\n";
             for(int each_reassign = 0; each_reassign < total_reassigns; each_reassign += 2) {
-                //std::cout << "Reassigning " << "[" << cmd.init[each_reassign] << "] to [" << cmd.init[each_reassign + 1] << "]\n";
                 VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth, false, globals);
             }
             line++;
@@ -239,27 +220,22 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
-            // maybe incr and set these values in the if-blocks;
             depth += 1;
             current_depth = depth;
-            //std::cout << tokens[line].values[0] << " : " << depth << "\n";
             if(tokens[line].head == "if") {
                 // might need to refactor values into a variable.
                 bool condition = eval(tokens[line].values[0], globals) == "1";
                 conditional_stack.push({ condition, depth });
-                //std::cout << "Stack: " << condition << " " << depth << "\n";
                 if(conditional_stack.top().first && tokens[line].head != "else") {
                     line++;
                     continue;
                 }
                 else {
-                    //std::cout << "If End: " << depth << " " << (current_depth - 1) << "\n";
                     while(depth != current_depth - 1) {
                         line++;
                         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                         if(tokens[line].head == "}") { depth--; }
                     }
-                    //std::cout << "end if: " << line << "\n";
                 }
             }
             else if(tokens[line].head == "elif") {
@@ -267,7 +243,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 if(check.second == depth) {
                     if(!check.first /*&& tokens[line].head != "else"*/) {
                         bool condition = eval(tokens[line].values[0], globals) == "1";
-                        //std::cout << "Condition: " << tokens[line].values[0] << " Result: " << condition << "\n";
                         if(condition && tokens[line].head != "else") {
                             conditional_stack.pop();
                             conditional_stack.push({ condition, depth });
@@ -292,13 +267,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
             }
             else if(tokens[line].head == "else") {
-                //std::cout << "here " << depth << "\n";
                 if(conditional_stack.empty()) {
-                    // errors::invalid_else(globals, tokens[line].head);
                     errors::invalid_else(globals);
                 }
                 std::pair<bool, int> check = conditional_stack.top();
-                //std::cout << "Stack: " << check.first << " " << check.second << " | Depth: " << depth << "\n";
                 if(check.second == depth) {
                     conditional_stack.pop();
                     if(!check.first) {
@@ -312,7 +284,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                             if(tokens[line].head == "}") { depth--; }
                         }
-                        //continue;
                     }
                 }
                 else {
@@ -321,7 +292,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                         if(tokens[line].head == "}") { depth--; }
                     }
-                    //continue;
                 }
             }
             else if(tokens[line].head == "loop") {
@@ -400,13 +370,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     condition = eval(tokens[line].values[0], globals) == "1";
                 }
                 else if(segments > 1) {
-                    //std::pair<bool, int> init_top = init_loop.top();
                     if(tokens[line].values[0] != "") {
-                        //std::cout << "Init Size: " << init_loop.size() << "\n";
-                        //if(!init_loop.empty())
-                        //    std::cout << init_loop.top() << " " << depth << "\n";
                         if(init_loop.empty() || init_loop.top().first != depth) {
-                            //std::cout << "[" << tokens[line].values[0] << "]\n";
                             globals.depth--;
                             std::vector<std::string> var_names = VarTable::init_by_string(tokens[line].values[0], true, globals);
                             globals.depth++;
@@ -416,13 +381,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     if(segments >= 2 && tokens[line].values[1] != "") {
                         condition = eval(tokens[line].values[1], globals) == "1";
                     }
-                    /*else {
-                        condition = true;
-                    }*/
-                    //std::cout << "[" << tokens[line].values[1] << "] " << condition << "\n";
                 }
                 loop_stack.push({ condition, line, depth });
-                //std::cout << "Loop Depth: " << depth << " " << (line + 1) << "\n";
                 if(condition) {
                     line++;
                     continue;
@@ -446,21 +406,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
         }
         else if(tokens[line].head == "}") {
-            //std::cout << "Here\n";
             VarTable::gc(globals);
-            //std::cout << "Current Depth: " << depth << "\n";
             depth--;
             if(depth < 0) {
                 depth = 0;
             }
-            //std::cout << "Line: " << (line + 1) << " Actual: " << std::get<2>(loop_stack.top()) << " Required: " << (depth + 1) << "\n";
-            /// temporary solution for the problem stated in FIGURED.
-            /*int new_depth = depth + 1;
-            if(loop_stack.size() == 1) {
-                new_depth = depth;
-            }*/
-            ///
-            // FIGURED: the depths do not match for the last iteration (when stack size is 1). difference of 1.
             if(loop_stack.size() != 0 && (std::get<2>(loop_stack.top()) == depth + 1 /*new_depth*/)) {
                 std::tuple<bool, int, int> top = loop_stack.top();
                 if(std::get<0>(top)) {
@@ -476,9 +426,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         else if(ins == "continue") {
             if(loop_stack.size() != 0) {
-                //std::cout << "Line: " << line << "\n";
-                //std::cout << "Size: " << loop_stack.size() << "\n";
-                //std::cout << "[" << std::get<0>(loop_stack.top()) << " " << std::get<1>(loop_stack.top()) << " " << std::get<2>(loop_stack.top()) << "]\n";
                 VarTable::gc(globals);
                 std::tuple<bool, int, int> top = loop_stack.top();
                 line = std::get<1>(top);
@@ -486,8 +433,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 if(tokens[line].values.size() - 1 == 3) {
                     VarTable::init_by_string(tokens[line].values[2], false, globals);
                 }
-                //depth--;
-                //std::cout << "Line: " << line << "\n";
                 loop_stack.pop();
                 continue;
             }
@@ -496,8 +441,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         else if(ins == "break") {
             if(loop_stack.size() != 0) {
                 int loop_depth = std::get<2>(loop_stack.top());
-                // std::cout << "[" << depth << "]\n";
-                // std::cout << "[" << loop_depth << "]" << "\n";
                 while(loop_stack.size() != 0 && depth != loop_depth - 1) {
                     line++;
                     if(tokens[line].head == "}") {
@@ -510,8 +453,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     VarTable::gc_by_names(init_loop.top().second, globals);
                     init_loop.pop();
                 }
-                // std::cout << "Line: " << line << "\n";
-                // std::cout << "Size: " << loop_stack.size() << "\n";
             }
         }
 

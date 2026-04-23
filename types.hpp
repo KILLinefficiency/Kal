@@ -3,7 +3,6 @@
 #include <sstream>
 #include <stack>
 #include <utility>
-//#include "globals.hpp"
 #include "config.hpp"
 
 class Value {

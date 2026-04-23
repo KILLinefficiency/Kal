@@ -16,12 +16,10 @@
 std::string eval(std::string expr, Globals& globals);
 
 namespace parser {
-    // for now.
     std::string extract_list(const std::string&, char, int&, bool);
     std::string parse_value(const std::string&, int&);
     void skip_string(std::string&, int&);
     void skip_variable(std::string, int&);
-    // for now.
     std::string general_delimiter = ",";
     std::string str_delimiter = "\"";
     std::string list_open = "[";
@@ -47,10 +45,6 @@ namespace parser {
     bool is_string(const std::string& str_token) {
         return str_token[0] == '"' && str_token[str_token.size() - 1] == '"';
     }
-
-    /*bool is_var(char& var_token) {
-        return (var_token >= 'a' && var_token <= 'z') || (var_token >= 'A' && var_token <= 'Z') || var_token == '&' || var_token == '_';
-    }*/
 
     bool is_number(char number) {
         return number >= '0' && number <= '9';
@@ -78,19 +72,12 @@ namespace parser {
             }
         }
         char first = token[index];
-        return /*!is_special &&*/ ((index < size) && token[index + 1] != '&') && ((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || (first == '&' || first == '_'));
+        return ((index < size) && token[index + 1] != '&') && ((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || (first == '&' || first == '_'));
     }
 
     std::string parse_number(const std::string& text, int& index) {
         int begin = index;
-        // bool got_radix = false;
         while(is_number(text[index]) || (text[index] == '.' && is_number(text[index + 1]))) {
-            /*if(got_radix) {
-                break;
-            }*/
-            /*if(text[index] == '.') {
-                got_radix = true;
-            }*/
             index++;
         }
         int end = index;
@@ -116,9 +103,6 @@ namespace parser {
         int begin = index;
         int depth = 1;
         index++;
-        /*while(text[index] != '`') {
-            index++;
-        }*/
         while(depth != 0) {
             if(text[index] == '"') {
                 skip_string(text, index);
@@ -135,13 +119,10 @@ namespace parser {
         return expr;
     }
 
-    std::string parse_variable(/*const*/ std::string& text, int& index, bool with_sub = true) {
+    std::string parse_variable(std::string& text, int& index, bool with_sub = true) {
         int begin = index;
         int text_pos = index;
         int text_size = text.size();
-        /*if(text[index] == '$') {
-            index++;
-        }*/
         if(text[index] == '&') {
             index++;
         }
@@ -161,7 +142,6 @@ namespace parser {
             text_pos++;
         }
         int end = index;
-        //index--;
         std::string required_string = text.substr(begin, end - begin);
         if(text[index] == '[' && with_sub && index != begin) {
             while(text[index] == '[') {
@@ -267,7 +247,7 @@ namespace parser {
     void skip_variable(std::string var, int& index) {
         int size = var.size();
         while(index < size) {
-            if(/*var[index] ==  || */var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
+            if(var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
                 index++;
             }
             else {
@@ -305,9 +285,6 @@ namespace parser {
             else if(WHITESPACE(text, index)) {
                 index++;
             }
-            /*else {
-                break;
-            }*/
         }
         if(segments.size() == 2) {
             segments.emplace_back("1");
@@ -419,79 +396,6 @@ namespace parser {
     std::string resolve_fexpr(std::string& text) {
         return text.substr(2, text.size() - 3);
     }
-    /*std::unordered_map<std::string, std::string> parse_list(std::string& text, int index = 0) {
-        int pos = -1;
-        int depth = 0;
-        std::stack<int> indices;
-        std::vector<int> prev_indices;
-        std::string element;
-        std::unordered_map<std::string, std::string> elements;
-        bool inside_string = false;
-        index++;
-        while(WHITESPACE(index)) {
-            index++;
-        }
-        int begin = index;
-        int end = index;
-        while(text[index] != ']' || depth != 0 || inside_string) {
-            if(text[index] == '[' && !inside_string) {
-                indices.push(pos + 1);
-                prev_indices.push_back(pos + 1);
-                pos = -1;
-                begin++;
-                index++;
-                depth++;
-                continue;
-            }
-            if(text[index] == ']' && !inside_string) {
-                prev_indices.clear();
-                pos = indices.top();
-                indices.pop();
-                begin++;
-                index++;
-                depth--;
-                continue;
-            }
-            if(text[index] == '"') {
-                inside_string = !inside_string;
-            }
-            if(inside_string) {
-                index++;
-                continue;
-            }
-            while(text[index] != ',') {
-                if(text[index + 1] == ']') {
-                    break;
-                }
-                index++;
-            }
-            end = index;
-            if(text[index + 1] == ']' && text[index] != ',') {
-                end++;
-            }
-            while(WHITESPACE(end - 1)) {
-                end--;
-            }
-            element = text.substr(begin, end - begin);
-            index++;
-            while(WHITESPACE(index)) {
-                index++;
-            }
-            begin = index;
-            if(element != "") { 
-                pos++;
-                std::string element_idx = "#";
-                for(int idx : prev_indices) {
-                    element_idx += (std::to_string(idx) + "#");
-                }
-                element_idx += std::to_string(pos);
-                elements[element_idx] = element;
-                //std::cout << element_idx << ": " << element << std::endl;;
-            }
-        }
-
-        return elements;
-    }*/
 
     std::string parse_value(std::string& text, int& index, bool allow_spread = true) {
         std::string required_token = "";
@@ -506,7 +410,7 @@ namespace parser {
             required_token = parse_fexpr(text, index);
             index--;
         }
-        else if(/*text[index] == '$'*/ is_var(text, index)) {
+        else if(is_var(text, index)) {
             required_token = parse_variable(text, index);
             index--;
         }
@@ -534,7 +438,6 @@ namespace parser {
         else if(text[index] == '\0') {
             return required_token;
         }
-        // TODO: parse dict.
         else {
             // ERR:
             errors::unparsable_token(text);
@@ -550,7 +453,6 @@ namespace parser {
 
     std::vector<std::string> parse_init(std::string text, int& index, std::string assign_op = "=", int end = 0, bool allow_spread = false) {
         std::vector<std::string> tokens;
-        //std::string assign_op = "=";
         std::string required_token = "";
         int text_size = text.size() - end;
         while(index < text_size) {
@@ -565,10 +467,9 @@ namespace parser {
                 while(index < text_size && text[index] != ',') {
                     index++;
                 }
-                // index++;
                 continue;
             }
-            else if(/*for_dict*/ assign_op != "=" && text[index] == '"') {
+            else if(assign_op != "=" && text[index] == '"') {
                 required_token = parse_string(text, index);
                 index++;
             }
@@ -597,9 +498,7 @@ namespace parser {
                 index++;
                 continue;
             }
-            //if(text[index] == '=') {
             if(match(index, text, assign_op)) {
-                //index++;
                 while(WHITESPACE(text, index)) {
                     index++;
                 }
@@ -678,47 +577,15 @@ namespace parser {
         int fn_name_len = index - initial_index;
         int step = text[index - 1] == ' ' && fn_name_len != 0 ? 1 : 0;
         std::string fn_name = text.substr(initial_index, fn_name_len - step);
-        /*if(index == text_size - 1 && fn_name == "") {
-            // ERR:
-            std::cerr << "no params\n";
-            exit(1);
-        }*/
         if(!allow_anonymous && fn_name == "") {
             // ERR:
             errors::no_anon_fn(text);
         }
         fn_def.emplace_back(fn_name);
         index += 2;
-        /// maybe just parse init values...?
-        /*while(index < text_size - 1) {
-            while(index < text_size - 1 && WHITESPACE(text, index)) {
-                index++;
-            }
-            if(text[index] == '[') {
-                std::string list = extract_list(text, '[', index);
-                fn_def.emplace_back(list);
-                index++;
-                continue;
-            }
-            int start = index;
-            while(index < text_size - 1 && !WHITESPACE(text, index)) {
-                index++;
-            }
-            int end = index;
-            std::string token = text.substr(start, end - start);
-            if(token != "") {
-                fn_def.emplace_back(token);
-            }
-            index++;
-        }*/
-        //std::vector<std::string> args = parse_init(text.substr(index, text_size - index - 1), begin, ":");
         std::vector<std::string> args = parse_init(text, index, ":", 1, true);
         fn_def.reserve(2 + args.size());
         fn_def.insert(fn_def.end(), args.begin(), args.end());
-        /*for(std::string& each : args) {
-            fn_def.emplace_back(each);
-        }*/
-        ///
         if(text[text_size - 1] == '{') {
             fn_def.emplace_back("{");
         }
@@ -764,7 +631,6 @@ namespace parser {
         return tokens;
     }
 
-    //int parse_depth = 0;
     Token parse(std::string& text, Config* config, std::string& head) {
         Token token;
 
@@ -776,7 +642,6 @@ namespace parser {
         std::string required_token;
 
         if(config->id == 6) {
-            // return statement (<-)
             token.head = head;
             token.target = text.substr(2);
             return token;
@@ -867,10 +732,8 @@ namespace parser {
             }
 
             if(match(index, text, target_operator)) {
-                std::cout << "here\n";
                 if(!config->target) {
                     // ERR:
-                    std::cout << "a\n";
                     errors::invalid_target_op(text);
                 }
                 begin = index;
@@ -888,14 +751,6 @@ namespace parser {
             required_token = parse_value(text, index);
             index++;
         }
-
-        /*int values_size = token.values.size();
-        if(values_size != 0 && token.values[values_size - 1] == "{") {
-            parse_depth += 1;
-        }
-        if(token.head = "}") {
-            parse_depth -= 1;
-        }*/
 
         return token;
     }

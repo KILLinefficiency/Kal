@@ -207,13 +207,11 @@ namespace errors {
     }
 
     void file_does_not_exist_error(Globals& globals, std::string& file_name) {
-        //std::cerr << style::style["red"] << style::style["bold"] << "File: " << style::style["reset"] << style::style["red"] << " File `" << file_name << "` does not exist." << style::style["reset"] << std::endl;
         std::string line = "-";
         throw_err(globals, "File Not Found", "File {} not found.", { file_name });
     }
 
     void unidentified_keyword(Globals& globals, std::string& keyword) {
-        //std::cerr << style::style["red"] << style::style["bold"] << "Kal:" << style::style["reset"] << style::style["red"] << " Keyword `" << keyword << "` is unidentified." << style::style["reset"] << std::endl;
         throw_err(globals, "Kal Keyword", "Keyword {} is unidentified.", { keyword });
     }
 

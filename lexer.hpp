@@ -83,14 +83,11 @@ namespace lexer {
                     line++;
                 }
                 Functions::fn[function->name] = function;
-                //std::cout << "here: " << line << "\n";
-                //line++;
                 continue;
             }
             all_tokens.emplace_back(token);
             line++;
         }
-        //exit(1);
         return all_tokens;
     }
 }
