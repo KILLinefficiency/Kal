@@ -23,16 +23,6 @@
 #define TO_NULL(value) (dynamic_cast<Null*>(value))
 #define TO_REF(value)  (dynamic_cast<Ref*>(value))
 
-// std::vector<std::string> parse_map(std::string text, int& index) {
-//     index++;
-//     std::string contents = parser::extract_list(text, '(', index);
-//     contents = contents.substr(1, contents.size() - 2);
-
-//     int pos = 0;
-//     std::vector<std::string> vals = parser::parse_init(contents, pos, "->");
-//     return vals;
-// }
-
 Value* copy(Value*);
 
 Value* make_value(std::string value, Globals& globals) {
@@ -52,31 +42,24 @@ Value* make_value(std::string value, Globals& globals) {
     else if(value == "null") {
         val = new Null();
     }
-    else if(/*value[0] == '$'*/ parser::is_var(value)) {
+    else if(parser::is_var(value)) {
         val = VarTable::get(value, {}, false, false, true, globals);
     }
     return val;
 }
 
-///
 Ref::Ref(Value* val, Value* p) : ref(val), parent(p) {}
 std::string Ref::print() {
     return ref->print();
 }
 Ref::~Ref() {}
-///
 
-/// Null
 Null::Null() {}
 std::string Null::print() {
     return "null";
 }
 Null::~Null() {}
-///
 
-/// Number
-// maybe remove that eval.
-// eval will be done at the parser level.
 Number::Number() {}
 
 Number::Number(std::string Val) : val(Val) {}
@@ -84,9 +67,7 @@ std::string Number::print() {
     return val;
 }
 Number::~Number() {}
-///
 
-/// String
 String::String() {}
 
 String::String(std::string Str) {
@@ -108,9 +89,6 @@ String::~String() {
     delete[] str;
     str = nullptr;
 }
-///
-
-/// Char
 
 Char::Char() {}
 
@@ -129,40 +107,16 @@ void Char::change(char new_char) {
 
 Char::~Char() {}
 
-///
-
-/// List
-
 List::List() {}
 
 List::List(std::string list, Globals& globals) {
     int index = 0;
     std::vector<std::string> values = parser::parse_list(list, index);
     for(std::string v : values) {
-        //v = eval(v);
-        /*if(v[0] >= '0' && v[0] <= '9') {
-            items.emplace_back(new Number(v));
-        }
-        else if(v[0] == '"') {
-            items.emplace_back(new String(v.c_str()));
-        }
-        else if(v[0] == '[') {
-            items.emplace_back(new List(v));
-        }
-        else if(v[0] == '#' && v[1] == '(') {
-            items.emplace_back(new Dict(v));
-        }
-        else if(v == "null") {
-            items.emplace_back(new Null());
-        }
-        else if(v[0] == '$') {
-            items.emplace_back(VarTable::get(v, {}));
-        }*/
         if(v[0] == '.' && v[1] == '.' && v[2] == '.') {
             v = v.substr(3);
         }
         items.emplace_back(make_value(eval(v, globals), globals));
-        // 1st make_value
     }
 }
 
@@ -205,9 +159,7 @@ List::~List() {
         v = nullptr;
     }
 }
-///
 
-/// Dict
 Dict::Dict() {}
 
 Dict::Dict(std::string dict_val, Globals& globals) {
@@ -216,7 +168,6 @@ Dict::Dict(std::string dict_val, Globals& globals) {
     int size = kv.size();
     keys.reserve(size / 2);
     for(int i = 0; i < size; i += 2) {
-        // if the key already exists, then free it's value first.
         if(kv[i].size() > 3 && kv[i][0] == '.' && kv[i][1] == '.' && kv[i][2] == '.') {
             std::string spread_dict_name = kv[i].substr(3);
             Dict* spread_dict = TO_DICT(VarTable::get(spread_dict_name, {}, true, true, true, globals));
@@ -230,25 +181,6 @@ Dict::Dict(std::string dict_val, Globals& globals) {
             kv[i] = lib::resolve_string(kv[i]);
         }
         append_unique(kv[i], true);
-        //kv[i + 1] = eval(kv[i + 1]);
-        /*if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
-            dict[kv[i]] = new Number((kv[i + 1]));
-        }
-        else if(kv[i + 1][0] == '"') {
-            dict[kv[i]] = new String(kv[i + 1].c_str());
-        }
-        else if(kv[i + 1][0] == '[') {
-            dict[kv[i]] = new List(kv[i + 1]);
-        }
-        else if(kv[i + 1][0] == '#' && kv[i + 1][1] == '(') {
-            dict[kv[i]] = new Dict(kv[i + 1]);
-        }
-        else if(kv[i + 1] == "null") {
-            dict[kv[i]] = new Null();
-        }
-        else if(kv[i + 1][0] == '$') {
-            dict[kv[i]] = VarTable::get(kv[i + 1], {});
-        }*/
         dict[kv[i]] = make_value(eval(kv[i + 1], globals), globals);
     }
 }
@@ -273,9 +205,6 @@ std::string Dict::print() {
     for(std::string key : keys) {
         Value*& value = dict[key];
         disp << key << " -> ";
-        /*if(value->type == "Number") {
-            disp << ((Number*)value)->print();
-        }*/
         if(TO_NUM(value)) {
             disp << TO_NUM(value)->print();
         }
@@ -319,7 +248,6 @@ Dict::~Dict() {
         }
     }
 }
-///
 
 Value* copy(Value* value) {
     Value* duplicate = nullptr;
@@ -358,7 +286,6 @@ Value* copy(Value* value) {
         }
     }
     else if(TO_REF(value)) {
-        // check it it's necessary to copy the parent pointer too.
         duplicate = new Ref(TO_REF(value)->ref);
     }
 
@@ -368,31 +295,18 @@ Value* copy(Value* value) {
 }
 
 namespace RefTable {
-    //std::vector<Value*> variables;
     std::unordered_map<Value*, uint64_t> variables;
     std::vector<std::vector<Ref*>> references;
 
     void add(Value*& val) {
-        /*std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), val);
-        if(idx_itr == variables.end()) {
-            variables.emplace_back(val);
-            references.emplace_back(std::vector<Ref*> {});
-        }*/
         bool exists = variables[val] != 0;
         if(!exists) {
             variables[val] = references.size() + 1;
-            // std::cout << val << " : " << variables[val] << "\n";
             references.emplace_back(std::vector<Ref*> {});
         }
     }
 
     void add_ref(Value*& var, Ref* var_ref) {
-        /*std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), var);
-        if(idx_itr != variables.end()) {
-            int idx = idx_itr - variables.begin();
-            references[idx].emplace_back(var_ref);
-        }*/
-        // std::cout << variables.size() << " " << references.size() << "\n";
         bool exists = variables[var] != 0;
         if(exists) {
             int idx = variables[var] - 1;
@@ -401,15 +315,6 @@ namespace RefTable {
     }
 
     void change_var(Value* old_var, Value* new_var) {
-        /*std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), old_var);
-        if(idx_itr != variables.end()) {
-            int idx = idx_itr - variables.begin();
-            // delete variables[idx];
-            variables[idx] = new_var;
-            for(Ref*& r : references[idx]) {
-                r->ref = new_var;
-            }
-        }*/
         bool exists = variables[old_var] != 0;
         if(exists) {
             int idx = variables[old_var];
@@ -442,7 +347,6 @@ namespace VarTable {
                 if(top.second >= depth) {
                     delete top.first;
                     val->shadow->pop();
-                    //std::cout << "Shadow Stack Size: " << val->shadow->size();
                     if(val->shadow->size() == 0) {
                         val->gc_shadow();
                     }
@@ -476,34 +380,23 @@ namespace VarTable {
     }
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original, Globals& globals) {
-        // eval the inert var when it's used.
         int& depth = globals.depth;
         Memory& memory = globals.memory;
 
         if(name[0] >= '0' && name[0] <= '9') {
             return nullptr;
         }
-        if(name != "" && InertTable::vars[name/*.substr(1)*/] != "" && !InertTable::is_hit[name/*.substr(1)*/]) {
-            std::string Name = name/*.substr(1)*/;
-            //std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
+        if(name != "" && InertTable::vars[name] != "" && !InertTable::is_hit[name]) {
+            std::string Name = name;
             set(Name, InertTable::vars[Name], nullptr, VAR, false, depth, false, globals);
             InertTable::is_hit[Name] = true;
         }
-        //
 
-        if(name != "" && memory[name/*.substr(1)*/] != nullptr) {
-            Value* fetched_var = memory[name/*.substr(1)*/];
+        if(name != "" && memory[name] != nullptr) {
+            Value* fetched_var = memory[name];
             Value* ret_var = nullptr;
             if(fetched_var != nullptr && fetched_var->shadow != nullptr && fetched_var->shadow->size() != 0) {
                 ret_var = fetched_var->shadow->top().first;
-                // ret_var is nullptr in this case.
-
-                //std::cout << "stack size: " << fetched_var->shadow.size() << " " << ret_var << "\n";
-                //fetched_var->shadow.pop();
-                //std::cout << "ret_var:" << ret_var << "\n";
-                ///return copy(ret_var);
-                //if(name.substr(1) == "n") { std::cout << "n real val: " << ret_var->print() << "\n"; }
-                //std::cout << "Ret Var: " << ret_var << "\n";
                 return (for_print) ? ret_var : copy(ret_var);
             } 
         }
@@ -513,32 +406,22 @@ namespace VarTable {
         }
 
         std::string var_name = symbols[0];
-        /*if(var_name[0] != '$') {
-            std::cout << "expected $\n";
-            exit(0);
-        }*/
         bool is_ref = false;
-        //uint8_t pos = /*1*/ 0;
-        if(var_name[/*1*/ 0] == '&') {
+        if(var_name[0] == '&') {
             is_ref = true;
             var_name = var_name.substr(1);
-            //pos++;
         }
-        //var_name = var_name.substr(pos);
         Value* var = memory[var_name];
         int size = symbols.size();
         int bound = size;
 
-        //bool at_parent = false;
         if(var == nullptr) {
-            //errors::undefined_var(call_stack, name, name);
             return var;
         }
         Value* p = nullptr;
         if(size > 1) {
             if(update && !for_print) {
                 bound--;
-                //at_parent = true;
             }
             for(int i = 1; i < bound; i++) {
                 if(TO_REF(var)) {
@@ -579,19 +462,9 @@ namespace VarTable {
                 if(!update && bound == 2) {
                     p = memory[var_name];
                 }
-                // make experiments to check if it should be -1 or -2.
                 else if(!update && i == size - 2) {
                     p = var;
                 }
-                /*if(at_parent) {
-                    p = var;
-                }*/
-                /*else {
-                    if(i == size - 2) {
-                        std::cout << "p: " << var << "\n";
-                        p = var;
-                    }
-                }*/
             }
         }
 
@@ -622,21 +495,16 @@ namespace VarTable {
         int index = 0;
         Value* packed_items = nullptr;
         bool is_literal = false;
-        // parse the list like dict here.
-        //std::vector<std::string> items;
         if(list[0] == '#' && list[1] == '(') {
             int end = list.size();
-            //list[0] = ' ';
             list[1] = '[';
             list[end - 1] = ']';
             index++;
         }
-        //std::cout << "literal: " << list << std::endl;
         std::vector<std::string> items = parser::parse_list(list, index);
-        //
         uint64_t len = items.size();
         if(structure != "" && data_ptr == nullptr) {
-            if(/*structure[0] == '$'*/ parser::is_var(structure)) {
+            if(parser::is_var(structure)) {
                 packed_items = get(structure, {}, true, true, true, globals);
             }
             else {
@@ -655,8 +523,8 @@ namespace VarTable {
 
         if(TO_LIST(packed_items)) {
             if(len > (TO_LIST(packed_items))->items.size()) {
-                // add proper error msg here.
-                std::cerr << "more than enough items to unpack" << std::endl;
+                // ERR:
+                errors::items_unpack(globals);
                 if(is_literal) {
                     delete packed_items;
                 }
@@ -702,11 +570,6 @@ namespace VarTable {
 
     void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing, Globals& globals) {
         Memory& memory = globals.memory;
-        //std::cout << "raw: " << data << std::endl;
-        //if(allow_shadowing)
-        //    std::cout << "Setting " << var << " to " << data << "\n";
-        //else
-        //    std::cout << "Re-assigning " << var << " to " << data << "\n";*/
 
         bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
@@ -714,11 +577,9 @@ namespace VarTable {
             return;
         }
         if(type == INERT) {
-            //std::cout << "to_inert: " << var << " = " << data << "\n";
             InertTable::vars[var] = data;
             InertTable::is_hit[var] = false;
             return;
-            // Need to modify eval to get var reading complete.
         }
         if(data != "") {
             data = eval(data, globals);
@@ -728,14 +589,9 @@ namespace VarTable {
             ScopeTable::scope[var] = depth;
         }
 
-
-        //std::cout << "eval: " << data << std::endl;
-        Value* ptr = VarTable::get(var/*.substr(1)*/, {}, true, true, true, globals);
-        if(/*var[0] == '$'*/ ptr != nullptr && !allow_shadowing && parser::is_var(var)) {
-            // TODO: the same for Strings. (DONE)
-            // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
-            //std::cout << "Mem Value = " << ptr << "\n";
-            if(data != "" && /*data[0] == '$'*/ parser::is_var(data)) {
+        Value* ptr = VarTable::get(var, {}, true, true, true, globals);
+        if(ptr != nullptr && !allow_shadowing && parser::is_var(var)) {
+            if(data != "" && parser::is_var(data)) {
                 Value* d_ptr = VarTable::get(data, {}, true, true, true, globals);
                 if(TO_REF(d_ptr)) {
                     d_ptr = TO_REF(d_ptr)->ref;
@@ -751,9 +607,7 @@ namespace VarTable {
                 ptr = TO_REF(ptr)->ref;
             }
             if(TO_NUM(ptr) && data != "") {
-                // check if the second value is also of the same type. (tbd)
-                TO_NUM(ptr)->val = data; //(dynamic_cast<Number*>(value))->val;
-                //delete value;
+                TO_NUM(ptr)->val = data;
                 return;
             }
             else if(TO_STR(ptr) && data != "") {
@@ -763,36 +617,17 @@ namespace VarTable {
             else if(TO_CHAR(ptr)) {
                 // validate so that size is only 3 e.g "X" -> 3.
                 TO_CHAR(ptr)->change(data[1]);
-                //delete ptr;
-                //return;
             }
         }
         if(var[0] == '&') {
             errors::invalid_ref_assign(globals);
         }
-        
 
         Value* value = nullptr;
         if(data == "" && data_ptr != nullptr) {
             value = disallow_copy ? data_ptr : copy(data_ptr);
         }
-
-        /*else if(data[0] >= '0' && data[0] <= '9') {
-            value = new Number(data);
-        }
-        else if(data[0] == '"') {
-            value = new String(data);
-        }
-        else if(data[0] == '[') {
-            value = new List(data);
-        }
-        else if(data[0] == '#' && data[1] == '(') {
-            value = new Dict(data);
-        }
-        else if(data == "null") {
-            value = new Null();
-        }*/
-        else if(/*data[0] == '$'*/ parser::is_var(data)) {
+        else if(parser::is_var(data)) {
             value = get(data, {}, false, false, true, globals);
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
@@ -800,25 +635,23 @@ namespace VarTable {
             }
         }
         else {
-            //std::cout << "Shadowing Value 1: " << value << "\n";
-            //std::cout << "Data: " << data << "\n";
             value = make_value(data, globals);
-            //std::cout << "Shadowing Value 2: " << value << "\n";
         }
 
-        if(allow_shadowing && memory[var] != nullptr /*&& var[0] != '$'*/) {
+        if(allow_shadowing && memory[var] != nullptr) {
             if(memory[var]->shadow == nullptr) {
                 memory[var]->init_shadow();
             }
+            // if(ScopeTable::scope[var] == depth) {
+            //     // ERR:
+            //     errors::var_redeclare(globals, var);
+            // }
             memory[var]->shadow->push({ value, depth });
             is_shadowed = true;
-            //return;
         }
 
-        if(/*var[0] == '$'*/ ptr != nullptr && !allow_shadowing && parser::is_var(var)) {
-            //
-            //
-            std::string v_name = var/*.substr(1)*/;
+        if(ptr != nullptr && !allow_shadowing && parser::is_var(var)) {
+            std::string v_name = var;
             if(memory[v_name] != nullptr) {
                 if(TO_REF(memory[v_name])) {
                     Memory::iterator itr;
@@ -853,7 +686,6 @@ namespace VarTable {
                                 }
                             }
                         }
-                        // TODO: perform the same operation for dict as done for list above. (done)
                         else if(TO_DICT(parent_val)) {
                             Dict* p_dict = TO_DICT(parent_val);
                             std::unordered_map<std::string, Value*>::iterator itr;
@@ -879,15 +711,13 @@ namespace VarTable {
                 std::string last_symbol = lib::resolve_string(syms[syms.size() - 1]);
                 if(TO_DICT(ptr) && (TO_DICT(ptr)->dict[last_symbol] == nullptr)) {
                     TO_DICT(ptr)->append_unique(last_symbol, true);
-                    TO_DICT(ptr)->dict[last_symbol] = value;//make_value(data, globals);
+                    TO_DICT(ptr)->dict[last_symbol] = value;
                     return;
                 }
                 Value* v = get("", syms, true, false, true, globals);
 
 
-                // get the orignal val and check if it's a ref. if yes, then use the upper and below method to change it.
                 Value* ov = get("", syms, false, false, false, globals);
-                //std::cout << "---> " << ov->print() << std::endl;
                 bool is_ref = false;
                 if(TO_REF(ov)) {
                     is_ref = true;
@@ -895,11 +725,8 @@ namespace VarTable {
                 delete ov;
 
                 if(TO_LIST(v)) {
-                    ////Value* r = new Ref(value); //
                     if(is_ref) {
-                        //RefTable::change_var((dynamic_cast<Ref*>(ov))->ref, value);
                         Value* tmp = TO_REF((TO_LIST(v)->items[std::stoi(last_symbol)]))->ref;
-                        //
                         bool found = false;
                         Memory::iterator itr;
                         for(itr = memory.begin(); itr != memory.end(); itr++) {
@@ -911,7 +738,6 @@ namespace VarTable {
                         }
                         if(!found) {
                             Value* tmp_parent = TO_REF((TO_LIST(v)->items[std::stoi(last_symbol)]))->parent;
-                            // NEW TODO: Might need to implement the below logic for Dict and wrap the overall code in a different function.
                             if(dynamic_cast<List*>(tmp_parent)) {
                                 List* tmp_pd = TO_LIST(tmp_parent);
                                 for(uint64_t x = 0; x < tmp_pd->items.size(); x++) {
@@ -922,24 +748,18 @@ namespace VarTable {
                                 }
                             }
                         }
-                        //
                         TO_REF((TO_LIST(v)->items[std::stoi(last_symbol)]))->ref = value;
-                        //RefTable::change_var( (dynamic_cast<Ref*>((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref, value );
                         RefTable::change_var(tmp, value);
                         delete tmp;
                     }
                     else {
                         Value* prev_val = TO_LIST(v)->items[std::stoi(last_symbol)];
-                        //delete (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)];
                         TO_LIST(v)->items[std::stoi(last_symbol)] = value;
                         RefTable::change_var(prev_val, value);
-                        // maybe this line should not exist, but it also prevents the memory leak from happening... investigate more.
-                        // this line cause segfaults (as it should for other cases.)
                         delete prev_val;
                     }
                 }
                 else if(TO_DICT(v)) {
-                    // TODO: Write code for replacing when item is Ref as done above in List.
                     if(is_ref) {
                         Value* tmp = TO_REF(TO_DICT(v)->dict[last_symbol])->ref;
                         bool found = false;
@@ -952,7 +772,6 @@ namespace VarTable {
                         }
                         if(!found) {
                             Value* tmp_parent = TO_REF(TO_DICT(v)->dict[last_symbol])->parent;
-                            // NEW TODO: Might need to implement the below logic for Dict and wrap the overall code in a different function.
                             if(TO_LIST(tmp_parent)) {
                                 List* tmp_pd = TO_LIST(tmp_parent);
                                 for(uint64_t x = 0; x < tmp_pd->items.size(); x++) {
@@ -968,7 +787,6 @@ namespace VarTable {
                         delete tmp;
                     }
                     else {
-                        // add change_ref() logic here.
                         last_symbol = lib::resolve_string(last_symbol);
                         Value* old = TO_DICT(v)->dict[last_symbol];
                         RefTable::change_var(old, value);
@@ -978,13 +796,11 @@ namespace VarTable {
                     }
                 }
             }
-            ///
             RefTable::add(value);
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
                 RefTable::add_ref(TO_REF(value)->ref, TO_REF(value));
             }
-            ///
         }
         else {
             if(!is_shadowed) {
@@ -993,13 +809,11 @@ namespace VarTable {
                 }
                 memory[var] = value;
             }
-            ///
             RefTable::add(value);
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
                 RefTable::add_ref(TO_REF(value)->ref, TO_REF(value));
             }
-            ///
         }
     }
 
@@ -1020,10 +834,6 @@ namespace VarTable {
 
     std::string print(std::string var, Globals& globals) {
         Value* v = get(var, {}, true, true, true, globals);
-        ////std::cout << v << "\n";
-        //std::cout << var << " " << v << std::endl;
-        //std::cout << v->print() << std::endl;
-        //std::cout << "v: " << v << "\n";
         if(v == nullptr) {
             errors::undefined_var(globals, var);
         }
@@ -1203,7 +1013,7 @@ bool compare(std::string first, std::string second, Globals& globals) {
     Value* b = nullptr;
     bool result = true;
     bool a_temp = false, b_temp = false;
-    if(/*first[0] == '$'*/ parser::is_var(first)) {
+    if(parser::is_var(first)) {
         a = VarTable::get(first, {}, true, true, true, globals);
     }
     else if(first[0] == '[') {
@@ -1215,7 +1025,7 @@ bool compare(std::string first, std::string second, Globals& globals) {
         a_temp = true;
     }
 
-    if(/*second[0] == '$'*/ parser::is_var(second)) {
+    if(parser::is_var(second)) {
         b = VarTable::get(second, {}, true, true, true, globals);
     }
     else if(second[0] == '[') {
@@ -1242,7 +1052,7 @@ bool compare(std::string first, std::string second, Globals& globals) {
 bool compare(Value* first, std::string second, Globals& globals) {
     Value* b = nullptr;
     bool temp = false;
-    if(/*second[0] == '$'*/ parser::is_var(second)) {
+    if(parser::is_var(second)) {
         b = VarTable::get(second, {}, true, true, true, globals);
     }
     if(second[0] == '[') {

@@ -182,10 +182,10 @@ namespace errors {
         throw_err(globals, "Expression", "Cannot use operator {} on " + type + " {} and {}.", { op, val1, val2 });
     }
     
-    void var_redeclare(std::string var_name, std::string var_type) {
-        std::cerr << style::style["red"] << style::style["bold"] << "Variable:" << style::style["reset"] << style::style["red"] << " Variable `" << var_name << "` of type `" << var_type << "` already exists." << style::style["reset"] << std::endl;
-        exit(1);
-    }
+    // void var_redeclare(std::string var_name, std::string var_type) {
+    //     std::cerr << style::style["red"] << style::style["bold"] << "Variable:" << style::style["reset"] << style::style["red"] << " Variable `" << var_name << "` of type `" << var_type << "` already exists." << style::style["reset"] << std::endl;
+    //     exit(1);
+    // }
 
     void undefined_var(Globals& globals, std::string& var_name) {
         throw_err(globals, "Variable Undefined", "Variable {} is undefined.", { var_name });
@@ -241,5 +241,21 @@ namespace errors {
 
     void invalid_ref_assign(Globals& globals) {
         throw_err(globals, "Assignment", "Cannot use & for variable naming.");
+    }
+
+    void invalid_continue(Globals& globals) {
+        throw_err(globals, "Control Flow", "Invalid use of the continue keyword.");
+    }
+
+    void invalid_break(Globals& globals) {
+        throw_err(globals, "Control Flow", "Invalid use of the break keyword.");
+    }
+
+    void items_unpack(Globals& globals) {
+        throw_err(globals, "Unpack", "More than enough items to unpack.");
+    }
+
+    void var_redeclare(Globals& globals, const std::string& var_name) {
+        throw_err(globals, "Scope", "Variable {} redeclared within same scope.", { var_name });
     }
 }

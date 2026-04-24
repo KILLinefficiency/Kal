@@ -436,6 +436,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 loop_stack.pop();
                 continue;
             }
+            else {
+                errors::invalid_continue(globals);
+            }
         }
 
         else if(ins == "break") {
@@ -453,6 +456,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     VarTable::gc_by_names(init_loop.top().second, globals);
                     init_loop.pop();
                 }
+            }
+            else {
+                errors::invalid_break(globals);
             }
         }
 
