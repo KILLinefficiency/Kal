@@ -258,4 +258,9 @@ namespace errors {
     void var_redeclare(Globals& globals, const std::string& var_name) {
         throw_err(globals, "Scope", "Variable {} redeclared within same scope.", { var_name });
     }
+
+    void expected_arguments(Globals& globals, const std::string& head, int arg_num) {
+        std::string label = arg_num == 1 ? "argument" : "arguments";
+        throw_err(globals, "Argument", "Expected {} {} for {}.", { std::to_string(arg_num), label, head });
+    }
 }

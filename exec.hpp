@@ -14,6 +14,8 @@
 #include <utility>
 #include <tuple>
 
+#define EXPECT(ARGS) if(cmd_size != ARGS) { errors::expected_arguments(globals, ins, ARGS); }
+
 namespace parser {
     void std_out(std::string out_text, Globals& globals) {
         if(parser::is_var(out_text)) {
@@ -544,6 +546,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         else if(ins == "push") {
             int allow_insert = false;
             int insert_index = 0;
+            if(cmd_size <= 1 || cmd_size > 3) {
+                errors::expected_arguments(globals, ins, 2);
+            }
             if(cmd.values.size() == 3) {
                 allow_insert = true;
                 insert_index = std::stoi(cmd.values[2]);
@@ -552,6 +557,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "len") {
+            EXPECT(1);
+
             Value* ret_size = lib::list_len(cmd.values[0], globals);
 
             if(cmd.target == "") {
@@ -562,6 +569,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "first") {
+            EXPECT(1);
             Value* first = lib::list_first(cmd.values[0], globals);
             if(cmd.target == "") {
                 return first;
@@ -571,6 +579,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "last") {
+            EXPECT(1);
             Value* last = lib::list_last(cmd.values[0], globals);
             if(cmd.target == "") {
                 return last;
@@ -580,18 +589,22 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "pop") {
+            EXPECT(1);
             lib::list_pop(cmd.values[0], globals);
         }
 
         else if(ins == "popFirst") {
+            EXPECT(1);
             lib::list_pop_first(cmd.values[0], globals);
         }
 
         else if(ins == "reverse") {
+            EXPECT(1);
             lib::list_reverse(cmd.values[0], globals);
         }
         
         else if(ins == "extend") {
+            EXPECT(2);
             Value* extended_list = lib::list_extend(cmd.values, globals);
 
             if(cmd.target == "") {
@@ -602,6 +615,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
         
         else if(ins == "flat") {
+            if(cmd_size < 1 || cmd_size > 2) {
+                errors::expected_arguments(globals, ins, 2);
+            }
             int level = 1;
             if(cmd.values.size() == 2) {
                 level = std::stoi(cmd.values[1]);
@@ -617,6 +633,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "keys") {
+            EXPECT(1);
             Value* keys = lib::dict_keys(cmd.values[0], globals);
             if(cmd.target == "") {
                 return keys;
@@ -625,6 +642,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "values") {
+            EXPECT(1);
             Value* values = lib::dict_values(cmd.values[0], globals);
             if(cmd.target == "") {
                 return values;
@@ -633,6 +651,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "items") {
+            EXPECT(1);
             Value* items = lib::dict_items(cmd.values[0], globals);
             if(cmd.target == "") {
                 return items;
@@ -641,6 +660,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "update") {
+            EXPECT(2);
             Value* updated_dict = lib::dict_update(cmd.values[0], cmd.values[1], globals);
             if(cmd.target == "") {
                 return updated_dict;
@@ -649,6 +669,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "exists") {
+            EXPECT(2);
             Value* exists = lib::dict_key_exists(cmd.values[0], cmd.values[1], globals);
             if(cmd.target == "") {
                 return exists;
