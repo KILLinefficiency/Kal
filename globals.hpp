@@ -16,7 +16,7 @@ struct Globals {
     DeferStack defer_stack;
     CallStack call_stack;
     bool error_exit = true;
-    std::string* current_line;
+    std::string* current_line = nullptr;
 };
 
 Globals globals;

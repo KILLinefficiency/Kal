@@ -70,6 +70,7 @@ namespace lexer {
                     std::string inner_head = get_head(source_lines[line]);
                     Config* inner_config = p_config::get_config(source_lines[line], inner_head/*, globals*/);
                     fn_line = parser::parse(source_lines[line], inner_config, inner_head);
+                    fn_line.line = &source_lines[line];
                     int values_size = fn_line.values.size();
                     if(values_size != 0 && fn_line.values[values_size - 1] == "{") {
                         fn_depth++;
