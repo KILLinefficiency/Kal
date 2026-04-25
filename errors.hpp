@@ -263,4 +263,12 @@ namespace errors {
         std::string label = arg_num == 1 ? "argument" : "arguments";
         throw_err(globals, "Argument", "Expected {} {} for {}.", { std::to_string(arg_num), label, head });
     }
+
+    void fn_extra_args(Globals& globals, const std::string& fn_name) {
+        throw_err(globals, "Argument", "More than expected arguments for function {}.", { fn_name });
+    }
+
+    void fn_less_args(Globals& globals, const std::string& fn_name) {
+        throw_err(globals, "Argument", "No enough arguments passed to function {}.", { fn_name });
+    }
 }

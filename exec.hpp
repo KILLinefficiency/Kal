@@ -144,6 +144,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
             depth++;
             int arg;
+            int all = (fn->init.size() / 2);
+            // if args_size > all, error: extra args.
+            if(!is_variadic && (args_size > all)) {
+                errors::fn_extra_args(globals, fn_name);
+            }
             for(arg = 0; arg < args_size; arg++) {
                 if(fn->init[arg * 2][0] == '.') {
                     break;
@@ -166,27 +171,39 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true, globals);
             }
 
-            int all = (fn->init.size() / 2);
+            // bring rest outside.
+            int arg_count = arg;
             for(int rest = arg; rest < all; rest++) {
                 if(is_variadic && (rest >= last_arg)) {
                     break;
                 }
                 std::string& r_val = fn->init[(rest * 2) + 1];
+                if(r_val != "undef") {
+                    arg_count++;
+                }
                 if(r_val[0] == '(') {
                     r_val = eval(r_val, globals);
                 }
                 VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth, true, globals);
             }
 
+            int i = last_arg;
             if(is_variadic) {
                 std::string variadic_arg = fn->init[last_arg * 2].substr(3);
                 List* variadic_values = new List();
                 variadic_values->items.reserve(args_size - last_arg);
-                for(int i = last_arg; i < args_size; i++) {
+                for(/*int*/ i = last_arg; i < args_size; i++) {
                     variadic_values->items.emplace_back(make_value(cmd.values[i], globals));
                 }
                 // see if direct assignment can be made instead of copy.
                 VarTable::set(variadic_arg, "", variadic_values, VAR, true, depth, true, globals);
+            }
+
+            // if rest < all - 1, error: not enough args.
+            // std::cout << "Arg Count: " << arg_count << " Arg: " << arg << " All: " << all << "\n";
+            // std::cout << "Variadic: " << is_variadic << "\n";
+            if(/*arg < all*/ /*rest < all*/ !is_variadic && (arg_count < all)) {
+                errors::fn_less_args(globals, fn_name);
             }
 
             globals.call_stack.push(std::pair<std::string, int> { fn_name, depth });
