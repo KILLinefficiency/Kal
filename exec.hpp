@@ -9,6 +9,7 @@
 #include "lib/lib_string.hpp"
 #include "lib/lib_list.hpp"
 #include "lib/lib_dict.hpp"
+#include "lib/lib_serialize.hpp"
 
 #include <stack>
 #include <utility>
@@ -562,6 +563,16 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             for(int start_val = 0; start_val < cmd_size; start_val++) {
                 parser::std_out(cmd.values[start_val], globals);
             }
+        }
+
+        else if(ins == "binWrite") {
+            EXPECT(2);
+            lib::serialize(lib::resolve_string(cmd.values[1]), cmd.values[0], globals);
+        }
+
+        else if(ins == "binRead") {
+            EXPECT(1);
+            lib::deserialize(lib::resolve_string(cmd.values[0]), cmd.target, globals);
         }
 
         else if(ins == "push") {

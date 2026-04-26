@@ -33,5 +33,5 @@ namespace VarTable {
     // {}, false, false, true
     Value* get(std::string, std::vector<std::string>, bool, bool, bool, Globals&);
     // nullptr, VAR, false, 0, false
-    void set(std::string var, std::string data, Value* data_ptr, Type type , bool disallow_copy, int depth, bool allow_shadowing, Globals& globals);
+    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing, Globals& globals);
 }

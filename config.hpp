@@ -139,6 +139,8 @@ namespace p_config {
         { "items", &group_3 },
         { "update", &group_3 },
         { "exists", &group_3 },
+        { "binWrite", &group_3 },
+        { "binRead", &group_3 },
 
         { "if", &group_4 },
         { "else", &group_4 },
