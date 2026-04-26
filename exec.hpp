@@ -191,7 +191,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             if(is_variadic) {
                 std::string variadic_arg = fn->init[last_arg * 2].substr(3);
                 List* variadic_values = new List();
-                variadic_values->items.reserve(args_size - last_arg);
+                std::cout << "Args Size: " << args_size << " Last Arg: " << last_arg << "\n";
+                int to_reserve = args_size - last_arg;
+                if(to_reserve > 0) {
+                    variadic_values->items.reserve(to_reserve);
+                }
                 for(/*int*/ i = last_arg; i < args_size; i++) {
                     variadic_values->items.emplace_back(make_value(cmd.values[i], globals));
                 }
