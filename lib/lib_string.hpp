@@ -149,6 +149,24 @@ namespace lib {
 
         return resolved_string;
     }
+    std::string resolve_string(std::string text, Globals& globals) {
+        std::string resolved_string = text;
+
+        int text_size = text.size();
+        if(text[0] != '"' || text[text_size - 1] != '"') {
+            Value* value = VarTable::get(text, {}, true, true, true, globals);
+            if(value != nullptr) {
+                resolved_string = (dynamic_cast<String*>(value))->str;
+                text_size = resolved_string.size();
+            }
+            else {
+                errors::undefined_var(globals, text);
+            }
+        }
+
+        resolved_string = resolved_string.substr(1, text_size - 2);
+        return resolved_string;
+    }
 
     std::vector<std::string> split(std::string& text, char delimiter = '.', char secondary_id = '@', char secondary_delimiter = '\n', char escape_char = '"') {
         int index = 0;

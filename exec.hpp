@@ -566,12 +566,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         else if(ins == "binWrite") {
             EXPECT(2);
-            lib::serialize(lib::resolve_string(cmd.values[1]), cmd.values[0], globals);
+            BoxedValue data = get_or_make(cmd.values[0], globals);
+            lib::serialize(lib::resolve_string(cmd.values[1], globals), data.value);
+            data.gc();
         }
 
         else if(ins == "binRead") {
             EXPECT(1);
-            lib::deserialize(lib::resolve_string(cmd.values[0]), cmd.target, globals);
+            lib::deserialize(lib::resolve_string(cmd.values[0], globals), cmd.target, globals);
         }
 
         else if(ins == "push") {
