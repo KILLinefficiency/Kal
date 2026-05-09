@@ -131,6 +131,7 @@ namespace p_config {
 
         { "stdin", &group_3 },
         { "style", &group_3 },
+        { "type", &group_3 },
         { "push", &group_3 },
         { "len", &group_3 },
         { "first", &group_3 },

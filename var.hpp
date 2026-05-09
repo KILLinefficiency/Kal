@@ -1098,3 +1098,27 @@ BoxedValue get_or_make(std::string var, Globals& globals) {
 
     return fetched_value;
 }
+
+std::string get_type(std::string var, Globals& globals) {
+    BoxedValue value = get_or_make(var, globals);
+    std::string type = "";
+
+    if(TO_NUM(value.value)) {
+        type = TO_NUM(value.value)->type;
+    }
+    else if(TO_STR(value.value)) {
+        type = TO_STR(value.value)->type;
+    }
+    else if(TO_LIST(value.value)) {
+        type = TO_LIST(value.value)->type;
+    }
+    else if(TO_DICT(value.value)) {
+        type = TO_DICT(value.value)->type;
+    }
+    else if(TO_NULL(value.value)) {
+        type = TO_NULL(value.value)->type;
+    }
+
+    value.gc();
+    return type;
+}

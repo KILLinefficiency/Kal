@@ -23,7 +23,7 @@ namespace parser {
             std::cout << lib::resolve_string(VarTable::print(out_text, globals));
             return;
         }
-        else if(out_text[0] == '(') {
+        else if(out_text[0] == '$' || out_text[0] == '(') {
             std::cout << lib::resolve_string(eval(out_text, globals));
             return;
         }
@@ -501,7 +501,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 exit(0);
             }
             else {
-                int exit_code = stoi(cmd.values[1]);
+                int exit_code = stoi(cmd.values[0]);
                 exit(exit_code);
             }
         }
@@ -729,6 +729,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 return exists;
             }
             VarTable::set(cmd.target, "", exists, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "type") {
+            EXPECT(1);
+            std::string type_str = get_type(eval(cmd.values[0], globals), globals);
+            Value* type = new String('"' + type_str + '"');
+            if(cmd.target == "") {
+                return type;
+            }
+
+            VarTable::set(cmd.target, "", type, VAR, true, depth, true, globals);
         }
 
         if(cmd_values_modified) {
