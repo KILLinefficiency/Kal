@@ -271,4 +271,8 @@ namespace errors {
     void fn_less_args(Globals& globals, const std::string& fn_name) {
         throw_err(globals, "Argument", "No enough arguments passed to function {}.", { fn_name });
     }
+
+    void invalid_ref(Globals& globals, const std::string& ref_name) {
+        throw_err(globals, "Reference", "Dangling reference {} found.", { ref_name });
+    }
 }
