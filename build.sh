@@ -63,24 +63,38 @@ function run_tests() {
 }
 
 function compile() {
-    echo -e "${GREEN} * Compiling Kal${DEFAULT}"
+    start=$(date +%s)
+
+    echo -en "${GREEN} * Compiling Kal${BLUE}        "
     ! [ -d bin ] && mkdir bin
     ${CC} ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
+
+    end=$(date +%s)
+    echo -en "[" $((end - start)) "sec ]${DEFAULT}\n"
 }
 
 function embed() {
-    echo -e "${GREEN} * Compiling libkal.o${DEFAULT}"
+    start=$(date +%s)
+    echo -en "${GREEN} * Compiling libkal.o${BLUE}   "
     ! [ -d bin ] && mkdir bin
     cp ./embed/kal.hpp ./bin/
     ${CC} -c -s ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${LIBKAL_SRC} -o ${O_FILE}
+    end=$(date +%s)
+    echo -en "[" $((end - start)) "sec ]${DEFAULT}\n"
 
-    echo -e "${GREEN} * Compiling libkal.a${DEFAULT}"
+    start=$(date +%s)
+    echo -en "${GREEN} * Compiling libkal.a${BLUE}   "
     ar crf ${AR_FILE} ${O_FILE}
+    end=$(date +%s)
+    echo -en "[" $((end - start)) "sec ]${DEFAULT}\n"
 
-    echo -e "${GREEN} * Compiling libkal.so${DEFAULT}"
+    start=$(date +%s)
+    echo -en "${GREEN} * Compiling libkal.so${BLUE}  "
     ${CC} -c -s -fPIC ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${DYNAMIC_LIBKAL_SRC} -o ${LIBKAL_DYNAMIC_TEMP_OBJ}
     ${CC} -shared ${LIBKAL_DYNAMIC_TEMP_OBJ} -o ${LIBKAL_SHARED_OBJ}
     rm ${LIBKAL_DYNAMIC_TEMP_OBJ}
+    end=$(date +%s)
+    echo -en "[" $((end - start)) "sec ]${DEFAULT}\n"
 }
 
 function vim_ft() {
