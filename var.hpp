@@ -627,6 +627,9 @@ namespace VarTable {
         if(data == "" && data_ptr != nullptr) {
             value = disallow_copy ? data_ptr : copy(data_ptr);
         }
+        else if(data == "null") {
+            value = new Null();
+        }
         else if(parser::is_var(data)) {
             value = get(data, {}, false, false, true, globals);
             if(TO_REF(value)) {

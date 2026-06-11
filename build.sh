@@ -108,8 +108,11 @@ function vim_ft() {
 }
 
 function install() {
+    ${SU} echo ""
     compile
     embed
+
+    echo ""
     echo -e "${GREEN} * Installing Kal to /usr/local/bin/${DEFAULT}"
     ${SU} cp $BIN_FILE /usr/local/bin/kal
     

@@ -787,10 +787,11 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
         }
     }
 
-    if(numbers.size() != 1) {
-        // ERR:
-        errors::invalid_expression(numbers.top());
-    }
+    // need to fix.
+    // if(numbers.size() != 1) {
+    //     // ERR:
+    //     errors::invalid_expression(numbers.top());
+    // }
 
     result = lib::trim_num(numbers.top());
     numbers.pop();
