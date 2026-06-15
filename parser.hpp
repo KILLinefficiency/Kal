@@ -193,10 +193,9 @@ namespace parser {
         return text.substr(start, index - start + 1);
     }
 
-    // Merge the below two versions into one if possible. Also I might need same type of function to extract $[] and $(), so it's better to have one.
     std::string extract_fstr(const std::string& text, int& index) {
         index++;
-        std::string required_fstr = 'f' + extract_list(text, '[', index);
+        std::string required_fstr = 'f' + extract_list(text, '(', index);
         return required_fstr;
     }
 
@@ -296,7 +295,7 @@ namespace parser {
     std::vector<std::string> parse_fstr(const std::string& text, int& index) {
         index++;
         std::vector<std::string> values;
-        std::string contents = extract_list(text, '[', index);
+        std::string contents = extract_list(text, '(', index);
         contents = contents.substr(1, contents.size() - 2);
         int begin = 0;
         int end = 0;
@@ -350,9 +349,9 @@ namespace parser {
                 index++;
                 continue;
             }
-            if(match(index, text, "f[", false)) {
+            if(match(index, text, "f(", false)) {
                 index++;
-                skip_list(text, '[', index);
+                skip_list(text, '(', index);
             }
             if(match(index, text, "#(", false)) {
                 index++;
@@ -428,7 +427,7 @@ namespace parser {
         else if(text[index] == '"') {
             required_token = parse_string(text, index);
         }
-        else if(match(index, text, "f[", false)) {
+        else if(match(index, text, "f(", false)) {
             required_token = extract_fstr(text, index);
         }
         else if(match(index, text, null_val)) {
@@ -737,8 +736,8 @@ namespace parser {
                     errors::invalid_target_op(text);
                 }
                 begin = index;
-                while(text[index] != '\0') {
-                    if(WHITESPACE(text, index)) {
+                while(index < text_size) {
+                    if(WHITESPACE(text, begin)) {
                         begin++;
                     }
                     index++;

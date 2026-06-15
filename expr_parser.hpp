@@ -197,7 +197,7 @@ std::string fstr(const std::string& text, Globals& globals) {
         if(parser::match(i, head, "{}", false) && count < args) {
             fstring += head.substr(begin, i - begin);
             item = eval(values[count + 1], globals);
-            if(/*item[0] == '$'*/ parser::is_var(item) /*&& item[1] != '&'*/) {
+            if(parser::is_var(item)) {
                 item = VarTable::print(item, globals);
             }
             if(lib::is_string(item)) {
@@ -409,7 +409,7 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
             rpn.push_back(dict_value);
             prev_op = dict_value;
         }
-        else if(parser::match(index, expr, "f[", false)) {
+        else if(parser::match(index, expr, "f(", false)) {
             std::string line = parser::extract_fstr(expr, index);
             std::string value = fstr(line, globals);
             rpn.push_back(value);
@@ -567,6 +567,9 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
         else if(parser::is_var(rpn_front)) {
             rpn.pop_front();
             return rpn_front;
+        }
+        else if(rpn_front[0] == '"') {
+            rpn_front = lib::render_escape_chars(rpn_front);
         }
         rpn.pop_front();
         return rpn_front;
@@ -794,6 +797,9 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
     // }
 
     result = lib::trim_num(numbers.top());
+    // if(result[0] == '"') {
+    //     result = lib::render_escape_chars(result);
+    // }
     numbers.pop();
     return result;
 }

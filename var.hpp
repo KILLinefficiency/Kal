@@ -72,8 +72,8 @@ String::String() {}
 
 String::String(std::string Str) {
     int len = Str.size();
-    str = new char[len + 3];
-    strncpy(str, Str.c_str(), len);
+    str = new char[len + 1];
+    strcpy(str, Str.c_str());
     str[len] = '\0';
 }
 
@@ -388,8 +388,8 @@ namespace VarTable {
         }
         if(name != "" && InertTable::vars[name] != "" && !InertTable::is_hit[name]) {
             std::string Name = name;
-            set(Name, InertTable::vars[Name], nullptr, VAR, false, depth, false, globals);
             InertTable::is_hit[Name] = true;
+            set(Name, InertTable::vars[Name], nullptr, VAR, false, depth, false, globals);
         }
 
         if(name != "" && memory[name] != nullptr) {
@@ -504,6 +504,7 @@ namespace VarTable {
         std::vector<std::string> items = parser::parse_list(list, index);
         uint64_t len = items.size();
         if(structure != "" && data_ptr == nullptr) {
+            structure = eval(structure, globals);
             if(parser::is_var(structure)) {
                 packed_items = get(structure, {}, true, true, true, globals);
             }
@@ -573,7 +574,7 @@ namespace VarTable {
 
         bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
-            unpack(var, data, nullptr, globals);
+            unpack(var, data, data_ptr, globals);
             return;
         }
         if(type == INERT) {

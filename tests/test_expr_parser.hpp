@@ -105,9 +105,9 @@ void test_expr_parser() {
         { "1 ? (1 ? 20 : 10) : 30", "20" },
         { "0 ? 10 : (0 ? 20 : 10)", "10" },
 
-        { R"( f["Pi is {}", 3.14] )", R"("Pi is 3.14")" },
-        { R"( f["Hello {}!", "World"] )", R"("Hello World!")" },
-        { R"( f["Hel{}{}", f["l{} ", "o"], f["{}" + "!", "Wor" + "ld"]] )", R"("Hello World!")" },
+        { R"( f("Pi is {}", 3.14) )", R"("Pi is 3.14")" },
+        { R"( f("Hello {}!", "World") )", R"("Hello World!")" },
+        { R"( f("Hel{}{}", f("l{} ", "o"), f("{}" + "!", "Wor" + "ld")) )", R"("Hello World!")" },
 
         { "1 as int", "1" },
         { "3.14 as int", "3" },

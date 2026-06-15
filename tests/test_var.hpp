@@ -159,8 +159,6 @@ void test_var() {
     found_string = VarTable::print("info[\"real name\"]", globals);
     check(found_string, actual_string);
 
-    // Tests for dictionary item to dictionary item assigment.
-    // Will write later when the eval issue is solved.
     globals.depth = 0;
     VarTable::gc(globals);
 

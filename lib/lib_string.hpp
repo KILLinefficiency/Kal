@@ -5,43 +5,38 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <string>
 
 #include "../errors.hpp"
 
 namespace lib {
     std::string render_escape_chars(std::string text) {
-        int text_size = text.size();
-
-        for(int current_char = 0; current_char < text_size; current_char++) {
-            if(text[current_char] == '\\') {
-                char& next = text[current_char + 1];
-                if(next == 'n') {
-                    text[current_char] = '\n';
-                    text[current_char + 1] = '\0';
-                }
-                else if(next == 't') {
-                    text[current_char] = '\t';
-                    text[current_char + 1] = '\0';
-                }
-                else if(next == 'b') {
-                    text[current_char] = '\b';
-                    text[current_char + 1] = '\0';
-                }
-                else if(next == '\\') {
-                    text[current_char] = '\\';
-                    text[current_char + 1] = '\0'; 
-                }
-                else if(next == '"') {
-                    text[current_char] = '"';
-                    text[current_char + 1] = '\0';
-                }
-                else if(next == 'r') {
-                    text[current_char] = '\r';
-                    text[current_char + 1] = '\0';
-                }
+        std::string to_replace;
+        uint64_t index = text.find("\\", 0);
+        while(index != std::string::npos) {
+            if(text[index + 1] == 'n') {
+                to_replace = "\n";
             }
-        }
+            else if(text[index + 1] == 't') {
+                to_replace = "\t";
+            }
+            else if(text[index + 1] == 'b') {
+                to_replace = "\b";
+            }
+            else if(text[index + 1] == '\\') {
+                to_replace = "\\";
+            }
+            else if(text[index + 1] == '"') {
+                to_replace = "\"";
+            }
+            else if(text[index + 1] == 'r') {
+                to_replace = "\r";
+            }
 
+            text.replace(index, 2, to_replace);
+            index++;
+            index = text.find("\\", index);
+        }
         return text;
     }
 

@@ -222,7 +222,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
                 if(cmd.target != "") {
                     bool allow_shadowing = VarTable::get(cmd.target, {}, true, true, true, globals) != nullptr;
+                    globals.depth--;
                     VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing, globals);
+                    globals.depth++;
                 }
                 else {
                     delete return_value;
