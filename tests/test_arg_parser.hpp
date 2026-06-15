@@ -30,19 +30,18 @@ void test_arg_parser() {
     progress();
 
     title("ArgParser::get_args()");
-    size = 4;
     char* args1[] = { (char*)"kal", (char*)"core.kal", (char*)"arg1", (char*)"arg2" };
-    arg = ArgParser(size, args1);
+    ArgParser arg1 = ArgParser(size, args1);
     actual_args = { "kal", "core.kal", "arg1", "arg2" };
-    found_args = arg.get_args();
+    found_args = arg1.get_args();
     for(uint64_t i = 0; i < actual_args.size(); i++) {
         check(found_args[i], actual_args[i]);
     }
     progress();
 
     title("ArgParser::args_size()");
-    actual_size = 4;
-    found_size = arg.args_size();
+    actual_size = 5;
+    found_size = arg1.args_size();
     check(found_size, actual_size);
     progress();
 }
