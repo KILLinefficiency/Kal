@@ -121,7 +121,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
             }
 
-            if((result[0] == '&') || (TO_REF(return_value) && ScopeTable::scope[result] == globals.depth)) {
+            if((result[0] == '&') || (TO_REF(return_value) && /*ScopeTable::*/globals.scope[result] == globals.depth)) {
                 // ERR:
                 errors::invalid_ref(globals, result);
             }

@@ -327,14 +327,14 @@ namespace RefTable {
     }
 }
 
-namespace InertTable {
-    std::unordered_map<std::string, std::string> vars = {};
-    std::unordered_map<std::string, bool> is_hit = {};
-};
+// namespace InertTable {
+//     std::unordered_map<std::string, std::string> vars = {};
+//     std::unordered_map<std::string, bool> is_hit = {};
+// };
 
-namespace ScopeTable {
-    std::unordered_map<std::string, int> scope = {};
-}
+// namespace ScopeTable {
+//     std::unordered_map<std::string, int> scope = {};
+// }
 
 namespace VarTable {
     void gc_value(std::string name, Value*& val, Globals& globals) {
@@ -352,7 +352,7 @@ namespace VarTable {
                     }
                 }
             }
-            else if(ScopeTable::scope[name] >= depth) {
+            else if(/*ScopeTable::*/globals.scope[name] >= depth) {
                 delete val;
                 memory[name] = nullptr;
             }
@@ -386,10 +386,10 @@ namespace VarTable {
         if(name[0] >= '0' && name[0] <= '9') {
             return nullptr;
         }
-        if(name != "" && InertTable::vars[name] != "" && !InertTable::is_hit[name]) {
+        if(name != "" && /*InertTable::vars*/globals.inert_table[name] != "" && !/*InertTable::is_hit*/globals.inert_hit[name]) {
             std::string Name = name;
-            InertTable::is_hit[Name] = true;
-            set(Name, InertTable::vars[Name], nullptr, VAR, false, depth, false, globals);
+            /*InertTable::is_hit*/globals.inert_hit[Name] = true;
+            set(Name, /*InertTable::vars*/globals.inert_table[Name], nullptr, VAR, false, depth, false, globals);
         }
 
         if(name != "" && memory[name] != nullptr) {
@@ -580,8 +580,8 @@ namespace VarTable {
             return;
         }
         if(type == INERT) {
-            InertTable::vars[var] = data;
-            InertTable::is_hit[var] = false;
+            /*InertTable::vars*/globals.inert_table[var] = data;
+            /*InertTable::is_hit*/globals.inert_hit[var] = false;
             return;
         }
         if(data != "") {
@@ -589,7 +589,7 @@ namespace VarTable {
         }
 
         if(memory[var] == nullptr) {
-            ScopeTable::scope[var] = depth;
+            /*ScopeTable::*/globals.scope[var] = depth;
         }
 
         Value* ptr = VarTable::get(var, {}, true, true, true, globals);

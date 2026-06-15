@@ -7,16 +7,22 @@
 
 class Value;
 using Memory = std::unordered_map<std::string, Value*>;
+using ScopeTable = std::unordered_map<std::string, int>;
 using CallStack = std::stack<std::pair<std::string, int>>;
 using DeferStack = std::stack<std::pair<std::string, int>>;
+using InertTable = std::unordered_map<std::string, std::string>;
+using InertHit = std::unordered_map<std::string, bool>;
 
 struct Globals {
     int depth;
-    Memory memory;
-    DeferStack defer_stack;
-    CallStack call_stack;
     bool error_exit = true;
     std::string* current_line = nullptr;
+    Memory memory;
+    ScopeTable scope;
+    DeferStack defer_stack;
+    CallStack call_stack;
+    InertTable inert_table;
+    InertHit inert_hit;
 };
 
 Globals globals;
