@@ -20,7 +20,13 @@ namespace lib {
 
     Value* list_len(std::string list_name, Globals& globals) {
         BoxedValue list = get_or_make(list_name, globals);
-        int size = TO_LIST(list.value)->items.size();
+        int size = 0;
+        if(TO_LIST(list.value)) {
+            size = TO_LIST(list.value)->items.size();
+        }
+        else if(TO_DICT(list.value)) {
+            size = TO_DICT(list.value)->keys.size();
+        }
         Value* size_value = make_value(std::to_string(size), globals);
         list.gc();
         return size_value;
