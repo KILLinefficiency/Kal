@@ -3,8 +3,6 @@
     <h1>Kal</h1>
 </center>
 
-<hr />
-
 Kal is an interpreted programming that aims to combine different programming paradigms together to provide best developer experience possible.
 
 Striking features:
