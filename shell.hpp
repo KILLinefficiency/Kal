@@ -8,17 +8,19 @@
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
 
+#define KAL_VERSION "0.1.0"
+
 namespace shell {
     void prep_for_shell(std::string& shell_cmd) {
         preproc::remove_comments(shell_cmd);
         shell_cmd = lib::trim_leading(shell_cmd);
         shell_cmd = lib::trim_trailing(shell_cmd);
-        //preproc::adjust_strings(shell_cmd);
     }
 
     void init_shell() {
         int count = 1;
-        //VarTable var = VarTable();
+        globals.error_exit = false;
+        std::cout << style::style["bold"] << "Kal v:" << KAL_VERSION << style::style["reset"] << "\n";
 
         while(true) {
             std::string command;
@@ -39,7 +41,8 @@ namespace shell {
             }
 
             if(command == ".reset") {
-                VarTable::gc();
+                globals.depth = 0;
+                VarTable::gc(globals);
                 continue;
             }
 
@@ -60,26 +63,26 @@ namespace shell {
                 if(multi_lines.size() != 0) {
                     tokens = lexer::tokenize(multi_lines);
                     std::cout << style::style["bold"] << style::style["blue"] << "\nOut:" << style::style["reset"] << "\n";
-                    line_exec(tokens);
+                    line_exec(tokens, false, true, false, globals);
                 }
                 continue;
             }
 
             if(command[0] == '@') {
                 std::string file_name = command.substr(1);
-                std::vector<std::string> preprocessed_lines = preproc::preprocess(file_name);
+                std::vector<std::string> preprocessed_lines = preproc::preprocess_file(file_name);
                 tokens = lexer::tokenize(preprocessed_lines);
-                line_exec(tokens);
+                line_exec(tokens, false, true, false, globals);
                 count++;
                 continue;
             }
 
-            std::vector<std::string> shell_lines = lib::new_split(command);
+            std::vector<std::string> shell_lines = lib::split(command);
             for(std::string& each : shell_lines) {
                 prep_for_shell(each);
             }
             tokens = lexer::tokenize(shell_lines);
-            line_exec(tokens);
+            line_exec(tokens, false, true, false, globals);
 
             count++;
         }

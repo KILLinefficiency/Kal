@@ -2,144 +2,95 @@
 
 #include <vector>
 #include <utility>
+#include <unordered_map>
 #include "parser.hpp"
 
+#include "types.hpp"
 #include "lib/lib_string.hpp"
 
+using FnTable = std::unordered_map<std::string, Fn*>;
+
+namespace Functions {
+    FnTable fn;
+
+    void gc() {
+        std::unordered_map<std::string, Fn*>::iterator itr, end = fn.end();
+        for(itr = fn.begin(); itr != end; itr++) {
+            if(itr->second != nullptr) {
+                delete itr->second;
+                fn[itr->first] = nullptr;
+            }
+        }
+    }
+}
+
 namespace lexer {
-    std::vector<Token> tokenize(const std::vector<std::string>& source_lines) {
+    std::string get_head(std::string current_line) {
+        int line_size = current_line.size();
+        std::string head = "";
+        if(current_line.substr(0, 2) == "if") {
+            head = "if";
+        }
+        else if(current_line.substr(0, 4) == "else") {
+            head = "else";
+        }
+        else if(current_line.substr(0, 4) == "loop") {
+            head = "loop";
+        }
+        else if(current_line.substr(0, 2) == "<-") {
+            head = "<-";
+        }
+        else {
+            int head_pos = 0;
+            while(head_pos < line_size && current_line[head_pos] != ' ' && current_line[head_pos] != '\t' && current_line[head_pos] != '\n' && current_line[head_pos] != '=') {
+                head_pos++;
+            }
+            head = current_line.substr(0, head_pos);
+        }
+        return head;
+    }
+
+    std::vector<Token> tokenize(std::vector<std::string>& source_lines) {
         int lines = source_lines.size();
-        /*for(auto y : source_lines) {
-            std::cout << y << std::endl;
-        }*/
-        std::string head;
         Config* config;
         std::vector<Token> all_tokens;
 
-        for(int line = 0; line < lines; line++) {
-            int get_head = 0;
+        int line = 0;
+        while(line < lines) {
             std::string current_line = source_lines[line];
-            while(current_line[get_head] != ' ' && current_line[get_head] != '\t' && current_line[get_head] != '\n') {
-                get_head++;
+            std::string head = get_head(current_line);
+            config = p_config::get_config(current_line, head);
+            Token token = parser::parse(current_line, config, head);
+            token.line = &source_lines[line];
+
+            if(token.head == "fn") {
+                Fn* function = new Fn(token.values);
+                int fn_depth = 1;
+                Token fn_line;
+                line++;
+                while(fn_depth != 0) {
+                    std::string inner_head = get_head(source_lines[line]);
+                    Config* inner_config = p_config::get_config(source_lines[line], inner_head);
+                    fn_line = parser::parse(source_lines[line], inner_config, inner_head);
+                    fn_line.line = &source_lines[line];
+                    int values_size = fn_line.values.size();
+                    if(values_size != 0 && fn_line.values[values_size - 1] == "{") {
+                        fn_depth++;
+                    }
+                    if(fn_line.head == "}") {
+                        fn_depth--;
+                    }
+                    if(fn_depth != 0 || fn_line.head != "}") {
+                        function->body.emplace_back(fn_line);
+                    }
+                    line++;
+                }
+                Functions::fn[function->name] = function;
+                continue;
             }
-            head = current_line.substr(0, get_head);
-            if(current_line.substr(0, 2) == "if") {
-                head = "if";
-            }
-            config = p_config::get_config(head);
-            //std::cout << "head: " << head << std::endl;
-            Token token = parser::parse(current_line, config);
-            // std::vector<std::string> tokens = lib::split(current_line);
-            /*for(auto x : tokens) {
-                std::cout << "[" << x << "]" << std::endl;
-            }*/
             all_tokens.emplace_back(token);
+            line++;
         }
-        //exit(1);
         return all_tokens;
     }
-
-
-    std::vector<std::string> lex_variable_declaration(const std::vector<std::string>& tokens, int begin = 1) {
-        std::vector<std::string> var_data;
-
-        std::string complete_line = lib::vector_to_string(tokens, "", begin);
-        std::vector<std::string> type_split = lib::split(complete_line, ':');
-        std::string var_type = type_split[0];
-
-        std::vector<std::string> name_val_split = lib::split(type_split[1], '=');
-        std::string var_name = name_val_split[0];
-        std::string var_val;
-
-        if(name_val_split.size() == 2) {
-            var_val = name_val_split[1];
-        }
-        else if(var_type == "str") {
-            var_val = "";
-        }
-        else if(var_type == "num") {
-            var_val = "0";
-        }
-
-        var_data = {var_type, var_name, var_val};
-        /*for(std::string x : var_data) {
-            std::cout << "[" << x << "]" << std::endl;
-        }*/
-        return var_data;
-    }
-
-    std::vector<std::string> lex_variable_reassignment(const std::vector<std::string>& tokens) {
-        std::vector<std::string> var_reassignment;
-
-        std::string complete_line = lib::vector_to_string(tokens, "");
-        std::vector<std::string> var_val_split = lib::split(complete_line, '=');
-        std::string var_name = var_val_split[0];
-        std::string var_val = var_val_split[1];
-
-        var_reassignment = { var_name, var_val };
-        return var_reassignment;
-    }
-
-    std::string get_var_name_from_token(std::string var_token) {
-        std::string var_name = var_token.substr(1);
-        return var_name;
-    }
-
-    std::vector<std::string> lex_list_declaration(std::vector<std::string>& tokens) {
-        std::vector<std::string> list_name_elements = {};
-        std::string list_code = lib::vector_to_string(tokens, " ", 1);
-        std::vector<std::string> list_data = lib::split(list_code, ':');
-        std::string& list_type = list_data[0];
-        std::vector<std::string> rest_list = lib::split(list_data[1], '=');
-        std::string list_name = lib::trim_leading(lib::trim_trailing(rest_list[0]));
-        rest_list[1] = lib::trim_leading(lib::trim_trailing(rest_list[1]));
-        int list_size = rest_list[1].size();
-        if(rest_list[1] != "[]" && rest_list[1][0] != '$') {
-            rest_list[1] = rest_list[1].substr(1, list_size - 2);
-        }
-        list_name_elements.emplace_back(list_type);
-        list_name_elements.emplace_back(list_name);
-        if(rest_list[1][0] == '$') {
-            list_name_elements.emplace_back(rest_list[1]);
-            return list_name_elements;
-        }
-
-        if(rest_list[1] != "[]") {
-            std::vector<std::string> elements = lib::split(rest_list[1], ',');
-            int list_len = elements.size();
-            for(int each_element = 0; each_element < list_len; each_element++) {
-                elements[each_element] = lib::trim_leading(lib::trim_trailing(elements[each_element]));
-                list_name_elements.emplace_back(elements[each_element]);
-            }
-        }
-
-        return list_name_elements;
-    }
-
-    std::vector<std::string> lex_reverse_ins(std::vector<std::string>& tokens) {
-        std::string rev_code = lib::vector_to_string(tokens, "", 1);
-        std::vector<std::string> rev_data = lib::str_split(rev_code, "->");
-        for(std::string& each_item : rev_data) {
-            if(each_item[0] == '$') {
-                each_item = each_item.substr(1);
-            }
-        }
-        return rev_data;
-    }
-
-    std::pair<std::vector<double>, std::string> lex_range_ins(std::vector<std::string>& tokens) {
-        std::string range_code = lib::vector_to_string(tokens, "", 1);
-        std::pair<std::vector<double>, std::string> ret_range_data;
-        std::vector<double> range_vals;
-        std::vector<std::string> range_data = lib::str_split(range_code, "->");
-        std::vector<std::string> range_vals_str = lib::str_split(range_data[0], "..");
-        for(std::string& val : range_vals_str) {
-            range_vals.emplace_back(std::stod(val));
-        }
-        ret_range_data.first = range_vals;
-        ret_range_data.second = range_data[1];
-
-        return ret_range_data;
-    }
-
 }

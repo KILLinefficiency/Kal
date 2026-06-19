@@ -1,5 +1,5 @@
 #!/usr/bin/env kal
 
-; Kal Program to print "Hello World! :)".
+;; Kal Program to print "Hello World! :)".
 
-stdout "Hello World! :)\n"
+stdout "Hello World! :)\n".

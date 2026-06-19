@@ -5,26 +5,38 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <string>
 
 #include "../errors.hpp"
 
 namespace lib {
     std::string render_escape_chars(std::string text) {
-        int text_size = text.size();
-
-        for(int current_char = 0; current_char < text_size; current_char++) {
-            if(text[current_char] == '\\') {
-                if(text[current_char + 1] == 'n') {
-                    text[current_char] = '\n';
-                    text[current_char + 1] = '\0';
-                }
-                else if(text[current_char + 1] == 't') {
-                    text[current_char] = '\t';
-                    text[current_char + 1] = '\0';
-                }
+        std::string to_replace;
+        uint64_t index = text.find("\\", 0);
+        while(index != std::string::npos) {
+            if(text[index + 1] == 'n') {
+                to_replace = "\n";
             }
-        }
+            else if(text[index + 1] == 't') {
+                to_replace = "\t";
+            }
+            else if(text[index + 1] == 'b') {
+                to_replace = "\b";
+            }
+            else if(text[index + 1] == '\\') {
+                to_replace = "\\";
+            }
+            else if(text[index + 1] == '"') {
+                to_replace = "\"";
+            }
+            else if(text[index + 1] == 'r') {
+                to_replace = "\r";
+            }
 
+            text.replace(index, 2, to_replace);
+            index++;
+            index = text.find("\\", index);
+        }
         return text;
     }
 
@@ -50,7 +62,7 @@ namespace lib {
             if(by_interpreter) {
                 errors::kal_error("File `" + file_path + "` does not exist.");
             }
-            errors::file_does_not_exist_error(file_path);
+            errors::file_does_not_exist_error(globals, file_path);
         }
         std::stringstream file_contents;
         file_contents << source_file.rdbuf();
@@ -98,23 +110,23 @@ namespace lib {
         return required_line;
     }
 
-    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text = " ", int begin = 0, std::string padding = "") {
-        std::string complete_text = "";
-        int vector_size = text_vector.size();
-
-        for(int each_line = begin; each_line < vector_size; each_line++) {
-            complete_text += (padding + text_vector[each_line] + padding + join_text);
-        }
-
-        return complete_text;
+    std::string trim(std::string& line) {
+        const std::string half_trimmed = trim_leading(line);
+        return trim_trailing(half_trimmed);
     }
 
-    void expand_tabs(std::string& tabbed_string) {
-        for(uint64_t tabbed_itr = 0; tabbed_itr < tabbed_string.size(); tabbed_itr++) {
-            if(tabbed_string[tabbed_itr] == '\t') {
-                tabbed_string[tabbed_itr] = ' ';
+    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text) {
+        int line_size = 0;
+        std::stringstream completed_text;
+        for(const std::string& line : text_vector) {
+            line_size = line.size();
+            completed_text << line;
+            if(line[line_size - 1] != '{' && line[line_size] != '}') {
+                completed_text << '.';
             }
+            completed_text << join_text;
         }
+        return completed_text.str();
     }
 
     bool exists_in_vector(const std::vector<std::string>& text_list, const std::string& text) {
@@ -135,51 +147,26 @@ namespace lib {
 
         return resolved_string;
     }
+    std::string resolve_string(std::string text, Globals& globals) {
+        std::string resolved_string = text;
 
-    std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
-        int len = -1;
-        int begin = 0;
-        int size = text.size();
-        bool enable_split = true;
-        std::vector<std::string> words;
-
-        if(text[0] != delimiter) {
-            text = delimiter + text;
-            size++;
-        }
-
-        if(text[size - 1] != delimiter) {
-            text += delimiter;
-            size++;
-        }
-
-        for(int current_index = 0; current_index < size; current_index++) {
-            len++;
-
-            if(delimiter == '.' && text[current_index] == delimiter) {
-                if((text[current_index - 1] >= '0' && text[current_index - 1] <= '9') && (text[current_index + 1] >= '0' && text[current_index + 1] <= '9')) {
-                    continue;
-                }
+        int text_size = text.size();
+        if(text[0] != '"' || text[text_size - 1] != '"') {
+            Value* value = VarTable::get(text, {}, true, true, true, globals);
+            if(value != nullptr) {
+                resolved_string = (dynamic_cast<String*>(value))->str;
+                text_size = resolved_string.size();
             }
-
-            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || (text[current_index - 1] == ' ') || !enable_split)) {
-                enable_split = !enable_split;
-            }
-
-            if((text[current_index] == delimiter) && enable_split) {
-                std::string required_string = text.substr(begin, len);
-                if(required_string != "") {
-                    words.emplace_back(required_string);
-                }
-                begin = current_index + 1;
-                len = -1;
+            else {
+                errors::undefined_var(globals, text);
             }
         }
 
-        return words;
+        resolved_string = resolved_string.substr(1, text_size - 2);
+        return resolved_string;
     }
 
-    std::vector<std::string> new_split(std::string& text, char delimiter = '.', char secondary_id = '@', char secondary_delimiter = '\n', char escape_char = '"') {
+    std::vector<std::string> split(std::string& text, char delimiter = '.', char secondary_id = '@', char secondary_delimiter = '\n', char escape_char = '"') {
         int index = 0;
         int text_size = text.size();
         int begin = 0;
@@ -212,13 +199,27 @@ namespace lib {
 
             }
 
-            if(!inside_string && text.substr(index, 2) == "if") {
-                while(text[index - 1] != '{') {
+            if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else" || text.substr(index, 4) == "elif" || text.substr(index, 4) == "loop" || text.substr(index, 2) == "fn")) {
+                index++;
+                while(index < text_size && text[index - 1] != '{') {
                     index++;
+                }
+                if(index >= text_size) {
+                    errors::closing_scope(text);
                 }
                 required_line = text.substr(begin, index - begin);
                 lines.emplace_back(required_line);
                 begin = index++;
+                continue;
+            }
+
+            if(!inside_string && text[index] == '{') {
+                lines.emplace_back("{");
+                index++;
+                while(text[index] == ' ' || text[index] == '\t' || text[index] == '\n' || text[index] == '\r') {
+                    index++;
+                }
+                begin = index;
                 continue;
             }
 
@@ -237,6 +238,18 @@ namespace lib {
                 }
             }
 
+            if(((text_size - index) >= 3) && text[index] == '.' && delimiter == '.') {
+                if(text[index + 1] == '.' && text[index + 2] == '.') {
+                    index += 3;
+                }
+            }
+
+            if((text_size - index >= 2) && text[index] == '.' && delimiter == '.') {
+                if(text[index + 1] == '.') {
+                    index += 2;
+                }
+            }
+
             if(!inside_string && text[index] == delimiter) {
                 end = index;
                 required_line = text.substr(begin, end - begin);
@@ -246,27 +259,16 @@ namespace lib {
                 begin = end + 1;
             }
 
-            if(text[index] == escape_char) {
+            if(text[index] == escape_char && text[index - 1] != '\\') {
                 inside_string = !inside_string;
+            }
+            if(inside_string && (index == (text_size - 1))) {
+                // ERR:
+                errors::string_eol(text);
             }
             index++;
         }
 
         return lines;
     }
-
-    std::vector<std::string> str_split(std::string& text, std::string delimiter) {
-        std::vector<std::string> words;
-        char* c_text = &text[0];
-        char* c_delimiter = &delimiter[0];
-
-        char* word = strtok(c_text, c_delimiter);
-        while(word != NULL) {
-            words.emplace_back(std::string(word));
-            word = strtok(NULL, c_delimiter);
-        }
-
-        return words;
-    }
-
 }

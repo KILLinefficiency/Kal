@@ -8,16 +8,15 @@
 #include <sstream>
 
 #include "types.hpp"
+#include "globals.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
 #include "lib/lib_math.hpp"
 #include "lib/lib_string.hpp"
 
-namespace VarTable {
-    std::string print(std::string);
-    Value* get(std::string, std::vector<std::string>, bool, bool, bool);
-}
-bool compare(std::string, std::string);
+std::string eval(std::deque<std::string>, Globals& globals);
+bool compare(std::string, std::string, Globals& globals);
+Value* line_exec(std::vector<Token>&, bool, bool, bool, Globals&);
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
@@ -80,7 +79,7 @@ std::string list_mul(std::string& list, double& times) {
 }
 
 namespace ops {
-    const std::string negative = "n",
+    const std::string negative = "0n",
                       log_not = "!",
                       bit_not = "~",
                       exp = "**",
@@ -108,6 +107,7 @@ namespace ops {
                       left = "(",
                       right = ")",
                       as = "as",
+                      walrus = ":=",
                       integer = "int",
                       floating = "float",
                       string = "str";
@@ -123,21 +123,22 @@ bool match(std::string& text, std::string pattern, int& index) {
 }
 
 int order(std::string op) {
-    if(op == ops::as)                                                            return 15;
-    else if (op == ops::if_null)                                                 return 14;
-    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 13;
-    else if (op == ops::exp)                                                     return 12;
-    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 11;
-    else if (op == ops::add || op == ops::sub)                                   return 10;
-    else if (op == ops::l_shift || op == ops::r_shift)                           return 9;
-    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 8;
-    else if (op == ops::eq || op == ops::neq)                                    return 7;
-    else if (op == ops::bit_and)                                                 return 6;
-    else if (op == ops::bit_xor)                                                 return 5;
-    else if (op == ops::bit_or)                                                  return 4;
-    else if (op == ops::log_and)                                                 return 3;
-    else if (op == ops::log_or)                                                  return 2;
-    else if (op == ops::t_if || op == ops::t_else)                               return 1;
+    if(op == ops::as)                                                            return 16;
+    else if (op == ops::if_null)                                                 return 15;
+    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 14;
+    else if (op == ops::exp)                                                     return 13;
+    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 12;
+    else if (op == ops::add || op == ops::sub)                                   return 11;
+    else if (op == ops::l_shift || op == ops::r_shift)                           return 10;
+    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 9;
+    else if (op == ops::eq || op == ops::neq)                                    return 8;
+    else if (op == ops::bit_and)                                                 return 7;
+    else if (op == ops::bit_xor)                                                 return 6;
+    else if (op == ops::bit_or)                                                  return 5;
+    else if (op == ops::log_and)                                                 return 4;
+    else if (op == ops::log_or)                                                  return 3;
+    else if (op == ops::t_if || op == ops::t_else)                               return 2;
+    else if (op == ops::walrus)                                                  return 1;
     return 0;
 }
 
@@ -171,14 +172,14 @@ std::string ternary_op(std::string& token, std::string& first, std::string& seco
     return first;
 }
 
-std::string fstr(const std::string& text) {
+std::string fstr(const std::string& text, Globals& globals) {
     int index = 0;
     std::vector<std::string> values = parser::parse_fstr(text, index);
     int size = values.size();
     if(size == 0) {
         return "";
     }
-    values[0] = eval(values[0]);
+    values[0] = eval(values[0], globals);
     std::string& head = values[0];
     if(size == 1) {
         return head;
@@ -194,9 +195,9 @@ std::string fstr(const std::string& text) {
     while(i < head_size) {
         if(parser::match(i, head, "{}", false) && count < args) {
             fstring += head.substr(begin, i - begin);
-            item = eval(values[count + 1]);
-            if(item[0] == '$') {
-                item = VarTable::print(item);
+            item = eval(values[count + 1], globals);
+            if(parser::is_var(item)) {
+                item = VarTable::print(item, globals);
             }
             if(lib::is_string(item)) {
                 item = lib::resolve_string(item);
@@ -215,26 +216,16 @@ std::string fstr(const std::string& text) {
     return fstring;
 }
 
-/// dummy function.
-/// Sample expression: $name[$hey[$inner[1 + 2 * 3] + 5] + 15] * $pi
-///                    $name[ $hey[ $inner[ 1 + 2 * 3 ] + 5 ] + 15 ] * ($pi + 0.9)
-std::string get_val(std::string var) {
-    if(var == "$inner[7]") { return "10"; }
-    else if(var == "$hey[15]") { return "5"; }
-    else if(var == "$name[20]") { return "100"; }
-    else if(var == "$name[20][25]") { return "250"; }
-    else if(var == "$a[5][3][1]") { return "3600.00200"; }
-    else if(var == "$pi") { return "3.14"; }
-    return "";
-}
-///
-
-std::string eval_indices(const std::string& text, int& index) {
+std::string eval_indices(const std::string& text, int& index, Globals& globals) {
     int size = text.size();
     std::string current, evaluated = "";
     while(index < size) {
         current = parser::extract_list(text, '[', index);
-        evaluated += "[" + eval(current.substr(1, current.size() - 2)) + "]";
+        std::string intermediate = eval(current.substr(1, current.size() - 2), globals);
+        if(parser::is_var(intermediate)) {
+            intermediate = VarTable::print(intermediate, globals);
+        }
+        evaluated += "[" + intermediate + "]";
         index++;
     }
 
@@ -250,7 +241,7 @@ std::vector<std::string> get_var_with_indices(std::string var) {
     while(index < size) {
         if(var[index] == '[') {
             std::string idx = parser::extract_list(var, '[', index);
-            idx = eval(idx.substr(1, idx.size() - 2));
+            idx = eval(idx.substr(1, idx.size() - 2), globals);
             var_data.emplace_back(idx);
         }
         index++;
@@ -259,29 +250,21 @@ std::vector<std::string> get_var_with_indices(std::string var) {
     return var_data;
 }
 
-std::string expand_var(std::string var) {
+std::string expand_var(std::string var, Globals& globals) {
     int index = 0;
     std::string variable = parser::parse_variable(var, index, false);
-    //int size = var.size();
     if(var[index] == '[') {
-        /*index++;
-        std::string sub = var.substr(index, size - index - 1);
-        sub = eval(sub);
-        variable += ("[" + sub + "]");*/
-        variable += eval_indices(var, index);
+        variable += eval_indices(var, index, globals);
     }
-    // get real values here.
-    /// dummy call.
-    ///
     return variable;
 }
 
-bool is_list_or_dict(std::string structure) {
+bool is_list_or_dict(std::string structure, Globals& globals) {
     if(structure[0] == '[' || (structure[0] == '#' && structure[1] == '(')) {
         return true;
     }
-    if(structure[0] == '$') {
-        Value* temp = VarTable::get(structure, {}, true, true, true);
+    if(parser::is_var(structure)) {
+        Value* temp = VarTable::get(structure, {}, true, true, true, globals);
         if(dynamic_cast<List*>(temp) || dynamic_cast<Dict*>(temp)) {
             return true;
         }
@@ -289,25 +272,25 @@ bool is_list_or_dict(std::string structure) {
     return false;
 }
 
-bool is_num(std::string& data) {
-    if(data[0] == '$') {
-        Value* data_temp = VarTable::get(data, {}, true, true, true);
+bool is_num(std::string& data, Globals& globals) {
+    if(parser::is_var(data)) {
+        Value* data_temp = VarTable::get(data, {}, true, true, true, globals);
         if(dynamic_cast<Number*>(data_temp)) {
             return true;
         }
     }
-    else if(data[0] >= '0' && data[0] <= '9') {
+    else if(data[0] == '-' || (data[0] >= '0' && data[0] <= '9')) {
         return true;
     }
     return false;
 }
 
-bool is_list(std::string& structure) {
+bool is_list(std::string& structure, Globals& globals) {
     if(structure[0] == '[') {
         return true;
     }
-    else if(structure[0] == '$') {
-        Value* temp = VarTable::get(structure, {}, true, true, true);
+    else if(parser::is_var(structure)) {
+        Value* temp = VarTable::get(structure, {}, true, true, true, globals);
         if(dynamic_cast<List*>(temp)) {
             return true;
         }
@@ -315,10 +298,73 @@ bool is_list(std::string& structure) {
     return false;
 }
 
-std::string eval(std::string expr) {
-    std::string result;
+std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
+    std::deque<std::string> expr;
+    std::string back = rpn.back();
+    if((back[0] >= '0' && back[0] <= '9') || (parser::is_var(back)) || back[0] == '"' || (back[0] == '$' && back[1] == '(')) {
+        expr.push_back(back);
+        rpn.pop_back();
+    }
+    else {
+        expr.push_front(back);
+        rpn.pop_back();
+
+        std::string second = rpn.back();
+        if(!((second[0] >= '0' && second[0] <= '9') || (parser::is_var(second)) || second[0] == '"') || (second[0] == '$' && second[1] == '(')) {
+            std::deque<std::string> second_expr = extract_operand(rpn);
+            while(!second_expr.empty()) {
+                expr.push_front(second_expr.back());
+                second_expr.pop_back();
+            }
+        }
+        else {
+            expr.push_front(second);
+            rpn.pop_back();
+        }
+
+        if(back != "0n" && back != "!" && back != "~") {
+            std::string first = rpn.back();
+            if(!((first[0] >= '0' && first[0] <= '9') || (parser::is_var(second)) || first[0] == '"') || (first[0] == '$' && first[1] == '(')) {
+                std::deque<std::string> first_expr = extract_operand(rpn);
+                while(!first_expr.empty()) {
+                    expr.push_front(first_expr.back());
+                    first_expr.pop_back();
+                }
+            }
+            else {
+                expr.push_front(first);
+                rpn.pop_back();
+            }
+        }
+    }
+    return expr;
+}
+
+
+void perform_shortcircuit(std::deque<std::string>& rpn) {
+    std::string op = rpn.back();
+    rpn.pop_back();
+    std::deque<std::string> second = extract_operand(rpn);
+    std::deque<std::string> first = extract_operand(rpn);
+    std::string first_result = eval(first, globals);
+    if((op == "&&" && first_result == "0") || (op == "||" && first_result == "1")) {
+        rpn.push_back(first_result);
+    }
+    else {
+        rpn.push_back(first_result);
+
+        while(!second.empty()) {
+            rpn.push_back(second.front());
+            second.pop_front();
+        }
+        rpn.push_back(op);
+    }
+}
+
+std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& globals) {
     std::string current_op = "";
-    std::queue<std::string> rpn;
+    std::string prev_op = "";
+    std::deque<std::string> rpn;
     std::stack<std::string> operators;
 
     int index = 0;
@@ -340,25 +386,33 @@ std::string eval(std::string expr) {
         }
         else if(expr[index] == '"') {
             std::string value = parser::parse_string(expr, index);
-            rpn.push(value);
+            rpn.push_back(value);
+            prev_op = value;
             index++;
             continue;
         }
-        else if(expr[index] == '$') {
-            std::string var = parser::parse_variable(expr, index);
-            std::string val = expand_var(var);
-            rpn.push(val);
+        else if(expr[index] == '$' && expr[index + 1] == '(') {
+            std::string value = parser::parse_fexpr(expr, index);
+            rpn.push_back(value);
+            prev_op = value;
+            continue;
         }
         else if(expr[index] == '[') {
-            rpn.push(parser::extract_list(expr, '[', index));
+            std::string list_value = parser::extract_list(expr, '[', index);
+            rpn.push_back(list_value);
+            prev_op = list_value;
         }
         else if(expr[index] == '#') {
             index++;
-            rpn.push('#' + parser::extract_list(expr, '(', index));
+            std::string dict_value = '#' + parser::extract_list(expr, '(', index);
+            rpn.push_back(dict_value);
+            prev_op = dict_value;
         }
-        else if(parser::match(index, expr, "f[", false)) {
+        else if(parser::match(index, expr, "f(", false)) {
             std::string line = parser::extract_fstr(expr, index);
-            rpn.push(fstr(line));
+            std::string value = fstr(line, globals);
+            rpn.push_back(value);
+            prev_op = value;
         }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
@@ -366,35 +420,52 @@ std::string eval(std::string expr) {
                 index++;
             }
             std::string value = expr.substr(begin, index - begin);
-            rpn.push(value);
+            rpn.push_back(value);
+            prev_op = value;
             index--;
         }
         else if(match(expr, parser::null_val, index)) {
-            rpn.push(parser::null_val);
+            rpn.push_back(parser::null_val);
+            prev_op = parser::null_val;
             index++;
             continue;
         }
         else if(match(expr, ops::integer, index)) {
-            rpn.push(ops::integer);
+            rpn.push_back(ops::integer);
+            prev_op = ops::integer;
             index++;
             continue;
         }
         else if(match(expr, ops::floating, index)) {
-            rpn.push(ops::floating);
+            rpn.push_back(ops::floating);
+            prev_op = ops::floating;
             index++;
             continue;
         }
         else if(match(expr, ops::string, index)) {
-            rpn.push(ops::string);
+            rpn.push_back(ops::string);
+            prev_op = ops::string;
             index++;
             continue;
         }
+        else if((parser::is_var(expr, index)) && (expr[index] != 'a' || expr[index + 1] != 's')) {
+            std::string var = parser::parse_variable(expr, index);
+            std::string val = expand_var(var, globals);
+            rpn.push_back(val);
+            prev_op = val;
+            index--;
+        }
         else if(match(expr, ops::left, index)) {
             operators.push(ops::left);
+            prev_op = ops::left;
         }
         else if(match(expr, ops::right, index)) {
             while(!operators.empty() && operators.top() != ops::left) {
-                rpn.push(operators.top());
+                std::string top_op = operators.top();
+                rpn.push_back(top_op);
+                if(shortcircuit && (top_op == "&&" || top_op == "||")) {
+                    perform_shortcircuit(rpn); 
+                }
                 operators.pop();
             }
             operators.pop();
@@ -424,12 +495,24 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::bit_or);
             SET_CURRENT_OP(ops::if_null);
             SET_CURRENT_OP(ops::negative);
+            SET_CURRENT_OP(ops::walrus);
             SET_CURRENT_OP(ops::t_if);
             SET_CURRENT_OP(ops::t_else);
             SET_CURRENT_OP(ops::as);
+            if(prev_op == "0n" && current_op == "-") {
+                index++;
+                prev_op = current_op;
+                operators.pop();
+                continue;
+            }
+            if(((prev_op == "" || prev_op == ops::left) && current_op == "-") || (current_op == "-" && order(prev_op) != 0)) {
+                current_op = "0n";
+            }
+
+            prev_op = current_op;
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
-                rpn.push(operators.top());
+                rpn.push_back(operators.top());
                 operators.pop();
             }
             operators.push(current_op);
@@ -438,62 +521,112 @@ std::string eval(std::string expr) {
         index++;
     }
 
-
     while(!operators.empty()) {
-        rpn.push(operators.top());
-        operators.pop();
+        if(shortcircuit) {
+            std::string top_op = operators.top();
+            if(top_op == "&&" || top_op == "||") {
+                rpn.push_back(top_op);
+                perform_shortcircuit(rpn);
+                operators.pop();
+            }
+            else {
+                rpn.push_back(operators.top());
+                operators.pop();
+            }
+        }
+        else {
+            rpn.push_back(operators.top());
+            operators.pop();
+        }
     }
 
+    return rpn;
+}
+
+std::string eval(std::deque<std::string> rpn, Globals& globals) {
+    int& depth = globals.depth;
+
     std::string a, b;
+    std::string result;
     double x = 0, y = 0;
     std::string token;
     std::stack<std::string> numbers;
 
-    /*while(!rpn.empty()) {
-        std::cout << rpn.front() << " ";
-        rpn.pop();
-    }
-    std::cout << "\n";
-    exit(1);*/
-
-    if(rpn.size() == 1) {
-        result = lib::trim_num(rpn.front());
-        rpn.pop();
-        return result;
+    std::string rpn_front = rpn.front();
+    if(rpn.size() == 1 && (rpn_front[0] != '$' || rpn_front[1] != '(')) {
+        if(order(rpn_front)) {
+            // ERR:
+            errors::invalid_operator(rpn_front);
+        }
+        if(rpn_front[0] >= '0' && rpn_front[0] <= '9') {
+            result = lib::trim_num(rpn_front);
+            rpn.pop_front();
+            return result;
+        }
+        else if(parser::is_var(rpn_front)) {
+            rpn.pop_front();
+            return rpn_front;
+        }
+        else if(rpn_front[0] == '"') {
+            rpn_front = lib::render_escape_chars(rpn_front);
+        }
+        rpn.pop_front();
+        return rpn_front;
     }
 
     while(!rpn.empty()) {
         token = rpn.front();
-        if(token[0] == '$') {
-            // avoid getting the print from list and dict types
-            Value* temp = VarTable::get(token, {}, true, true, true);
-            if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
-                token = VarTable::print(token);
+        if(token[0] == '$' && token[1] == '(') {
+            std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
+            std::vector<Token> function_call = lexer::tokenize(function_line);
+            Value* result = line_exec(function_call, true, true, false, globals);
+            if(result != nullptr) {
+                token = result->print();
+            }
+            else {
+                token = "null";
+            }
+            delete result;
+        }
+        else if(parser::is_var(token)) {
+            Value* temp = VarTable::get(token, {}, true, true, true, globals);
+            rpn.pop_front();
+            if(rpn.front() == ":=") {
+                numbers.push(token);
+                continue;
+            }
+            rpn.push_front(token);
+            if(temp == nullptr) {
+                rpn.pop_front();
+                numbers.push(token);
+                continue;
+            }
+            else if(rpn.size() >= 3) {
+                rpn.pop_front();
+                std::string operand_y = rpn.front();
+                rpn.pop_front();
+                std::string op = rpn.front();
+                if(op != ":=") {
+                    if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
+                        token = VarTable::print(token, globals);
+                    }
+                }
+                rpn.push_front(operand_y);
+                rpn.push_front(token);
+            }
+            else {
+                token = VarTable::print(token, globals);
             }
         }
-        rpn.pop();
-        //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
+        rpn.pop_front();
         if(!order(token)) {
             numbers.push(token);
+            continue;
         }
-        /*else if(order(token) == 15) {
-            std::string ystr = numbers.top();
-            numbers.pop();
-            if(token == "s") {
-                ystr = to_str(ystr);
-            }
-            else if(token == "f") {
-                ystr = to_float(ystr);
-            }
-            else if(token == "i") {
-                ystr = to_integer(ystr);
-            }
-            numbers.push(ystr);
-        }*/
-        else if(order(token) == 13) {
+        else if(order(token) == 14) {
             y = std::stod(numbers.top());
             numbers.pop();
-            if(token == "n") {
+            if(token == "0n") {
                 y = -y;
             }
             else if(token == "!") {
@@ -505,27 +638,34 @@ std::string eval(std::string expr) {
             numbers.push(std::to_string(y));
         }
         else {
+            if(numbers.size() < 2) {
+                errors::missing_operands(numbers.top());
+            }
             b = numbers.top();
             numbers.pop();
             a = numbers.top();
             numbers.pop();
-            //std::cout << "a: " << a << " b: " << b << " token: " << token << "\n";
-            if(token == "==") {
-                if(is_list_or_dict(a) || is_list_or_dict(b)) {
-                    bool result = compare(a, b);
+            if(token == ":=") {
+                VarTable::set(a, b, nullptr, VAR, false, depth, true, globals);
+                numbers.push(b);
+                continue;
+            }
+            else if(token == "==") {
+                if(is_list_or_dict(a, globals) || is_list_or_dict(b, globals)) {
+                    bool result = compare(a, b, globals);
                     numbers.push(result ? "1" : "0");
                     continue;
                 }
             }
-            else if(token == "*" && ((is_list(a) && is_num(b)) || (is_num(a) && is_list(b)))) {
+            else if(token == "*" && ((is_list(a, globals) && is_num(b, globals)) || (is_num(a, globals) && is_list(b, globals)))) {
                 Value* a_temp = nullptr;
                 Value* b_temp = nullptr;
                 std::string a_val;
                 double t_val;
-                if(a[0] == '$') {
-                    a_temp = VarTable::get(a, {}, true, true, true);
+                if(parser::is_var(a)) {
+                    a_temp = VarTable::get(a, {}, true, true, true, globals);
                     if(dynamic_cast<List*>(a_temp)) {
-                        a_val = VarTable::print(a);
+                        a_val = VarTable::print(a, globals);
                     }
                 }
                 else {
@@ -536,18 +676,17 @@ std::string eval(std::string expr) {
                         a_val = a;
                     }
                 }
-                if(b[0] == '$') {
-                    b_temp = VarTable::get(b, {}, true, true, true);
+                if(parser::is_var(b)) {
+                    b_temp = VarTable::get(b, {}, true, true, true, globals);
                     if(dynamic_cast<Number*>(b_temp)) {
                         t_val = std::stod(dynamic_cast<Number*>(b_temp)->val);
                     }
                     else if(dynamic_cast<List*>(b_temp)) {
-                        a_val = VarTable::print(b);
+                        a_val = VarTable::print(b, globals);
                     }
                 }
                 else {
-                    //t_val = b;
-                    if(is_num(b)) {
+                    if(is_num(b, globals)) {
                         t_val = std::stod(b);
                     }
                     else {
@@ -559,6 +698,9 @@ std::string eval(std::string expr) {
             }
 
             if(token == "as") {
+                if(parser::is_var(a)) {
+                    a = VarTable::print(a, globals);
+                }
                 if(b == "int") {
                     numbers.push(to_integer(a));
                 }
@@ -590,7 +732,7 @@ std::string eval(std::string expr) {
                 }
                 else {
                     std::string line = a + " " + token + " " + b;
-                    errors::invalid_operation_error(line, "strings", token, a, b);
+                    errors::invalid_operation(globals, "strings", token, a, b);
                 }
                 continue;
             }
@@ -611,11 +753,15 @@ std::string eval(std::string expr) {
                 }
                 else {
                     std::string line = a + " " + token + " " + b;
-                    errors::invalid_operation_error(line, "values", token, a, b);
+                    errors::invalid_operation(globals, "values", token, a, b);
                 }
                 continue;
             }
 
+            if(!is_num(a, globals) || !is_num(b, globals)) {
+                std::string expr = a + " " + token + " " + b;
+                errors::invalid_operation(globals, "values", token, a, b);
+            }
             x = std::stod(a);
             y = std::stod(b);
 
@@ -641,7 +787,24 @@ std::string eval(std::string expr) {
         }
     }
 
+    // if(numbers.size() != 1) {
+    //     // ERR:
+    //     errors::invalid_expression(numbers.top());
+    // }
+
     result = lib::trim_num(numbers.top());
+    if(result[0] == '"') {
+        result = lib::render_escape_chars(result);
+    }
     numbers.pop();
     return result;
+}
+
+std::string eval(std::string expr, Globals& globals) {
+    expr = lib::trim(expr);
+    if(expr == "") {
+        return expr;
+    }
+    std::deque<std::string> rpn = make_rpn(expr, true, globals);
+    return eval(rpn, globals);
 }

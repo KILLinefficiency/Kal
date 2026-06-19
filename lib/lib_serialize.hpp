@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -191,34 +193,37 @@ namespace lib {
         }
     }
 
-    void serialize(std::string name, std::string var) {
-        Value* value = VarTable::get(var, {}, true, true);
+    void serialize(std::string name, std::string var, Globals& globals) {
+        Value* value = VarTable::get(var, {}, true, true, true, globals);
         serialize(name, value);
     }
 
-    void deserialize(std::string name, std::string var) {
+    Value* deserialize(std::string name) {
         std::ifstream bin(name, std::ios::binary);
         DataType type;
         read_type(bin, type);
         if(type == Atom) {
             std::string data;
             read_atom(bin, data);
-            VarTable::set(var, data);
+            if(data[0] == '"') {
+                return new String(data);
+            }
+            return new Number(data);
         }
         else if(type == Lst) {
             Value* list;
             read_list(bin, list);
-            VarTable::set(var, "", list, VAR, true);
-            //delete list;
+            return list;
         }
         else if(type == Dic) {
             Value* dict;
             read_dict(bin, dict);
-            VarTable::set(var, "", dict, VAR, true);
-            //delete dict;
+            return dict;
         }
         else if(type == Nul) {
-            VarTable::set(var, "", new Null());
+            return new Null();
         }
+
+        return nullptr;
     }
 }

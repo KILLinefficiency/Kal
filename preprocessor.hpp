@@ -3,12 +3,15 @@
 #include <cstdlib>
 #include <vector>
 #include <stack>
+#include <unordered_map>
 
 #include "errors.hpp"
 #include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
 
 namespace preproc {
+    std::vector<std::string> preprocess_file(std::string);
+
     void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other, int index, bool replace = true) {
         int orignal_size = orignal.size();
         for(int orignal_count = 0; orignal_count < orignal_size; orignal_count++) {
@@ -60,64 +63,22 @@ namespace preproc {
         }
     }
 
-    void adjust_strings(std::string& line, char delimiter = ' ') {
-        bool inside = false;
-        const char str_delim[2] = { delimiter, '\0' };
-        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '"' && line[line_itr - 1] != delimiter && line_itr != 0 && !inside) {
-                line.insert(line_itr, str_delim);
-            }
-            if(line[line_itr] == '"') {
-                inside = !inside;
-            }
-        }
-
-        inside = false;
-        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '"') {
-                inside = !inside;
-            }
-            if(line[line_itr] == '"' && line[line_itr + 1] != delimiter && line_itr != line.size() - 1 && !inside) {
-                line.insert(line_itr + 1, str_delim);
-            }
-        }
-
-        for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '$' && line[line_itr - 1] != delimiter && line[line_itr - 1] != '#' && line_itr != 0) {
-                line.insert(line_itr, str_delim);
-            }
-        }
-    }
-
-    void check_path(std::vector<std::string>& paths, std::string path) {
-        uint64_t size = paths.size();
-        if(path == paths[size - 1]) {
-            std::cerr << paths[size - 1] << " included in itself\n"; exit(1);
-        }
-        for(std::string each : paths) {
-            if(each == path) {
-                std::cerr << each << " already included\n"; exit(1);
-            } 
-        }
-    }
-
-
     std::stack<std::string> dirs;
-    std::vector<std::string> paths;
-    std::vector<std::string> preprocess(std::string file_path) {
+    std::unordered_map<std::string, bool> paths;
+    std::vector<std::string> preprocess(std::string code, std::string abs_file_path = "") {
         std::vector<std::string> all_lines;
-        std::string top = "";
-        if(!dirs.empty()) {
-            top = dirs.top();
+        std::string current_path = "";
+        if(abs_file_path == "") {
+            abs_file_path = lib::get_path(std::filesystem::current_path());
+            current_path = abs_file_path;
         }
-        std::string abs_file_path = lib::get_path(file_path, top);
-        std::string current_path = lib::get_dir(abs_file_path);
+        else {
+            current_path = lib::get_dir(abs_file_path);
+        }
 
-        std::string file_contents = lib::read_file(abs_file_path);
-        remove_comments(file_contents);
+        remove_comments(code);
 
-        std::vector<std::string> file_lines = lib::new_split(file_contents);
-        paths.emplace_back(abs_file_path);
+        std::vector<std::string> file_lines = lib::split(code);
         for(std::string& line : file_lines) {
             line = lib::trim_leading(lib::trim_trailing(line));
             if(line != "") {
@@ -126,18 +87,37 @@ namespace preproc {
 
             if(line[0] == '@') {
                 std::string include_path = line.substr(1);
-                lib::ensure_extension(include_path, ".kal");
+                std::string current_abs = lib::get_path(include_path);
+                if(paths[current_abs]) {
+                    all_lines.pop_back();
+                    continue;
+                }
+                if(line.substr(1, 4) != "pkg:") {
+                    lib::ensure_extension(include_path, ".kal");
+                }
                 dirs.push(current_path);
                 abs_file_path = include_path;
-                check_path(paths, lib::get_path(abs_file_path));
-                std::vector<std::string> vals = preprocess(abs_file_path);
+                std::vector<std::string> vals = preprocess_file(abs_file_path);
                 squash_vector(all_lines, vals, all_lines.size() - 1);
                 current_path = dirs.top();
                 dirs.pop();
+                paths[current_abs] = true;
             }
         }
 
         return all_lines;
+    }
+
+    std::vector<std::string> preprocess_file(std::string file_path) {
+        std::string top = "";
+        if(!dirs.empty()) {
+            top = dirs.top();
+        }
+
+        std::string abs_file_path = lib::get_path(file_path, top);
+        std::string file_contents = lib::read_file(abs_file_path);
+
+        return preprocess(file_contents, abs_file_path);
     }
 
 
@@ -165,7 +145,7 @@ namespace preproc {
             index--;
         }
         for(std::string dep : deps) {
-            std::vector<std::string> sloc = preprocess(dep);
+            std::vector<std::string> sloc = preprocess_file(dep);
             squash_vector(expanded_contents, sloc, 0, false);
         }
 
