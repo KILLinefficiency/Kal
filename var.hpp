@@ -327,15 +327,6 @@ namespace RefTable {
     }
 }
 
-// namespace InertTable {
-//     std::unordered_map<std::string, std::string> vars = {};
-//     std::unordered_map<std::string, bool> is_hit = {};
-// };
-
-// namespace ScopeTable {
-//     std::unordered_map<std::string, int> scope = {};
-// }
-
 namespace VarTable {
     void gc_value(std::string name, Value*& val, Globals& globals) {
         int& depth = globals.depth;
@@ -352,7 +343,7 @@ namespace VarTable {
                     }
                 }
             }
-            else if(/*ScopeTable::*/globals.scope[name] >= depth) {
+            else if(globals.scope[name] >= depth) {
                 delete val;
                 memory[name] = nullptr;
             }
@@ -386,10 +377,10 @@ namespace VarTable {
         if(name[0] >= '0' && name[0] <= '9') {
             return nullptr;
         }
-        if(name != "" && /*InertTable::vars*/globals.inert_table[name] != "" && !/*InertTable::is_hit*/globals.inert_hit[name]) {
+        if(name != "" && globals.inert_table[name] != "" && !globals.inert_hit[name]) {
             std::string Name = name;
-            /*InertTable::is_hit*/globals.inert_hit[Name] = true;
-            set(Name, /*InertTable::vars*/globals.inert_table[Name], nullptr, VAR, false, depth, false, globals);
+            globals.inert_hit[Name] = true;
+            set(Name, globals.inert_table[Name], nullptr, VAR, false, depth, false, globals);
         }
 
         if(name != "" && memory[name] != nullptr) {
@@ -546,7 +537,6 @@ namespace VarTable {
         }
         else if(TO_DICT(packed_items)) {
             if(len > TO_DICT(packed_items)->keys.size()) {
-                //std::cerr << "more than enough items to unpack" << std::endl;
                 // ERR:
                 errors::items_unpack(globals);
                 if(is_literal) {
@@ -580,8 +570,8 @@ namespace VarTable {
             return;
         }
         if(type == INERT) {
-            /*InertTable::vars*/globals.inert_table[var] = data;
-            /*InertTable::is_hit*/globals.inert_hit[var] = false;
+            globals.inert_table[var] = data;
+            globals.inert_hit[var] = false;
             return;
         }
         if(data != "") {
@@ -589,7 +579,7 @@ namespace VarTable {
         }
 
         if(memory[var] == nullptr) {
-            /*ScopeTable::*/globals.scope[var] = depth;
+            globals.scope[var] = depth;
         }
 
         Value* ptr = VarTable::get(var, {}, true, true, true, globals);
@@ -618,7 +608,6 @@ namespace VarTable {
                 return;
             }
             else if(TO_CHAR(ptr)) {
-                // validate so that size is only 3 e.g "X" -> 3.
                 TO_CHAR(ptr)->change(data[1]);
             }
         }
@@ -697,7 +686,6 @@ namespace VarTable {
                             std::unordered_map<std::string, Value*>::iterator itr;
                             for(itr = p_dict->dict.begin(); itr != p_dict->dict.end(); itr++) {
                                 if(prev_val == itr->second) {
-                                    // might have to use append_unique() here.
                                     p_dict->dict[itr->first] = value;
                                     break;
                                 }

@@ -60,7 +60,6 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
     delete args;
 }
 
-// false true false
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
@@ -121,7 +120,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
             }
 
-            if((result[0] == '&') || (TO_REF(return_value) && /*ScopeTable::*/globals.scope[result] == globals.depth)) {
+            if((result[0] == '&') || (TO_REF(return_value) && globals.scope[result] == globals.depth)) {
                 // ERR:
                 errors::invalid_ref(globals, result);
             }
@@ -150,7 +149,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             depth++;
             int arg;
             int all = (fn->init.size() / 2);
-            // if args_size > all, error: extra args.
             if(!is_variadic && (args_size > all)) {
                 errors::fn_extra_args(globals, fn_name);
             }
@@ -176,7 +174,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true, globals);
             }
 
-            // bring rest outside.
             int arg_count = arg;
             for(int rest = arg; rest < all; rest++) {
                 if(is_variadic && (rest >= last_arg)) {
@@ -200,17 +197,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 if(to_reserve > 0) {
                     variadic_values->items.reserve(to_reserve);
                 }
-                for(/*int*/ i = last_arg; i < args_size; i++) {
+                for(i = last_arg; i < args_size; i++) {
                     variadic_values->items.emplace_back(make_value(cmd.values[i], globals));
                 }
-                // see if direct assignment can be made instead of copy.
                 VarTable::set(variadic_arg, "", variadic_values, VAR, true, depth, true, globals);
             }
 
-            // if rest < all - 1, error: not enough args.
-            // std::cout << "Arg Count: " << arg_count << " Arg: " << arg << " All: " << all << "\n";
-            // std::cout << "Variadic: " << is_variadic << "\n";
-            if(/*arg < all*/ /*rest < all*/ !is_variadic && (arg_count < all)) {
+            if(!is_variadic && (arg_count < all)) {
                 errors::fn_less_args(globals, fn_name);
             }
 
@@ -252,7 +245,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             depth += 1;
             current_depth = depth;
             if(tokens[line].head == "if") {
-                // might need to refactor values into a variable.
                 std::string value = eval(tokens[line].values[0], globals);
                 if(parser::is_var(value)) {
                     value = VarTable::print(value, globals);
@@ -274,7 +266,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             else if(tokens[line].head == "elif") {
                 std::pair<bool, int> check = conditional_stack.top();
                 if(check.second == depth) {
-                    if(!check.first /*&& tokens[line].head != "else"*/) {
+                    if(!check.first) {
                         bool condition = eval(tokens[line].values[0], globals) == "1";
                         if(condition && tokens[line].head != "else") {
                             conditional_stack.pop();
@@ -444,7 +436,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             if(depth < 0) {
                 depth = 0;
             }
-            if(loop_stack.size() != 0 && (std::get<2>(loop_stack.top()) == depth + 1 /*new_depth*/)) {
+            if(loop_stack.size() != 0 && (std::get<2>(loop_stack.top()) == depth + 1)) {
                 std::tuple<bool, int, int> top = loop_stack.top();
                 if(std::get<0>(top)) {
                     line = std::get<1>(top);

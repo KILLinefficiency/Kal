@@ -6,7 +6,7 @@
 #include <string>
 
 int current = 1;
-int total = 0;
+int total = 28;
 
 void component(std::string kal_component) {
     std::cout << style::style["blue"] << style::style["bold"]

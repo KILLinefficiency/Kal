@@ -115,15 +115,18 @@ namespace lib {
         return trim_trailing(half_trimmed);
     }
 
-    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text = " ", int begin = 0, std::string padding = "") {
-        std::string complete_text = "";
-        int vector_size = text_vector.size();
-
-        for(int each_line = begin; each_line < vector_size; each_line++) {
-            complete_text += (padding + text_vector[each_line] + padding + join_text);
+    std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text) {
+        int line_size = 0;
+        std::stringstream completed_text;
+        for(const std::string& line : text_vector) {
+            line_size = line.size();
+            completed_text << line;
+            if(line[line_size - 1] != '{' && line[line_size] != '}') {
+                completed_text << '.';
+            }
+            completed_text << join_text;
         }
-
-        return complete_text;
+        return completed_text.str();
     }
 
     bool exists_in_vector(const std::vector<std::string>& text_list, const std::string& text) {
@@ -198,7 +201,6 @@ namespace lib {
 
             if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else" || text.substr(index, 4) == "elif" || text.substr(index, 4) == "loop" || text.substr(index, 2) == "fn")) {
                 index++;
-                // std::cout << "--Text: " << text.substr(0, index) << "--\n";
                 while(index < text_size && text[index - 1] != '{') {
                     index++;
                 }

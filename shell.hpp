@@ -8,6 +8,8 @@
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
 
+#define KAL_VERSION "0.1.0"
+
 namespace shell {
     void prep_for_shell(std::string& shell_cmd) {
         preproc::remove_comments(shell_cmd);
@@ -18,6 +20,7 @@ namespace shell {
     void init_shell() {
         int count = 1;
         globals.error_exit = false;
+        std::cout << style::style["bold"] << "Kal v:" << KAL_VERSION << style::style["reset"] << "\n";
 
         while(true) {
             std::string command;

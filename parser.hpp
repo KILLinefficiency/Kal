@@ -360,7 +360,7 @@ namespace parser {
             if(text[index] == '[') {
                 skip_list(text, text[index], index);
             }
-            if(/*text[index] == '$'*/ is_var(text, index)) {
+            if(is_var(text, index)) {
                 skip_variable(text, index);
             }
             while(text[index] != ',') {
@@ -489,7 +489,7 @@ namespace parser {
             while(WHITESPACE(text, index)) {
                 index++;
             }
-            if(index < text_size && match(index, text, target_operator, false) && /*!for_dict*/ assign_op == "=") {
+            if(index < text_size && match(index, text, target_operator, false) && assign_op == "=") {
                 errors::invalid_target_op(text);
             }
             if(text[index] == ',' || index == text_size) {
@@ -503,7 +503,7 @@ namespace parser {
                 }
                 int begin = index;
                 while(text[index] != ',' && index != text_size) {
-                    if(index < text_size && match(index, text, target_operator, false) && /*!for_dict*/ assign_op == "=") {
+                    if(index < text_size && match(index, text, target_operator, false) && assign_op == "=") {
                         errors::invalid_target_op(text);
                     }
                     if(text[index] == '"') {
@@ -570,7 +570,7 @@ namespace parser {
         int initial_index = index;
         int text_size = text.size();
         std::vector<std::string> fn_def;
-        while(index < text_size - 1 && !match(index, text, target_operator, false) /*&& !WHITESPACE(text, index)*/) {
+        while(index < text_size - 1 && !match(index, text, target_operator, false)) {
             index++;
         }
         int fn_name_len = index - initial_index;

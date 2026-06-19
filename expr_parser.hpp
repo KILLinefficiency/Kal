@@ -16,7 +16,6 @@
 
 std::string eval(std::deque<std::string>, Globals& globals);
 bool compare(std::string, std::string, Globals& globals);
-// false true false
 Value* line_exec(std::vector<Token>&, bool, bool, bool, Globals&);
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
@@ -223,7 +222,7 @@ std::string eval_indices(const std::string& text, int& index, Globals& globals) 
     while(index < size) {
         current = parser::extract_list(text, '[', index);
         std::string intermediate = eval(current.substr(1, current.size() - 2), globals);
-        if(/*intermediate[0] == '$'*/ parser::is_var(intermediate)/* && intermediate[1] != '&'*/) {
+        if(parser::is_var(intermediate)) {
             intermediate = VarTable::print(intermediate, globals);
         }
         evaluated += "[" + intermediate + "]";
@@ -590,9 +589,7 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
             delete result;
         }
         else if(parser::is_var(token)) {
-            // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true, globals);
-            /// does not eval references in case of walrus operator.
             rpn.pop_front();
             if(rpn.front() == ":=") {
                 numbers.push(token);
@@ -790,16 +787,15 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
         }
     }
 
-    // need to fix.
     // if(numbers.size() != 1) {
     //     // ERR:
     //     errors::invalid_expression(numbers.top());
     // }
 
     result = lib::trim_num(numbers.top());
-    // if(result[0] == '"') {
-    //     result = lib::render_escape_chars(result);
-    // }
+    if(result[0] == '"') {
+        result = lib::render_escape_chars(result);
+    }
     numbers.pop();
     return result;
 }

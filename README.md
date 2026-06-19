@@ -73,7 +73,7 @@ $ kal sort.kal
 
 <hr />
 
-## Handcrafted
+## The Human Touch
 
 Every line of the Kal codebase is handcrafted with no AI assistance whatsoever. The codebase aims to stay that way. :)
 

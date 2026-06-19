@@ -32,18 +32,15 @@ int main(int argc, char** argv) {
     if(arg_parser.flag_exists("-p")) {
         file_name = arg_parser.get_value("-p");
         source_lines = preproc::preprocess_file(file_name);
+        std::string preprocessed_code = lib::vector_to_string(source_lines, "\n");
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
-            std::string preprocessed_code = lib::vector_to_string(source_lines, "\n");
             lib::write_file(write_path, preprocessed_code);
             return 0;
         }
 
-        int source_lines_size = source_lines.size();
-        for(int each_line = 0; each_line < source_lines_size; each_line++) {
-            std::cout << source_lines[each_line] << '\n';
-        }
+        std::cout << preprocessed_code << "\n";
         return 0;
     }
 
