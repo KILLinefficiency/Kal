@@ -139,6 +139,7 @@ namespace p_config {
         { "pop", &group_3 },
         { "popFirst", &group_3 },
         { "reverse", &group_3 },
+        { "shuffle", &group_3 },
         { "extend", &group_3 },
         { "remove", &group_3 },
         { "rotate", &group_3 },
@@ -151,6 +152,7 @@ namespace p_config {
         { "exists", &group_3 },
         { "binWrite", &group_3 },
         { "binRead", &group_3 },
+        { "rand", &group_3 },
 
         { "if", &group_4 },
         { "else", &group_4 },
@@ -163,6 +165,7 @@ namespace p_config {
         { "{", &group_7 },
 
         { "stdout", &group_8 },
+        { "stderr", &group_8 },
         { "defer", &group_8 },
     };
 
