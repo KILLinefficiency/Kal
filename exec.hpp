@@ -18,16 +18,22 @@
 #define EXPECT(ARGS) if(cmd_size != ARGS) { errors::expected_arguments(globals, ins, ARGS); }
 
 namespace parser {
-    void std_out(std::string out_text, Globals& globals) {
+    void std_out(std::string out_text, Globals& globals, bool is_error=false) {
         if(parser::is_var(out_text)) {
-            std::cout << lib::resolve_string(VarTable::print(out_text, globals));
+            std::string resolved = lib::resolve_string(VarTable::print(out_text, globals));
+            if(is_error) {std::cerr << resolved;}
+            else {std::cout << resolved;}
             return;
         }
         else if(out_text[0] == '$' || out_text[0] == '(') {
-            std::cout << lib::resolve_string(eval(out_text, globals));
+            std::string resolved = lib::resolve_string(eval(out_text, globals));
+            if(is_error) {std::cerr << resolved;}
+            else {std::cout << resolved;}
             return;
         }
-        std::cout << lib::resolve_string(lib::render_escape_chars(out_text));
+        std::string resolved = lib::resolve_string(lib::render_escape_chars(out_text));
+        if(is_error) {std::cerr << resolved;}
+        else {std::cout << resolved;}
     }
 
     void std_err(std::string err_text) {
@@ -554,6 +560,65 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
         }
 
+        else if(ins == "rand") {
+            Value* number = new Number(std::to_string(std::rand()));
+            if(cmd.target == "") {
+                return number;
+            }
+            VarTable::set(cmd.target, "", number, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "time") {
+            EXPECT(2);
+            std::string mode = cmd.values[0];
+            std::string precision = cmd.values[1];
+            auto clock = std::chrono::high_resolution_clock::now();
+            std::chrono::time_point<std::chrono::high_resolution_clock> clock2;
+            unsigned int raw_val = 0;
+            if(mode == "this") {
+                clock2 = globals.clock_start;
+            }
+            else if(mode == "sys") {
+                clock2 = clock2;
+            }
+            else {
+                line++;
+                continue;
+            }
+            if(precision == "us") {
+                raw_val = std::chrono::duration_cast<std::chrono::microseconds>(clock-clock2).count();
+            }
+            else if(precision == "ms") {
+                raw_val = std::chrono::duration_cast<std::chrono::milliseconds>(clock-clock2).count();
+            }
+            else if(precision == "s") {
+                raw_val = std::chrono::duration_cast<std::chrono::seconds>(clock-clock2).count();
+            }
+            else if(precision == "m") {
+                raw_val = std::chrono::duration_cast<std::chrono::minutes>(clock-clock2).count();
+            }
+            else if(precision == "h") {
+                raw_val = std::chrono::duration_cast<std::chrono::hours>(clock-clock2).count();
+            }
+            else if(precision == "d") {
+                raw_val = std::chrono::duration_cast<std::chrono::days>(clock-clock2).count();
+            }
+            else if(precision == "w") {
+                raw_val = std::chrono::duration_cast<std::chrono::weeks>(clock-clock2).count();
+            }
+            else if(precision == "M") {
+                raw_val = std::chrono::duration_cast<std::chrono::months>(clock-clock2).count();
+            }
+            else if(precision == "y") {
+                raw_val = std::chrono::duration_cast<std::chrono::years>(clock-clock2).count();
+            }
+            Value* val = new Number(std::to_string(raw_val));
+            if(cmd.target == "") {
+                return val;
+            }
+            VarTable::set(cmd.target, "", val, VAR, true, depth, true, globals);
+        }
+
         else if(ins == "stdout") {
             if(cmd_size == 0) {
                 std::cout << "";
@@ -562,7 +627,19 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
 
             for(int start_val = 0; start_val < cmd_size; start_val++) {
-                parser::std_out(cmd.values[start_val], globals);
+                parser::std_out(cmd.values[start_val], globals, false);
+            }
+        }
+
+        else if(ins == "stderr") {
+            if(cmd_size == 0) {
+                std::cerr << "";
+                line++;
+                continue;
+            }
+
+            for(int start_val = 0; start_val < cmd_size; start_val++) {
+                parser::std_out(cmd.values[start_val], globals, true);
             }
         }
 
@@ -657,6 +734,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         else if(ins == "reverse") {
             EXPECT(1);
             lib::list_reverse(cmd.values[0], globals);
+        }
+
+        else if(ins == "shuffle") {
+            EXPECT(1);
+            lib::list_shuffle(cmd.values[0], globals);
         }
         
         else if(ins == "extend") {

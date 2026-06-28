@@ -13,6 +13,9 @@
 #include "lib/lib_string.hpp"
 
 int main(int argc, char** argv) {
+    std::srand(std::time(0));
+    globals.clock_start = std::chrono::high_resolution_clock::now();
+
     Memory& memory = globals.memory;
     ArgParser arg_parser = ArgParser(argc, argv);
     int arg_size = arg_parser.args_size();

@@ -83,7 +83,7 @@ namespace errors {
 
     void throw_parser_error(std::string error_message, const std::string& line) {
         std::cerr << "\n\u250C\u2500\n\u2502 " << style::style["red"] << style::style["bold"] << style::style["underline"] << "Parser Error" << style::style["reset"] << "\n\u2502 "
-            << style::style["green"] << style::style["bold"] << "Line: " << line << style::style["reset"] << "\n\u2502 "  
+            << style::style["green"] << style::style["bold"] << "Line: " << line << style::style["reset"] << "\n\u2502 "
             << "Error: " << error_message << "\n\u2514\u2500" << std::endl;
         exit(1);
     }

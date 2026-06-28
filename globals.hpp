@@ -4,6 +4,7 @@
 #include <stack>
 #include <utility>
 #include <unordered_map>
+#include <chrono>
 
 class Value;
 using Memory = std::unordered_map<std::string, Value*>;
@@ -14,6 +15,7 @@ using InertTable = std::unordered_map<std::string, std::string>;
 using InertHit = std::unordered_map<std::string, bool>;
 
 struct Globals {
+    std::chrono::time_point<std::chrono::high_resolution_clock> clock_start;
     int depth;
     bool error_exit = true;
     std::string* current_line = nullptr;

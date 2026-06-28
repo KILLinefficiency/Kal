@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bits/stdc++.h>
+
 #include <queue>
 #include <vector>
 #include <cstring>
@@ -91,6 +93,12 @@ namespace lib {
             TO_LIST(list.value)->items[index] = TO_LIST(list.value)->items[size - index - 1];
             TO_LIST(list.value)->items[size - index - 1] = temp;
         }
+        list.gc();
+    }
+
+    void list_shuffle(std::string list_name, Globals& globals) {
+        BoxedValue list = get_or_make(list_name, globals);
+        shuffle(TO_LIST(list.value)->items.begin(), TO_LIST(list.value)->items.end(), std::default_random_engine(std::rand()));
         list.gc();
     }
 
