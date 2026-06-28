@@ -267,7 +267,7 @@ namespace parser {
         index++;
         skip_list(text, '(', index);
     }
-    
+
     std::vector<std::string> parse_range(std::string& text, int& index) {
         std::vector<std::string> segments;
         segments.reserve(3);

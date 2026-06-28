@@ -570,7 +570,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             EXPECT(1);
             std::cout << lib::resolve_string(cmd.values[0], globals);
             std::string input;
-            std::cin >> input;
+            std::getline(std::cin, input);
             Value* input_value = new String('"' + input + '"');
             if(cmd.target == "") {
                 return input_value;
