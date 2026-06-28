@@ -300,7 +300,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     conditional_stack.pop();
                     if(!check.first) {
                         line++;
-                        depth++;
                         continue;
                     }
                     else {
