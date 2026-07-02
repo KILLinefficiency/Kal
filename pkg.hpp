@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <sstream>
+#include <vector>
 #include <filesystem>
 
 const std::string GIT = "git";
@@ -90,31 +91,36 @@ namespace pkg {
         std::filesystem::create_directories(KAL_PKG);
     }
 
-    void fetch(std::string pkg_label) {
-        if(!KAL_PKG) {
-            // ERR:
-            std::cerr << "KAL_PKG not set!\n";
-            exit(1);
+    void fetch(std::vector<std::string> pkg_labels, bool strict = true) {
+        if(strict) {
+            if(!KAL_PKG) {
+                // ERR:
+                std::cerr << "KAL_PKG not set!\n";
+                exit(1);
+            }
+
+            if(!check()) {
+                // ERR:
+                std::cerr << "Git needed!\n";
+                exit(1);
+            }
+
+            create_kal_pkg();
         }
 
-        if(!check()) {
-            // ERR:
-            std::cerr << "Git needed!\n";
-            exit(1);
+        for(std::string pkg_label : pkg_labels) {
+            std::string pkg_url = prepare_url(pkg_label);
+
+            std::stringstream cmd;
+            cmd << GIT << " "
+                << "clone "
+                << "--depth=1 "
+                << pkg_url << " "
+                << KAL_PKG << "/"
+                << get_pkg_name(pkg_label) << " "
+                << "> /dev/null 2>&1";
+            
+            std::cout << "[CMD]: " << cmd.str() << "\n";
         }
-
-        std::string pkg_url = prepare_url(pkg_label);
-        create_kal_pkg();
-
-        std::stringstream cmd;
-        cmd << GIT << " "
-            << "clone "
-            << "--depth=1 "
-            << pkg_url << " "
-            << KAL_PKG << "/"
-            << get_pkg_name(pkg_label) << " "
-            << "> /dev/null 2>&1";
-        
-        std::cout << "[CMD]: " << cmd.str() << "\n";
     }
 }
