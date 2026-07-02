@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <sstream>
+#include <filesystem>
 
 const std::string GIT = "git";
 const char* KAL_PKG = std::getenv("KAL_PKG");
@@ -76,6 +77,19 @@ namespace pkg {
         return pkg_name;
     }
 
+    void create_kal_pkg() {
+        // TODO: Handle ~.
+        if(std::filesystem::exists(KAL_PKG)) {
+            if(!std::filesystem::is_directory(KAL_PKG)) {
+                // ERR:
+                std::cout << "Conflicting KAL_PKG!\n";
+                exit(1);
+            }
+            return;
+        }
+        std::filesystem::create_directories(KAL_PKG);
+    }
+
     void fetch(std::string pkg_label) {
         if(!KAL_PKG) {
             // ERR:
@@ -90,8 +104,7 @@ namespace pkg {
         }
 
         std::string pkg_url = prepare_url(pkg_label);
-
-        // TODO: Create KAL_PKG directory if it doesn't exist.
+        create_kal_pkg();
 
         std::stringstream cmd;
         cmd << GIT << " "
