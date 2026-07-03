@@ -1,14 +1,24 @@
 #pragma once
 
 #include <cstdlib>
+#include <cstdlib>
 #include <sstream>
 #include <vector>
 #include <filesystem>
+#include <thread>
+#include <chrono>
+
+#define TimeNow std::chrono::steady_clock::now
+using TimePoint = std::chrono::steady_clock::time_point;
+using TimeDuration = std::chrono::duration<double>;
 
 const std::string GIT = "git";
 const char* KAL_PKG = std::getenv("KAL_PKG");
 
+
 namespace pkg {
+    std::vector<std::thread> threads;
+
     bool check() {
         std::string git_cmd = GIT + " > /dev/null 2>&1";
         return std::system(git_cmd.c_str()) == 256;
@@ -62,19 +72,22 @@ namespace pkg {
         return url;
     }
 
-    std::string get_pkg_name(std::string pkg_label) {
+    std::string get_pkg_name(std::string pkg_label, int level = 1) {
         int end = pkg_label.size();
         int last = end - 1;
 
         std::string pkg_name = "";
-        if(last > 0) {
+        while(level && last) {
             while(last >= 0 && pkg_label[last] != '/') {
                 last--;
             }
-
-            pkg_name = pkg_label.substr(last + 1, end - last);
+            level--;
+            if(level) {
+                last--;
+            }
         }
 
+        pkg_name = pkg_label.substr(last + 1, end - last);
         return pkg_name;
     }
 
@@ -89,6 +102,19 @@ namespace pkg {
             return;
         }
         std::filesystem::create_directories(KAL_PKG);
+    }
+
+    void clone(std::string url, std::string path) {
+        std::stringstream cmd;
+        cmd << GIT << " "
+            << "clone "
+            << "--depth=1 "
+            << url << " "
+            << path << " "
+            << "> /dev/null 2>&1";
+        std::string shell_cmd = cmd.str();
+        std::system(shell_cmd.c_str());
+        std::cout << "[+] " << get_pkg_name(url, 2) << "\n";
     }
 
     void fetch(std::vector<std::string> pkg_labels, bool strict = true) {
@@ -108,19 +134,21 @@ namespace pkg {
             create_kal_pkg();
         }
 
+        TimePoint start = TimeNow();
+
         for(std::string pkg_label : pkg_labels) {
             std::string pkg_url = prepare_url(pkg_label);
+            std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_label);
+            threads.push_back(std::thread(clone, pkg_url, install_path));
 
-            std::stringstream cmd;
-            cmd << GIT << " "
-                << "clone "
-                << "--depth=1 "
-                << pkg_url << " "
-                << KAL_PKG << "/"
-                << get_pkg_name(pkg_label) << " "
-                << "> /dev/null 2>&1";
-            
-            std::cout << "[CMD]: " << cmd.str() << "\n";
         }
+
+        for(std::thread& thread : threads) {
+            thread.join();
+        }
+
+        TimePoint end = TimeNow();
+        TimeDuration duration = end - start;
+        printf("\nTotal Packages: %ld\nFinished In:    %0.2lfs\n", pkg_labels.size(), duration.count());
     }
 }
