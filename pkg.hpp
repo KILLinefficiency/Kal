@@ -7,17 +7,23 @@
 #include <filesystem>
 #include <thread>
 #include <chrono>
+#include <fstream>
+#include <unordered_map>
+
+#include "types.hpp"
 
 #define TimeNow std::chrono::steady_clock::now
 using TimePoint = std::chrono::steady_clock::time_point;
 using TimeDuration = std::chrono::duration<double>;
 
 const std::string GIT = "git";
+const std::string PROJECT_FILE = "project.kal";
 const char* KAL_PKG = std::getenv("KAL_PKG");
 
 
 namespace pkg {
     std::vector<std::thread> threads;
+    std::unordered_map<std::string, bool> list;
 
     bool check() {
         std::string git_cmd = GIT + " > /dev/null 2>&1";
@@ -117,8 +123,32 @@ namespace pkg {
         std::cout << "[+] " << get_pkg_name(url, 2) << "\n";
     }
 
-    void fetch(std::vector<std::string> pkg_labels, bool strict = true) {
-        if(strict) {
+    void sync_project_file() {
+        if(std::filesystem::exists(PROJECT_FILE)) {
+            std::cout << "Update\n";
+        }
+        else {
+            Dict* proj = new Dict();
+            List* package_list = new List();
+            std::ofstream create_proj(PROJECT_FILE);
+
+            std::unordered_map<std::string, bool>::iterator itr;
+            for(itr = list.begin(); itr != list.end(); itr++) {
+                String* package_name = new String('"' + itr->first + '"');
+                package_list->items.emplace_back(dynamic_cast<Value*>(package_name));
+            }
+
+            proj->keys.push_back("packages");
+            proj->dict["packages"] = package_list;
+            create_proj.close();
+
+            delete proj;
+        }
+
+    }
+
+    void fetch(std::vector<std::string> pkg_labels, bool first = true) {
+        if(first) {
             if(!KAL_PKG) {
                 // ERR:
                 std::cerr << "KAL_PKG not set!\n";
@@ -140,11 +170,15 @@ namespace pkg {
             std::string pkg_url = prepare_url(pkg_label);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_label);
             threads.push_back(std::thread(clone, pkg_url, install_path));
-
+            list[pkg_url] = true;
         }
 
         for(std::thread& thread : threads) {
             thread.join();
+        }
+
+        if(first) {
+            sync_project_file();
         }
 
         TimePoint end = TimeNow();
