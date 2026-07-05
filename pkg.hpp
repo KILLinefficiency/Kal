@@ -10,7 +10,7 @@
 #include <fstream>
 #include <unordered_map>
 
-#include "types.hpp"
+#include "globals.hpp"
 
 #define TimeNow std::chrono::steady_clock::now
 using TimePoint = std::chrono::steady_clock::time_point;
@@ -120,12 +120,44 @@ namespace pkg {
             << "> /dev/null 2>&1";
         std::string shell_cmd = cmd.str();
         std::system(shell_cmd.c_str());
-        std::cout << "[+] " << get_pkg_name(url, 2) << "\n";
+        std::cout << ("[+] " + get_pkg_name(url, 2) + "\n");
+    }
+
+    bool exists_in_list(std::vector<Value*> list, std::string value) {
+        std::string val = '"' + value + '"';
+        for(Value*& each : list) {
+            if(dynamic_cast<String*>(each) && (dynamic_cast<String*>(each)->print() == val)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void sync_project_file() {
         if(std::filesystem::exists(PROJECT_FILE)) {
-            std::cout << "Update\n";
+            std::ifstream read_proj(PROJECT_FILE);
+            std::stringstream proj_contents;
+            proj_contents << read_proj.rdbuf();
+            read_proj.close();
+
+            std::string proj_properties = proj_contents.str();
+            Dict* proj = new Dict(proj_properties, globals);
+
+            std::unordered_map<std::string, bool>::iterator itr;
+            for(itr = list.begin(); itr != list.end(); itr++) {
+                std::vector<Value*> existing_packages = dynamic_cast<List*>(proj->dict["packages"])->items;
+                if(!exists_in_list(existing_packages, itr->first)) {
+                    String* new_pkg = new String('"' + itr->first + '"');
+                    dynamic_cast<List*>(proj->dict["packages"])->items.push_back(new_pkg);
+                }
+            }
+
+            std::ofstream updated_proj(PROJECT_FILE);
+            updated_proj << proj->print() << "\n";
+            updated_proj.close();
+
+            delete proj;
         }
         else {
             Dict* proj = new Dict();
@@ -140,6 +172,8 @@ namespace pkg {
 
             proj->keys.push_back("packages");
             proj->dict["packages"] = package_list;
+
+            create_proj << proj->print() << "\n";
             create_proj.close();
 
             delete proj;
@@ -177,12 +211,13 @@ namespace pkg {
             thread.join();
         }
 
-        if(first) {
-            sync_project_file();
-        }
-
         TimePoint end = TimeNow();
         TimeDuration duration = end - start;
         printf("\nTotal Packages: %ld\nFinished In:    %0.2lfs\n", pkg_labels.size(), duration.count());
+
+        if(first) {
+            sync_project_file();
+            std::cout << "\nSynced " << PROJECT_FILE << "\n";
+        }
     }
 }
