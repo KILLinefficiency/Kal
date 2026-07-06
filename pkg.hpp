@@ -202,6 +202,7 @@ namespace pkg {
             create_kal_pkg();
         }
 
+        uint64_t threads_size = threads.size();
         for(std::string pkg_label : pkg_labels) {
             std::string pkg_url = prepare_url(pkg_label);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_label);
@@ -216,10 +217,10 @@ namespace pkg {
             }
         }
 
-        for(std::pair<std::string, std::thread>& thread_data : threads) {
-            if(thread_data.second.joinable()) {
-                thread_data.second.join();
-                install_project(thread_data.first + "/" + PROJECT_FILE, false);
+        for(uint64_t index = threads_size; index < threads.size(); index++) {
+            if(threads[index].second.joinable()) {
+                threads[index].second.join();
+                install_project(threads[index].first + "/" + PROJECT_FILE, false);
             }
         }
     }
