@@ -6,8 +6,10 @@
 #include <vector>
 #include <filesystem>
 #include <thread>
+#include <atomic>
 #include <chrono>
 #include <fstream>
+#include <utility>
 #include <unordered_map>
 
 #include "globals.hpp"
@@ -19,10 +21,12 @@ using TimeDuration = std::chrono::duration<double>;
 const std::string GIT = "git";
 const std::string PROJECT_FILE = "project.kal";
 const char* KAL_PKG = std::getenv("KAL_PKG");
-
+std::atomic<uint64_t> subpackage_count = 0;
 
 namespace pkg {
-    std::vector<std::thread> threads;
+    void install_project(std::string, bool);
+
+    std::vector<std::pair<std::string, std::thread>> threads;
     std::unordered_map<std::string, bool> list;
 
     bool check() {
@@ -198,24 +202,68 @@ namespace pkg {
             create_kal_pkg();
         }
 
-        TimePoint start = TimeNow();
-
         for(std::string pkg_label : pkg_labels) {
             std::string pkg_url = prepare_url(pkg_label);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_label);
-            threads.push_back(std::thread(clone, pkg_url, install_path));
-            list[pkg_url] = true;
+
+            threads.push_back(std::pair<std::string, std::thread> {
+                install_path,
+                std::thread(clone, pkg_url, install_path)
+            });
+
+            if(first) {
+                list[pkg_url] = true;
+            }
         }
 
-        for(std::thread& thread : threads) {
-            thread.join();
+        for(std::pair<std::string, std::thread>& thread_data : threads) {
+            if(thread_data.second.joinable()) {
+                thread_data.second.join();
+                install_project(thread_data.first + "/" + PROJECT_FILE, false);
+            }
         }
+    }
+
+    void install_project(std::string proj_path, bool first = true) {
+        if(std::filesystem::exists(proj_path)) {
+            std::ifstream proj_file(proj_path);
+            std::stringstream proj_contents;
+            proj_contents << proj_file.rdbuf();
+            proj_file.close();
+            std::string proj_properties = proj_contents.str();
+
+            Dict* proj = new Dict(proj_properties, globals);
+            std::vector<Value*> packages = dynamic_cast<List*>(proj->dict["packages"])->items;
+
+            uint64_t pkg_count = packages.size();
+            subpackage_count += pkg_count;
+            std::vector<std::string> pkg_labels;
+            pkg_labels.reserve(pkg_count);
+
+            for(Value*& each_pkg : packages) {
+                std::string pkg = std::string(dynamic_cast<String*>(each_pkg)->str);
+                int label_size = pkg.size();
+                pkg_labels.push_back(pkg.substr(1, label_size - 2));
+            }
+
+            fetch(pkg_labels, first);
+            delete proj;
+        }
+    }
+
+    void install(std::vector<std::string> pkg_labels, bool sync = true) {
+        TimePoint start = TimeNow();
+
+        fetch(pkg_labels);
 
         TimePoint end = TimeNow();
         TimeDuration duration = end - start;
-        printf("\nTotal Packages: %ld\nFinished In:    %0.2lfs\n", pkg_labels.size(), duration.count());
+        printf(
+            "\nTotal Packages:%6ld\nTotal Sub-packages: %ld\nFinished In:%12.2lfs\n",
+            pkg_labels.size(), subpackage_count.load(), duration.count()
+        );
 
-        if(first) {
+        if(sync) {
             sync_project_file();
             std::cout << "\nSynced " << PROJECT_FILE << "\n";
         }
