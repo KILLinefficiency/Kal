@@ -143,13 +143,11 @@ int order(std::string op) {
 }
 
 double mod(double x, double y) {
-    x = x < 0 ? -x : x;
-    y = y < 0 ? -y : y;
-    while(x >= y) {
-        x -= y;
-    }
-    x = x < 0 ? -x : x;
-    return x;
+    // Remainder of the magnitudes (result is always non-negative), matching the
+    // previous behaviour. Uses fmod so it is O(1) instead of looping by repeated
+    // subtraction, which used to hang for large operands (e.g. 1000000000000 % 7).
+    // Part of the performance track — see docs/rfc/0001-interpreter-performance.md (Stage 0).
+    return std::fmod(std::fabs(x), std::fabs(y));
 }
 
 std::string if_null(std::string& first, std::string& second) {
