@@ -27,7 +27,7 @@ namespace pkg {
     void install_project(std::string, bool);
 
     std::vector<std::pair<std::string, std::thread>> threads;
-    std::unordered_map<std::string, bool> list;
+    std::unordered_map<std::string, bool> list, tracker;
 
     bool check() {
         std::string git_cmd = GIT + " > /dev/null 2>&1";
@@ -207,13 +207,19 @@ namespace pkg {
             std::string pkg_url = prepare_url(pkg_label);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_label);
 
-            threads.push_back(std::pair<std::string, std::thread> {
-                install_path,
-                std::thread(clone, pkg_url, install_path)
-            });
+            if(!tracker[pkg_url]) {
+                threads.push_back(std::pair<std::string, std::thread> {
+                    install_path,
+                    std::thread(clone, pkg_url, install_path)
+                });
 
-            if(first) {
-                list[pkg_url] = true;
+                tracker[pkg_url] = true;
+                if(first) {
+                    list[pkg_url] = true;
+                }
+            }
+            else if(subpackage_count > 0) {
+                subpackage_count--;
             }
         }
 
@@ -234,6 +240,7 @@ namespace pkg {
             std::string proj_properties = proj_contents.str();
 
             Dict* proj = new Dict(proj_properties, globals);
+            // FIX: Handle if "packages" is not present.
             std::vector<Value*> packages = dynamic_cast<List*>(proj->dict["packages"])->items;
 
             uint64_t pkg_count = packages.size();
