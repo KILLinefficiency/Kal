@@ -254,7 +254,9 @@ namespace pkg {
             std::vector<Value*> packages = dynamic_cast<List*>(proj->dict["packages"])->items;
 
             uint64_t pkg_count = packages.size();
-            subpackage_count += pkg_count;
+            if(!first) {
+                subpackage_count += pkg_count;
+            }
             std::vector<std::string> pkg_labels;
             pkg_labels.reserve(pkg_count);
 
