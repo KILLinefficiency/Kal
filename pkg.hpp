@@ -223,7 +223,8 @@ namespace pkg {
             }
         }
 
-        for(uint64_t index = threads_size; index < threads.size(); index++) {
+        uint64_t current_size = threads.size();
+        for(uint64_t index = threads_size; index < current_size; index++) {
             if(threads[index].second.joinable()) {
                 threads[index].second.join();
                 install_project(threads[index].first + "/" + PROJECT_FILE, false);
@@ -231,8 +232,17 @@ namespace pkg {
         }
     }
 
+    void log_stats(uint64_t pkg_size, uint64_t subpkg_count, double duration) {
+        printf(
+            "\nTotal Packages:%6ld\nTotal Sub-packages: %ld\nFinished In:%12.2lfs\n",
+            pkg_size, subpkg_count, duration
+        );
+    }
+
     void install_project(std::string proj_path, bool first = true) {
         if(std::filesystem::exists(proj_path)) {
+            TimePoint start = TimeNow();
+
             std::ifstream proj_file(proj_path);
             std::stringstream proj_contents;
             proj_contents << proj_file.rdbuf();
@@ -256,6 +266,12 @@ namespace pkg {
 
             fetch(pkg_labels, first);
             delete proj;
+
+            TimePoint end = TimeNow();
+            TimeDuration duration = end - start;
+            if(first) {
+                log_stats(packages.size(), subpackage_count.load(), duration.count());
+            }
         }
     }
 
@@ -266,10 +282,7 @@ namespace pkg {
 
         TimePoint end = TimeNow();
         TimeDuration duration = end - start;
-        printf(
-            "\nTotal Packages:%6ld\nTotal Sub-packages: %ld\nFinished In:%12.2lfs\n",
-            pkg_labels.size(), subpackage_count.load(), duration.count()
-        );
+        log_stats(pkg_labels.size(), subpackage_count.load(), duration.count());
 
         if(sync) {
             sync_project_file();
