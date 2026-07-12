@@ -122,17 +122,48 @@ namespace pkg {
         std::filesystem::create_directories(KAL_PKG);
     }
 
-    void clone(std::string url, std::string path) {
-        std::stringstream cmd;
-        cmd << GIT << " "
-            << "clone "
-            << "--depth=1 "
-            << "--recursive "
-            << url << " "
-            << path << " "
-            << "> /dev/null 2>&1";
-        std::string shell_cmd = cmd.str();
-        std::system(shell_cmd.c_str());
+    void clone(std::string url, std::string path, std::string version = "latest") {
+        // TODO: Handle if no tags exist.
+        if(std::filesystem::exists(path)) {
+        }
+
+        if(version != "latest") {
+            std::stringstream cmd;
+            cmd << GIT << " "
+                << "clone "
+                << "--depth=1 "
+                << "--recursive "
+                << "--branch "
+                << "'" << version << "' "
+                << url << " "
+                << path << " "
+                << "> /dev/null 2>&1";
+            std::string version_cmd = cmd.str();
+            std::system(version_cmd.c_str());
+        }
+        else {
+            std::stringstream cmd, latest;
+            cmd << GIT << " "
+                << "clone "
+                << "--recursive "
+                << url << " "
+                << path << " "
+                << "> /dev/null 2>&1";
+            std::string clone_cmd = cmd.str();
+            std::cout << "CLONE CMD: " << clone_cmd << "\n";
+            std::system(clone_cmd.c_str());
+
+            latest << "cd "
+                << path << " && "
+                << GIT << " checkout "
+                << "$(" << GIT
+                << " describe --tags --abbrev=0"
+                << ") "
+                << "> /dev/null 2>&1";
+            std::string latest_cmd = latest.str();            
+            std::cout << "LATEST CMD: " << latest_cmd << "\n";
+            std::system(latest_cmd.c_str());
+        }
         std::cout << ("[+] " + get_pkg_name(url, 2) + "\n");
     }
 
@@ -219,7 +250,7 @@ namespace pkg {
             if(!tracker[pkg_url]) {
                 threads.push_back(std::pair<std::string, std::thread> {
                     install_path,
-                    std::thread(clone, pkg_url, install_path)
+                    std::thread(clone, pkg_url, install_path, "latest")
                 });
 
                 tracker[pkg_url] = true;
