@@ -45,6 +45,7 @@ namespace pkg {
         int index = 0;
         int size = pkg.size();
         int slash_count = 0;
+        bool is_remote = false;
 
         std::string url;
 
@@ -72,11 +73,18 @@ namespace pkg {
                 slash_count++;
             }
 
+            if(pkg[index] == '@') {
+                is_remote = true;
+            }
+
             index++;
         }
 
-        if(slash_count == 1) {
+        if(slash_count == 1 && !is_remote) {
             url = "https://www.github.com/" + pkg;
+        }
+        else {
+            url = pkg;
         }
 
         return url;
@@ -88,7 +96,7 @@ namespace pkg {
 
         std::string pkg_name = "";
         while(level && last) {
-            while(last >= 0 && pkg_label[last] != '/') {
+            while(last >= 0 && (pkg_label[last] != '/' && pkg_label[last] != ':')) {
                 last--;
             }
             level--;
@@ -119,6 +127,7 @@ namespace pkg {
         cmd << GIT << " "
             << "clone "
             << "--depth=1 "
+            << "--recursive "
             << url << " "
             << path << " "
             << "> /dev/null 2>&1";
