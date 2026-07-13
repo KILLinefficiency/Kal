@@ -90,6 +90,25 @@ namespace pkg {
         return url;
     }
 
+    std::pair<std::string, std::string> parse_label(std::string label) {
+        std::pair<std::string, std::string> label_info;
+        int label_size = label.size();
+        int index = 0;
+        while(index < label_size - 2) {
+            if(label[index] == ':' && label[index + 1] == ':') {
+                label_info.first = label.substr(0, index);
+                label_info.second = label.substr(index + 2);
+                std::cout << "PKG_INFO: " << label_info.first << " " << label_info.second << "\n";
+                return label_info;
+            }
+            index++;
+        }
+
+        label_info.first = label;
+        label_info.second = "latest";
+        return label_info;
+    }
+
     std::string get_pkg_name(std::string pkg_label, int level = 1) {
         int end = pkg_label.size();
         int last = end - 1;
@@ -130,8 +149,10 @@ namespace pkg {
                     << GIT << " rev-list --tags --max-count=1"
                 << ")"
             << ")";
+
         std::string latest_version = latest_tag.str();
         std::string flush_stdout = "> /dev/null 2>&1";
+        std::string pkg_name = get_pkg_name(url, 2);
 
         if(std::filesystem::exists(path)) {
             std::stringstream cmd, checkout;
@@ -157,7 +178,7 @@ namespace pkg {
             std::cout << "CHECKOUT CMD: " << checkout_cmd << "\n";
             std::system(checkout_cmd.c_str());
 
-            std::cout << ("[^] " + get_pkg_name(url, 2)) << "\n";
+            std::cout << ("[^] " + pkg_name + " :: " + version) << "\n";
 
             return;
         }
@@ -174,6 +195,7 @@ namespace pkg {
                 << path << " "
                 << flush_stdout;
             std::string version_cmd = cmd.str();
+            std::cout << "VERSION CMD: " << version_cmd << "\n";
             std::system(version_cmd.c_str());
         }
         else {
@@ -200,7 +222,7 @@ namespace pkg {
             std::cout << "LATEST CMD: " << latest_cmd << "\n";
             std::system(latest_cmd.c_str());
         }
-        std::cout << ("[+] " + get_pkg_name(url, 2) + "\n");
+        std::cout << ("[+] " + pkg_name + " :: " + version) << "\n";
     }
 
     bool exists_in_list(std::vector<Value*> list, std::string value) {
@@ -280,13 +302,14 @@ namespace pkg {
 
         uint64_t threads_size = threads.size();
         for(std::string pkg_label : pkg_labels) {
-            std::string pkg_url = prepare_url(pkg_label);
-            std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_label);
+            std::pair<std::string, std::string> pkg_info = parse_label(pkg_label);
+            std::string pkg_url = prepare_url(pkg_info.first);
+            std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_url);
 
             if(!tracker[pkg_url]) {
                 threads.push_back(std::pair<std::string, std::thread> {
                     install_path,
-                    std::thread(clone, pkg_url, install_path, "v2")
+                    std::thread(clone, pkg_url, install_path, pkg_info.second)
                 });
 
                 tracker[pkg_url] = true;
