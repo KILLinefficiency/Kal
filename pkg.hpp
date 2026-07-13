@@ -124,20 +124,23 @@ namespace pkg {
 
     void clone(std::string url, std::string path, std::string version = "latest") {
         // TODO: Handle if no tags exist.
-        if(std::filesystem::exists(path)) {
-            std::stringstream cmd, latest_tag, checkout;
+        std::stringstream latest_tag;
+        latest_tag << "$("
+            << GIT << " describe --tags $("
+                    << GIT << " rev-list --tags --max-count=1"
+                << ")"
+            << ")";
+        std::string latest_version = latest_tag.str();
+        std::string flush_stdout = "> /dev/null 2>&1";
 
-            latest_tag << "$("
-                << GIT << " describe --tags $("
-                        << GIT << " rev-list --tags --max-count=1"
-                    << ")"
-                << ")";
+        if(std::filesystem::exists(path)) {
+            std::stringstream cmd, checkout;
 
             cmd << "cd " << path << " && "
                 << GIT << " switch - "
                 << "> /dev/null 2>&1 ; "
                 << GIT << " fetch --tags "
-                << "> /dev/null 2>&1";
+                << flush_stdout;
 
             std::string update_cmd = cmd.str();
             std::cout << "UPDATE CMD: " << update_cmd << "\n";
@@ -146,13 +149,15 @@ namespace pkg {
             checkout << "cd " << path << " && "
                 << GIT << " checkout "
                 << ((version == "latest")
-                    ? latest_tag.str()
+                    ? latest_version
                     : ("'" + version + "'")) << " "
-                << "> /dev/null 2>&1";
+                << flush_stdout;
 
             std::string checkout_cmd = checkout.str();
             std::cout << "CHECKOUT CMD: " << checkout_cmd << "\n";
             std::system(checkout_cmd.c_str());
+
+            std::cout << ("[^] " + get_pkg_name(url, 2)) << "\n";
 
             return;
         }
@@ -167,7 +172,7 @@ namespace pkg {
                 << "'" << version << "' "
                 << url << " "
                 << path << " "
-                << "> /dev/null 2>&1";
+                << flush_stdout;
             std::string version_cmd = cmd.str();
             std::system(version_cmd.c_str());
         }
@@ -175,21 +180,22 @@ namespace pkg {
             std::stringstream cmd, latest;
             cmd << GIT << " "
                 << "clone "
+                << "--depth=1 "
                 << "--recursive "
                 << url << " "
                 << path << " "
-                << "> /dev/null 2>&1";
+                << flush_stdout;
             std::string clone_cmd = cmd.str();
             std::cout << "CLONE CMD: " << clone_cmd << "\n";
             std::system(clone_cmd.c_str());
 
             latest << "cd "
                 << path << " && "
+                << GIT << " fetch --tags "
+                << flush_stdout << " && "
                 << GIT << " checkout "
-                << "$(" << GIT
-                << " describe --tags --abbrev=0"
-                << ") "
-                << "> /dev/null 2>&1";
+                << latest_version << " "
+                << flush_stdout;
             std::string latest_cmd = latest.str();            
             std::cout << "LATEST CMD: " << latest_cmd << "\n";
             std::system(latest_cmd.c_str());
@@ -280,7 +286,7 @@ namespace pkg {
             if(!tracker[pkg_url]) {
                 threads.push_back(std::pair<std::string, std::thread> {
                     install_path,
-                    std::thread(clone, pkg_url, install_path, "latest")
+                    std::thread(clone, pkg_url, install_path, "v2")
                 });
 
                 tracker[pkg_url] = true;
