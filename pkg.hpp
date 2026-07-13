@@ -125,6 +125,36 @@ namespace pkg {
     void clone(std::string url, std::string path, std::string version = "latest") {
         // TODO: Handle if no tags exist.
         if(std::filesystem::exists(path)) {
+            std::stringstream cmd, latest_tag, checkout;
+
+            latest_tag << "$("
+                << GIT << " describe --tags $("
+                        << GIT << " rev-list --tags --max-count=1"
+                    << ")"
+                << ")";
+
+            cmd << "cd " << path << " && "
+                << GIT << " switch - "
+                << "> /dev/null 2>&1 ; "
+                << GIT << " fetch --tags "
+                << "> /dev/null 2>&1";
+
+            std::string update_cmd = cmd.str();
+            std::cout << "UPDATE CMD: " << update_cmd << "\n";
+            std::system(update_cmd.c_str());
+ 
+            checkout << "cd " << path << " && "
+                << GIT << " checkout "
+                << ((version == "latest")
+                    ? latest_tag.str()
+                    : ("'" + version + "'")) << " "
+                << "> /dev/null 2>&1";
+
+            std::string checkout_cmd = checkout.str();
+            std::cout << "CHECKOUT CMD: " << checkout_cmd << "\n";
+            std::system(checkout_cmd.c_str());
+
+            return;
         }
 
         if(version != "latest") {
