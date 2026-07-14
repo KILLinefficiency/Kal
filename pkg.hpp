@@ -17,6 +17,7 @@
 #define TimeNow std::chrono::steady_clock::now
 using TimePoint = std::chrono::steady_clock::time_point;
 using TimeDuration = std::chrono::duration<double>;
+using PackageList = std::unordered_map<std::string, std::pair<std::string, bool>>;
 
 const std::string GIT = "git";
 const std::string PROJECT_FILE = "project.kal";
@@ -27,7 +28,7 @@ namespace pkg {
     void install_project(std::string, bool);
 
     std::vector<std::pair<std::string, std::thread>> threads;
-    std::unordered_map<std::string, bool> list, tracker;
+    PackageList list, tracker;
 
     bool check() {
         std::string git_cmd = GIT + " > /dev/null 2>&1";
@@ -225,17 +226,6 @@ namespace pkg {
         std::cout << ("[+] " + pkg_name + " :: " + version) << "\n";
     }
 
-    bool exists_in_list(std::vector<Value*> list, std::string value) {
-        std::string val = '"' + value + '"';
-        for(Value*& each : list) {
-            if(dynamic_cast<String*>(each) && (dynamic_cast<String*>(each)->print() == val)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     void sync_project_file() {
         if(std::filesystem::exists(PROJECT_FILE)) {
             std::ifstream read_proj(PROJECT_FILE);
@@ -246,12 +236,12 @@ namespace pkg {
             std::string proj_properties = proj_contents.str();
             Dict* proj = new Dict(proj_properties, globals);
 
-            std::unordered_map<std::string, bool>::iterator itr;
+            PackageList::iterator itr;
             for(itr = list.begin(); itr != list.end(); itr++) {
-                std::vector<Value*> existing_packages = dynamic_cast<List*>(proj->dict["packages"])->items;
-                if(!exists_in_list(existing_packages, itr->first)) {
-                    String* new_pkg = new String('"' + itr->first + '"');
-                    dynamic_cast<List*>(proj->dict["packages"])->items.push_back(new_pkg);
+                if(!dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first]) {
+                    String* new_pkg_version = new String('"' + (itr->second).first + '"');
+                    dynamic_cast<Dict*>(proj->dict["packages"])->keys.push_back(itr->first);
+                    dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first] = new_pkg_version;
                 }
             }
 
@@ -263,13 +253,14 @@ namespace pkg {
         }
         else {
             Dict* proj = new Dict();
-            List* package_list = new List();
+            Dict* package_list = new Dict();
             std::ofstream create_proj(PROJECT_FILE);
 
-            std::unordered_map<std::string, bool>::iterator itr;
+            PackageList::iterator itr;
             for(itr = list.begin(); itr != list.end(); itr++) {
-                String* package_name = new String('"' + itr->first + '"');
-                package_list->items.emplace_back(dynamic_cast<Value*>(package_name));
+                String* package_version = new String('"' + (itr->second).first + '"');
+                package_list->keys.push_back(itr->first);
+                package_list->dict[itr->first] = dynamic_cast<Value*>(package_version);
             }
 
             proj->keys.push_back("packages");
@@ -306,15 +297,15 @@ namespace pkg {
             std::string pkg_url = prepare_url(pkg_info.first);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_url);
 
-            if(!tracker[pkg_url]) {
+            if(!tracker[pkg_url].second) {
                 threads.push_back(std::pair<std::string, std::thread> {
                     install_path,
                     std::thread(clone, pkg_url, install_path, pkg_info.second)
                 });
 
-                tracker[pkg_url] = true;
+                tracker[pkg_url] = { pkg_info.second, true };
                 if(first) {
-                    list[pkg_url] = true;
+                    list[pkg_url] = { pkg_info.second, true };
                 }
             }
             else if(subpackage_count > 0) {
