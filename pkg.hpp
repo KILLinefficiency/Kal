@@ -19,6 +19,7 @@ using TimePoint = std::chrono::steady_clock::time_point;
 using TimeDuration = std::chrono::duration<double>;
 using PackageList = std::unordered_map<std::string, std::pair<std::string, bool>>;
 
+int indent = 1, spacing = 4;
 const std::string GIT = "git";
 const std::string PROJECT_FILE = "project.kal";
 const char* KAL_PKG = std::getenv("KAL_PKG");
@@ -89,6 +90,40 @@ namespace pkg {
         }
 
         return url;
+    }
+
+    std::string format_dict(Dict* project) {
+        std::stringstream formatted;
+        std::string last = project->keys[(project->keys).size() - 1];
+        std::string sep = ",\n";
+        formatted << "#(\n";
+
+        for(std::string key : project->keys) {
+            Value*& value = project->dict[key];
+            formatted << std::string(indent * spacing, ' ');
+            formatted << '"' << key << "\" -> ";
+
+            if(dynamic_cast<String*>(project->dict[key])) {
+                formatted << (dynamic_cast<String*>(project->dict[key]))->print();
+            }
+            else if(dynamic_cast<Dict*>(project->dict[key])) {
+                indent++;
+                formatted << format_dict(dynamic_cast<Dict*>(project->dict[key]));
+                indent--;
+            }
+
+            if(key == last) {
+                sep = "";
+            }
+            formatted << sep;
+        }
+
+        formatted << "\n" << std::string((indent - 1) * spacing, ' ') << ")";
+        if(indent == 1) {
+            formatted << "\n";
+        }
+
+        return formatted.str();
     }
 
     std::pair<std::string, std::string> parse_label(std::string label) {
@@ -246,7 +281,7 @@ namespace pkg {
             }
 
             std::ofstream updated_proj(PROJECT_FILE);
-            updated_proj << proj->print() << "\n";
+            updated_proj << format_dict(proj);
             updated_proj.close();
 
             delete proj;
@@ -266,7 +301,7 @@ namespace pkg {
             proj->keys.push_back("packages");
             proj->dict["packages"] = package_list;
 
-            create_proj << proj->print() << "\n";
+            create_proj << format_dict(proj);
             create_proj.close();
 
             delete proj;
