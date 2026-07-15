@@ -329,7 +329,7 @@ namespace pkg {
 
     }
 
-    void fetch(std::vector<std::string> pkg_labels, bool first = true) {
+    void fetch(std::vector<LabelInfo> pkg_labels, bool first = true) {
         if(first) {
             if(!KAL_PKG) {
                 // ERR:
@@ -347,24 +347,23 @@ namespace pkg {
         }
 
         uint64_t threads_size = threads.size();
-        for(std::string pkg_label : pkg_labels) {
-            LabelInfo pkg_info = parse_label(pkg_label);
-            std::string pkg_url = prepare_url(pkg_info.label);
+        for(LabelInfo& label_info : pkg_labels) {
+            std::string pkg_url = prepare_url(label_info.label);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_url);
 
             if(!tracker[pkg_url].installed) {
                 threads.push_back(PkgThread {
                     .pkg_path = install_path,
-                    .pkg_thread = std::thread(clone, pkg_url, install_path, pkg_info.version)
+                    .pkg_thread = std::thread(clone, pkg_url, install_path, label_info.version)
                 });
 
                 tracker[pkg_url] = PkgInfo {
-                    .version = pkg_info.version,
+                    .version = label_info.version,
                     .installed = true
                 };
                 if(first) {
                     list[pkg_url] = PkgInfo {
-                        .version = pkg_info.version,
+                        .version = label_info.version,
                         .installed = true
                     };
                 }
@@ -381,6 +380,18 @@ namespace pkg {
                 install_project(threads[index].pkg_path + "/" + PROJECT_FILE, false);
             }
         }
+    }
+
+    void fetch(std::vector<std::string> pkg_labels, bool first = true) {
+        std::vector<LabelInfo> pkg_collection;
+        pkg_collection.reserve(pkg_labels.size());
+
+        for(std::string& pkg_label : pkg_labels) {
+            LabelInfo pkg_info = parse_label(pkg_label);
+            pkg_collection.push_back(pkg_info);
+        }
+
+        fetch(pkg_collection, first);
     }
 
     void log_stats(uint64_t pkg_size, uint64_t subpkg_count, double duration) {
@@ -408,15 +419,17 @@ namespace pkg {
             if(!first) {
                 subpackage_count += pkg_count;
             }
-            std::vector<std::string> pkg_labels;
+            std::vector<LabelInfo> pkg_labels;
             pkg_labels.reserve(pkg_count);
 
             for(std::string& pkg : packages->keys) {
                 std::string version_str = dynamic_cast<String*>(packages->dict[pkg])->str;
                 int version_len = version_str.size();
                 std::string version = version_str.substr(1, version_len - 2);
-                std::string label = pkg + "::" + version;
-                pkg_labels.push_back(label);
+                pkg_labels.push_back(LabelInfo {
+                    .label = pkg,
+                    .version = version
+                });
             }
 
             fetch(pkg_labels, first);
