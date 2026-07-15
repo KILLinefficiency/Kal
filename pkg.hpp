@@ -142,6 +142,7 @@ namespace pkg {
     }
 
     LabelInfo parse_label(std::string label) {
+        // TODO: Validate label.
         LabelInfo label_info;
         int label_size = label.size();
         int index = 0;
@@ -401,19 +402,21 @@ namespace pkg {
 
             Dict* proj = new Dict(proj_properties, globals);
             // FIX: Handle if "packages" is not present.
-            std::vector<Value*> packages = dynamic_cast<List*>(proj->dict["packages"])->items;
+            Dict* packages = dynamic_cast<Dict*>(proj->dict["packages"]);
 
-            uint64_t pkg_count = packages.size();
+            uint64_t pkg_count = packages->dict.size();
             if(!first) {
                 subpackage_count += pkg_count;
             }
             std::vector<std::string> pkg_labels;
             pkg_labels.reserve(pkg_count);
 
-            for(Value*& each_pkg : packages) {
-                std::string pkg = std::string(dynamic_cast<String*>(each_pkg)->str);
-                int label_size = pkg.size();
-                pkg_labels.push_back(pkg.substr(1, label_size - 2));
+            for(std::string& pkg : packages->keys) {
+                std::string version_str = dynamic_cast<String*>(packages->dict[pkg])->str;
+                int version_len = version_str.size();
+                std::string version = version_str.substr(1, version_len - 2);
+                std::string label = pkg + "::" + version;
+                pkg_labels.push_back(label);
             }
 
             fetch(pkg_labels, first);
@@ -422,7 +425,7 @@ namespace pkg {
             TimePoint end = TimeNow();
             TimeDuration duration = end - start;
             if(first) {
-                log_stats(packages.size(), subpackage_count.load(), duration.count());
+                log_stats(pkg_count, subpackage_count.load(), duration.count());
             }
         }
     }
