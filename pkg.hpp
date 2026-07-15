@@ -9,7 +9,6 @@
 #include <atomic>
 #include <chrono>
 #include <fstream>
-#include <utility>
 #include <unordered_map>
 
 #include "globals.hpp"
@@ -17,7 +16,23 @@
 #define TimeNow std::chrono::steady_clock::now
 using TimePoint = std::chrono::steady_clock::time_point;
 using TimeDuration = std::chrono::duration<double>;
-using PackageList = std::unordered_map<std::string, std::pair<std::string, bool>>;
+
+struct PkgInfo {
+    std::string version = "";
+    bool installed = false;
+};
+
+struct PkgThread {
+    std::string pkg_path;
+    std::thread pkg_thread;
+};
+
+struct LabelInfo {
+    std::string label;
+    std::string version;
+};
+
+using PackageList = std::unordered_map<std::string, PkgInfo>;
 
 int indent = 1, spacing = 4;
 const std::string GIT = "git";
@@ -28,7 +43,7 @@ std::atomic<uint64_t> subpackage_count = 0;
 namespace pkg {
     void install_project(std::string, bool);
 
-    std::vector<std::pair<std::string, std::thread>> threads;
+    std::vector<PkgThread> threads;
     PackageList list, tracker;
 
     bool check() {
@@ -126,22 +141,26 @@ namespace pkg {
         return formatted.str();
     }
 
-    std::pair<std::string, std::string> parse_label(std::string label) {
-        std::pair<std::string, std::string> label_info;
+    LabelInfo parse_label(std::string label) {
+        LabelInfo label_info;
         int label_size = label.size();
         int index = 0;
         while(index < label_size - 2) {
             if(label[index] == ':' && label[index + 1] == ':') {
-                label_info.first = label.substr(0, index);
-                label_info.second = label.substr(index + 2);
-                std::cout << "PKG_INFO: " << label_info.first << " " << label_info.second << "\n";
+                label_info = {
+                    .label = label.substr(0, index),
+                    .version = label.substr(index + 2)
+                };
+                std::cout << "PKG_INFO: " << label_info.label << " " << label_info.version << "\n";
                 return label_info;
             }
             index++;
         }
 
-        label_info.first = label;
-        label_info.second = "latest";
+        label_info = {
+            .label = label,
+            .version = "latest"
+        };
         return label_info;
     }
 
@@ -274,7 +293,7 @@ namespace pkg {
             PackageList::iterator itr;
             for(itr = list.begin(); itr != list.end(); itr++) {
                 if(!dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first]) {
-                    String* new_pkg_version = new String('"' + (itr->second).first + '"');
+                    String* new_pkg_version = new String('"' + (itr->second).version + '"');
                     dynamic_cast<Dict*>(proj->dict["packages"])->keys.push_back(itr->first);
                     dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first] = new_pkg_version;
                 }
@@ -293,7 +312,7 @@ namespace pkg {
 
             PackageList::iterator itr;
             for(itr = list.begin(); itr != list.end(); itr++) {
-                String* package_version = new String('"' + (itr->second).first + '"');
+                String* package_version = new String('"' + (itr->second).version + '"');
                 package_list->keys.push_back(itr->first);
                 package_list->dict[itr->first] = dynamic_cast<Value*>(package_version);
             }
@@ -328,19 +347,25 @@ namespace pkg {
 
         uint64_t threads_size = threads.size();
         for(std::string pkg_label : pkg_labels) {
-            std::pair<std::string, std::string> pkg_info = parse_label(pkg_label);
-            std::string pkg_url = prepare_url(pkg_info.first);
+            LabelInfo pkg_info = parse_label(pkg_label);
+            std::string pkg_url = prepare_url(pkg_info.label);
             std::string install_path = std::string(KAL_PKG) + "/" + get_pkg_name(pkg_url);
 
-            if(!tracker[pkg_url].second) {
-                threads.push_back(std::pair<std::string, std::thread> {
-                    install_path,
-                    std::thread(clone, pkg_url, install_path, pkg_info.second)
+            if(!tracker[pkg_url].installed) {
+                threads.push_back(PkgThread {
+                    .pkg_path = install_path,
+                    .pkg_thread = std::thread(clone, pkg_url, install_path, pkg_info.version)
                 });
 
-                tracker[pkg_url] = { pkg_info.second, true };
+                tracker[pkg_url] = PkgInfo {
+                    .version = pkg_info.version,
+                    .installed = true
+                };
                 if(first) {
-                    list[pkg_url] = { pkg_info.second, true };
+                    list[pkg_url] = PkgInfo {
+                        .version = pkg_info.version,
+                        .installed = true
+                    };
                 }
             }
             else if(subpackage_count > 0) {
@@ -350,9 +375,9 @@ namespace pkg {
 
         uint64_t current_size = threads.size();
         for(uint64_t index = threads_size; index < current_size; index++) {
-            if(threads[index].second.joinable()) {
-                threads[index].second.join();
-                install_project(threads[index].first + "/" + PROJECT_FILE, false);
+            if(threads[index].pkg_thread.joinable()) {
+                threads[index].pkg_thread.join();
+                install_project(threads[index].pkg_path + "/" + PROJECT_FILE, false);
             }
         }
     }
