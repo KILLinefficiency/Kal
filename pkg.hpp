@@ -293,9 +293,23 @@ namespace pkg {
 
             PackageList::iterator itr;
             for(itr = list.begin(); itr != list.end(); itr++) {
-                if(!dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first]) {
+                String* version = dynamic_cast<String*>(dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first]);
+
+                std::string prev_version = "";
+                if(version) {
+                    std::string version_str = std::string(version->str);
+                    int version_len = version_str.size();
+                    prev_version = version_str.substr(1, version_len - 2);
+                }
+
+                if(!version) {
                     String* new_pkg_version = new String('"' + (itr->second).version + '"');
                     dynamic_cast<Dict*>(proj->dict["packages"])->keys.push_back(itr->first);
+                    dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first] = new_pkg_version;
+                }
+                else if(prev_version != "" && (prev_version != (itr->second).version)) {
+                    String* new_pkg_version = new String('"' + (itr->second).version + '"');
+                    delete version;
                     dynamic_cast<Dict*>(proj->dict["packages"])->dict[itr->first] = new_pkg_version;
                 }
             }
