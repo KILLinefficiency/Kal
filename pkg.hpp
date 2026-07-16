@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #include "globals.hpp"
+#include "lib/lib_style.hpp"
 
 #define TimeNow std::chrono::steady_clock::now
 using TimePoint = std::chrono::steady_clock::time_point;
@@ -30,6 +31,16 @@ struct PkgThread {
 struct LabelInfo {
     std::string label;
     std::string version;
+};
+
+enum PKG_STATE {
+    INSTALLED,
+    UPDATED
+};
+
+enum SYNC_STATE {
+    CREATED,
+    SYNCED
 };
 
 using PackageList = std::unordered_map<std::string, PkgInfo>;
@@ -119,11 +130,11 @@ namespace pkg {
             formatted << '"' << key << "\" -> ";
 
             if(dynamic_cast<String*>(project->dict[key])) {
-                formatted << (dynamic_cast<String*>(project->dict[key]))->print();
+                formatted << (dynamic_cast<String*>(value))->print();
             }
-            else if(dynamic_cast<Dict*>(project->dict[key])) {
+            else if(dynamic_cast<Dict*>(value)) {
                 indent++;
-                formatted << format_dict(dynamic_cast<Dict*>(project->dict[key]));
+                formatted << format_dict(dynamic_cast<Dict*>(value));
                 indent--;
             }
 
@@ -152,7 +163,6 @@ namespace pkg {
                     .label = label.substr(0, index),
                     .version = label.substr(index + 2)
                 };
-                std::cout << "PKG_INFO: " << label_info.label << " " << label_info.version << "\n";
                 return label_info;
             }
             index++;
@@ -197,6 +207,39 @@ namespace pkg {
         std::filesystem::create_directories(KAL_PKG);
     }
 
+    void log_pkg(std::string pkg_name, std::string version, enum PKG_STATE state) {
+        std::stringstream log;
+        log << style::style["bold"];
+
+        if(state == INSTALLED) {
+            log << style::style["green"] << "[+]";
+        }
+        else if(state == UPDATED) {
+            log << style::style["yellow"] << "[^]";
+        }
+
+        log << " " << style::style["reset"] << style::style["bold"]
+            << pkg_name << style::style["blue"] << " :: "
+            << style::style["reset"] << style::style["bold"]
+            << version << style::style["reset"] << "\n";
+
+        std::cout << log.str();
+    }
+
+    void log_sync(enum SYNC_STATE state) {
+        std::stringstream log;
+        log << "\n" << style::style["bold"] << PROJECT_FILE << " ";
+        if(state == CREATED) {
+            log << style::style["green"] << "created!";
+        }
+        else if(state == SYNCED) {
+            log << style::style["yellow"] << "updated!";
+        }
+
+        log << style::style["reset"] << "\n";
+        std::cout << log.str();
+    }
+
     void clone(std::string url, std::string path, std::string version = "latest") {
         // TODO: Handle if no tags exist.
         std::stringstream latest_tag;
@@ -220,7 +263,6 @@ namespace pkg {
                 << flush_stdout;
 
             std::string update_cmd = cmd.str();
-            std::cout << "UPDATE CMD: " << update_cmd << "\n";
             std::system(update_cmd.c_str());
  
             checkout << "cd " << path << " && "
@@ -231,10 +273,9 @@ namespace pkg {
                 << flush_stdout;
 
             std::string checkout_cmd = checkout.str();
-            std::cout << "CHECKOUT CMD: " << checkout_cmd << "\n";
             std::system(checkout_cmd.c_str());
 
-            std::cout << ("[^] " + pkg_name + " :: " + version) << "\n";
+            log_pkg(pkg_name, version, UPDATED);
 
             return;
         }
@@ -251,7 +292,6 @@ namespace pkg {
                 << path << " "
                 << flush_stdout;
             std::string version_cmd = cmd.str();
-            std::cout << "VERSION CMD: " << version_cmd << "\n";
             std::system(version_cmd.c_str());
         }
         else {
@@ -264,7 +304,6 @@ namespace pkg {
                 << path << " "
                 << flush_stdout;
             std::string clone_cmd = cmd.str();
-            std::cout << "CLONE CMD: " << clone_cmd << "\n";
             std::system(clone_cmd.c_str());
 
             latest << "cd "
@@ -275,10 +314,10 @@ namespace pkg {
                 << latest_version << " "
                 << flush_stdout;
             std::string latest_cmd = latest.str();            
-            std::cout << "LATEST CMD: " << latest_cmd << "\n";
             std::system(latest_cmd.c_str());
         }
-        std::cout << ("[+] " + pkg_name + " :: " + version) << "\n";
+
+        log_pkg(pkg_name, version, INSTALLED);
     }
 
     void sync_project_file() {
@@ -319,6 +358,7 @@ namespace pkg {
             updated_proj.close();
 
             delete proj;
+            log_sync(SYNCED);
         }
         else {
             Dict* proj = new Dict();
@@ -339,6 +379,7 @@ namespace pkg {
             create_proj.close();
 
             delete proj;
+            log_sync(CREATED);
         }
 
     }
@@ -468,7 +509,6 @@ namespace pkg {
 
         if(sync) {
             sync_project_file();
-            std::cout << "\nSynced " << PROJECT_FILE << "\n";
         }
     }
 }
