@@ -46,10 +46,13 @@ enum SYNC_STATE {
 using PackageList = std::unordered_map<std::string, PkgInfo>;
 
 int indent = 1, spacing = 4;
+
 const std::string GIT = "git";
 const std::string PROJECT_FILE = "project.kal";
 const char* KAL_PKG = std::getenv("KAL_PKG");
-std::atomic<uint64_t> subpackage_count = 0;
+
+std::atomic<uint64_t> package_count = 0,
+    subpackage_count = 0;
 
 namespace pkg {
     void install_project(std::string, bool);
@@ -416,15 +419,17 @@ namespace pkg {
                     .version = label_info.version,
                     .installed = true
                 };
+
                 if(first) {
                     list[pkg_url] = PkgInfo {
                         .version = label_info.version,
                         .installed = true
                     };
+                    package_count++;
                 }
-            }
-            else if(subpackage_count > 0) {
-                subpackage_count--;
+                else {
+                    subpackage_count++;
+                }
             }
         }
 
@@ -470,12 +475,8 @@ namespace pkg {
             // FIX: Handle if "packages" is not present.
             Dict* packages = dynamic_cast<Dict*>(proj->dict["packages"]);
 
-            uint64_t pkg_count = packages->dict.size();
-            if(!first) {
-                subpackage_count += pkg_count;
-            }
             std::vector<LabelInfo> pkg_labels;
-            pkg_labels.reserve(pkg_count);
+            pkg_labels.reserve(pkg_labels.size() + package_count.load());
 
             for(std::string& pkg : packages->keys) {
                 std::string version_str = dynamic_cast<String*>(packages->dict[pkg])->str;
@@ -493,7 +494,7 @@ namespace pkg {
             TimePoint end = TimeNow();
             TimeDuration duration = end - start;
             if(first) {
-                log_stats(pkg_count, subpackage_count.load(), duration.count());
+                log_stats(package_count.load(), subpackage_count.load(), duration.count());
             }
         }
     }
