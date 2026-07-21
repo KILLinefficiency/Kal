@@ -506,7 +506,7 @@ namespace pkg {
 
         TimePoint end = TimeNow();
         TimeDuration duration = end - start;
-        log_stats(pkg_labels.size(), subpackage_count.load(), duration.count());
+        log_stats(package_count.load(), subpackage_count.load(), duration.count());
 
         if(sync) {
             sync_project_file();
