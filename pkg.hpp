@@ -52,7 +52,8 @@ const std::string PROJECT_FILE = "project.kal";
 const char* KAL_PKG = std::getenv("KAL_PKG");
 
 std::atomic<uint64_t> package_count = 0,
-    subpackage_count = 0;
+    subpackage_count = 0,
+    updated_count = 0;
 
 namespace pkg {
     void install_project(std::string, bool);
@@ -70,6 +71,11 @@ namespace pkg {
             (c >= 'A' && c <= 'Z') ||
             (c >= '0' && c <= '9') ||
             (c == '/' || c == ':' || c == '.' || c == '@');
+    }
+
+    void log_kal_pkg() {
+        std::cout << "\e[38;5;244m"
+            << "Installing to: " << KAL_PKG << style::style["reset"] << "\n\n";
     }
 
     std::string prepare_url(std::string pkg) {
@@ -193,6 +199,12 @@ namespace pkg {
             }
         }
 
+        if(last < 0) {
+            // ERR:
+            std::cerr << "Syntax Error\n";
+            exit(1);
+        }
+
         pkg_name = pkg_label.substr(last + 1, end - last);
         return pkg_name;
     }
@@ -279,6 +291,7 @@ namespace pkg {
             std::system(checkout_cmd.c_str());
 
             log_pkg(pkg_name, version, UPDATED);
+            updated_count++;
 
             return;
         }
@@ -454,15 +467,16 @@ namespace pkg {
         fetch(pkg_collection, first);
     }
 
-    void log_stats(uint64_t pkg_size, uint64_t subpkg_count, double duration) {
+    void log_stats(uint64_t pkg_size, uint64_t subpkg_count, uint64_t updated_pkg_count, double duration) {
         printf(
-            "\nTotal Packages:%6ld\nTotal Sub-packages: %ld\nFinished In:%12.2lfs\n",
-            pkg_size, subpkg_count, duration
+            "\nTotal Main Packages:%6ld\nTotal Indirect Packages: %ld\nTotal Updated Packages:%3ld\nFinished In:%17.2lfs\n",
+            pkg_size, subpkg_count, updated_pkg_count, duration
         );
     }
 
     void install_project(std::string proj_path, bool first = true) {
         if(std::filesystem::exists(proj_path)) {
+            log_kal_pkg();
             TimePoint start = TimeNow();
 
             std::ifstream proj_file(proj_path);
@@ -494,19 +508,24 @@ namespace pkg {
             TimePoint end = TimeNow();
             TimeDuration duration = end - start;
             if(first) {
-                log_stats(package_count.load(), subpackage_count.load(), duration.count());
+                log_stats(package_count.load(), subpackage_count.load(), updated_count.load(), duration.count());
             }
+        }
+        else if(first) {
+            // ERR:
+            std::cerr << "project.kal not found!\n";
         }
     }
 
     void install(std::vector<std::string> pkg_labels, bool sync = true) {
+        log_kal_pkg();
         TimePoint start = TimeNow();
 
         fetch(pkg_labels);
 
         TimePoint end = TimeNow();
         TimeDuration duration = end - start;
-        log_stats(package_count.load(), subpackage_count.load(), duration.count());
+        log_stats(package_count.load(), subpackage_count.load(), updated_count.load(), duration.count());
 
         if(sync) {
             sync_project_file();
