@@ -6,6 +6,7 @@ namespace style {
     std::unordered_map<std::string, std::string> style {
         { "reset",     "\u001b[0m"  },
         { "bold",      "\u001b[1m"  },
+        { "gray",      "\u001b[2m"  },
         { "italic",    "\u001b[3m"  },
         { "underline", "\u001b[4m"  },
         { "blink",     "\u001b[5m"  },

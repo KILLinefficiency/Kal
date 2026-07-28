@@ -53,7 +53,8 @@ const char* KAL_PKG = std::getenv("KAL_PKG");
 
 std::atomic<uint64_t> package_count = 0,
     subpackage_count = 0,
-    updated_count = 0;
+    updated_count = 0,
+    failed_count = 0;
 
 namespace pkg {
     void install_project(std::string, bool);
@@ -74,7 +75,7 @@ namespace pkg {
     }
 
     void log_kal_pkg() {
-        std::cout << "\e[38;5;244m"
+        std::cout << style::style["gray"]
             << "Installing to: " << KAL_PKG << style::style["reset"] << "\n\n";
     }
 
@@ -278,7 +279,8 @@ namespace pkg {
                 << flush_stdout;
 
             std::string update_cmd = cmd.str();
-            std::system(update_cmd.c_str());
+            int update_code = std::system(update_cmd.c_str());
+            std::cout << "[UPDATE CODE]: " << update_code << "\n";
  
             checkout << "cd " << path << " && "
                 << GIT << " checkout "
@@ -288,7 +290,8 @@ namespace pkg {
                 << flush_stdout;
 
             std::string checkout_cmd = checkout.str();
-            std::system(checkout_cmd.c_str());
+            int checkout_code = std::system(checkout_cmd.c_str());
+            std::cout << "[CHECKOUT CODE]: " << checkout_code << "\n";
 
             log_pkg(pkg_name, version, UPDATED);
             updated_count++;
@@ -308,7 +311,13 @@ namespace pkg {
                 << path << " "
                 << flush_stdout;
             std::string version_cmd = cmd.str();
-            std::system(version_cmd.c_str());
+
+            int version_code = std::system(version_cmd.c_str());
+            if(version_code != 0) {
+                // ERR:
+                std::cerr << "Version " << version << " not found!\n";
+                return;
+            }
         }
         else {
             std::stringstream cmd, latest;
@@ -320,7 +329,13 @@ namespace pkg {
                 << path << " "
                 << flush_stdout;
             std::string clone_cmd = cmd.str();
-            std::system(clone_cmd.c_str());
+
+            int clone_code = std::system(clone_cmd.c_str());
+            if(clone_code != 0) {
+                // ERR:
+                std::cerr << "Invalid URL\n";
+                return;
+            }
 
             latest << "cd "
                 << path << " && "
@@ -330,7 +345,13 @@ namespace pkg {
                 << latest_version << " "
                 << flush_stdout;
             std::string latest_cmd = latest.str();            
-            std::system(latest_cmd.c_str());
+            int latest_tag_code = std::system(latest_cmd.c_str());
+            std::cout << "[LATEST TAG CODE]: " << latest_tag_code << "\n";
+            // Returns 0 for both success and failure.
+            if(latest_tag_code != 0) {
+                // WARN:
+                std::cerr << "No registered version\n";
+            }
         }
 
         log_pkg(pkg_name, version, INSTALLED);

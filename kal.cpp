@@ -9,7 +9,7 @@
 #include "var.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
-// #include "pkg.hpp"
+#include "pkg.hpp"
 #include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
 
@@ -19,15 +19,13 @@ int main(int argc, char** argv) {
     int arg_size = arg_parser.args_size();
 
     if(arg_parser.install_proj) {
-        // if(arg_parser.packages.size() != 0) {
-        //     pkg::install(arg_parser.packages);
-        // }
-        // else {
-        //     pkg::install_project("project.kal");
-        // }
-        for(std::string pkg : arg_parser.packages) {
-            std::cout << "[" << pkg << "]\n";
+        if(arg_parser.packages.size() != 0) {
+            pkg::install(arg_parser.packages);
         }
+        else {
+            pkg::install_project("project.kal");
+        }
+
         return 0;
     }
 
