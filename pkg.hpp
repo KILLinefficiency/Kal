@@ -316,6 +316,7 @@ namespace pkg {
             if(version_code != 0) {
                 // ERR:
                 std::cerr << "Version " << version << " not found!\n";
+                failed_count++;
                 return;
             }
         }
@@ -334,6 +335,7 @@ namespace pkg {
             if(clone_code != 0) {
                 // ERR:
                 std::cerr << "Invalid URL\n";
+                failed_count++;
                 return;
             }
 
@@ -351,6 +353,7 @@ namespace pkg {
             if(latest_tag_code != 0) {
                 // WARN:
                 std::cerr << "No registered version\n";
+                failed_count++;
             }
         }
 
@@ -488,11 +491,18 @@ namespace pkg {
         fetch(pkg_collection, first);
     }
 
-    void log_stats(uint64_t pkg_size, uint64_t subpkg_count, uint64_t updated_pkg_count, double duration) {
-        printf(
-            "\nTotal Main Packages:%6ld\nTotal Indirect Packages: %ld\nTotal Updated Packages:%3ld\nFinished In:%17.2lfs\n",
-            pkg_size, subpkg_count, updated_pkg_count, duration
-        );
+    void log_stats(double duration) {
+        std::stringstream stats;
+        stats << "\n" << style::style["bold"]
+            << style::style["green"] << "+ " << style::style["reset"] << style::style["bold"] << package_count.load() << " "
+            << style::style["green"] << "~ " << style::style["reset"] << style::style["bold"] << subpackage_count.load() << " "
+            << style::style["yellow"] << "^ " << style::style["reset"] << style::style["bold"] << updated_count.load() << " "
+            << style::style["red"] << "x " << style::style["reset"] << style::style["bold"] << failed_count.load();
+            // << style::style["blue"] << "[" << duration_str << "s]" << style::style["reset"];
+        
+        std::cout << stats.str();
+        printf(" %s%s[%0.2lfs]\n", style::style["blue"].c_str(), style::style["bold"].c_str(), duration);
+        std::cout << style::style["reset"];
     }
 
     void install_project(std::string proj_path, bool first = true) {
@@ -529,7 +539,7 @@ namespace pkg {
             TimePoint end = TimeNow();
             TimeDuration duration = end - start;
             if(first) {
-                log_stats(package_count.load(), subpackage_count.load(), updated_count.load(), duration.count());
+                log_stats(duration.count());
             }
         }
         else if(first) {
@@ -546,9 +556,9 @@ namespace pkg {
 
         TimePoint end = TimeNow();
         TimeDuration duration = end - start;
-        log_stats(package_count.load(), subpackage_count.load(), updated_count.load(), duration.count());
+        log_stats(duration.count());
 
-        if(sync) {
+        if(sync && (failed_count.load() == 0)) {
             sync_project_file();
         }
     }
