@@ -11,10 +11,24 @@ class ArgParser {
         std::unordered_map<std::string, std::string> flags_map;
 
     public:
+        bool install_proj = false;
+        std::vector<std::string> packages;
+
         ArgParser(const int& size, char** args) {
             int index = 0;
             while(index < size) {
                 if(args[index][0] == '-') {
+                    if(args[index][1] == 'i') {
+                        install_proj = true;
+                        index++;
+
+                        while(index < size) {
+                            packages.push_back(args[index]);
+                            index++;
+                        }
+                        return;
+                    }
+
                     int next_item = index + 1;
                     if(next_item == size) {
                         break;
