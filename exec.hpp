@@ -74,7 +74,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     std::stack<std::tuple<bool, int, int>> loop_stack;
     std::stack<std::tuple<Value*, std::string, int, uint64_t, bool>> range_stack;
 
+    std::stack<uint64_t> jump_stack;
+    std::unordered_map<uint64_t, uint64_t> jumps;
+
     while(line < total_tokens) {
+        // DEBUG:
+        globals.jump_count++;
+        ///
         Token& cmd = tokens[line];
         globals.current_line = tokens[line].line;
         bool cmd_values_modified = false;
@@ -244,6 +250,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
             depth += 1;
             current_depth = depth;
+
+            // DEBUG:
+            if(jumps.find(line) == jumps.end()) {
+                jump_stack.push(line);
+                std::cout << "[OPEN] " << line << "\n";
+            }
+            ///
+
             if(tokens[line].head == "if") {
                 std::string value = eval(tokens[line].values[0], globals);
                 if(parser::is_var(value)) {
@@ -256,10 +270,30 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    while(depth != current_depth - 1) {
-                        line++;
-                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                        if(tokens[line].head == "}") { depth--; }
+                    // DEBUG:
+                    if(jumps.find(line) != jumps.end()) {
+                        line = jumps[line];
+                        continue;
+                    }
+                    else {
+                        while(depth != current_depth - 1) {
+                            // DEBUG:
+                            globals.jump_count++;
+                            ///
+                            line++;
+                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                            if(tokens[line].head == "}") { depth--; }
+                        }
+                        // DEBUG:
+                        if(!jump_stack.empty()) {
+                            std::cout << "[ END] " << line << "\n";
+                            uint64_t open = jump_stack.top();
+                            jump_stack.pop();
+                            jumps[open] = line;
+                            jumps[line] = open;
+                            std::cout << "(" << open << ", " << line << ")\n";
+                        }
+                        ///
                     }
                 }
             }
@@ -276,6 +310,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         }
                         else {
                             while(depth != current_depth - 1) {
+                                // DEBUG:
+                                globals.jump_count++;
+                                ///
                                 line++;
                                 if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                                 if(tokens[line].head == "}") { depth--; }
@@ -284,6 +321,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     }
                     else {
                         while(depth != current_depth - 1) {
+                            // DEBUG:
+                            globals.jump_count++;
+                            ///
                             line++;
                             if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                             if(tokens[line].head == "}") { depth--; }
@@ -304,6 +344,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     }
                     else {
                         while(depth != current_depth - 1) {
+                            // DEBUG:
+                            globals.jump_count++;
+                            ///
                             line++;
                             if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                             if(tokens[line].head == "}") { depth--; }
@@ -312,6 +355,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
                 else {
                     while(depth != current_depth - 1) {
+                        // DEBUG:
+                        globals.jump_count++;
+                        ///
                         line++;
                         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
                         if(tokens[line].head == "}") { depth--; }
@@ -359,6 +405,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         if(!condition) {
                             int local_depth = 1;
                             while(local_depth != 0) {
+                                // DEBUG:
+                                globals.jump_count++;
+                                ///
                                 line++;
                                 if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
                                 if(tokens[line].head == "}") { local_depth--; }
@@ -412,11 +461,19 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    int local_depth = 1;
-                    while(local_depth != 0) {
-                        line++;
-                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
-                        if(tokens[line].head == "}") { local_depth--; }
+                    if(jumps.find(line) != jumps.end()) {
+                        line = jumps[line];
+                    }
+                    else {
+                        int local_depth = 1;
+                        while(local_depth != 0) {
+                            // DEBUG:
+                            globals.jump_count++;
+                            ///
+                            line++;
+                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
+                            if(tokens[line].head == "}") { local_depth--; }
+                        }
                     }
                     line++;
                     depth--;
@@ -430,6 +487,18 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
         }
         else if(tokens[line].head == "}") {
+            // DEBUG:
+            if(jumps.find(line) == jumps.end()) {
+                if(!jump_stack.empty()) {
+                    std::cout << "[ END] " << line << "\n";
+                    uint64_t open = jump_stack.top();
+                    jump_stack.pop();
+                    jumps[open] = line;
+                    jumps[line] = open;
+                    std::cout << "(" << open << ", " << line << ")\n";
+                }
+            }
+            ///
             VarTable::gc(globals);
             depth--;
             if(depth < 0) {
