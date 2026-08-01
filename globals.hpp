@@ -3,11 +3,12 @@
 #include <string>
 #include <stack>
 #include <utility>
+#include <vector>
 #include <unordered_map>
 
 class Value;
 using Memory = std::unordered_map<std::string, Value*>;
-using ScopeTable = std::unordered_map<std::string, int>;
+using ScopeTable = std::unordered_map<int, std::vector<std::string>>;
 using CallStack = std::stack<std::pair<std::string, int>>;
 using DeferStack = std::stack<std::pair<std::string, int>>;
 using InertTable = std::unordered_map<std::string, std::string>;

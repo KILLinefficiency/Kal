@@ -343,7 +343,7 @@ namespace VarTable {
                     }
                 }
             }
-            else if(globals.scope[name] >= depth) {
+            else {
                 delete val;
                 memory[name] = nullptr;
             }
@@ -354,10 +354,16 @@ namespace VarTable {
         int& depth = globals.depth;
         Memory& memory = globals.memory;
 
-        Memory::iterator itr, end = memory.end();
-        for(itr = memory.begin(); itr != end; itr++) {
-            gc_value(itr->first, itr->second, globals);
+        if(globals.scope.find(depth) != globals.scope.end()) {
+            std::vector<std::string>& cleanup_vars = globals.scope[depth];
+
+            for(std::string& var : cleanup_vars) {
+                gc_value(var, memory[var], globals);
+            }
+
+            cleanup_vars.clear();
         }
+
         if(depth == 0) {
             Functions::gc();
         }
@@ -579,7 +585,7 @@ namespace VarTable {
         }
 
         if(memory[var] == nullptr) {
-            globals.scope[var] = depth;
+            globals.scope[depth].emplace_back(var);
         }
 
         Value* ptr = VarTable::get(var, {}, true, true, true, globals);
@@ -637,11 +643,9 @@ namespace VarTable {
             if(memory[var]->shadow == nullptr) {
                 memory[var]->init_shadow();
             }
-            // if(ScopeTable::scope[var] == depth) {
-            //     // ERR:
-            //     errors::var_redeclare(globals, var);
-            // }
+
             memory[var]->shadow->push({ value, depth });
+            globals.scope[depth].emplace_back(var);
             is_shadowed = true;
         }
 
