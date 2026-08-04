@@ -66,9 +66,14 @@ namespace lexer {
 
             if(token.head == "fn") {
                 Fn* function = new Fn(token.values);
+                JumpStack jump_stack;
+                JumpTable jump_table;
+
                 int fn_depth = 1;
                 Token fn_line;
                 line++;
+                int start_line = line;
+
                 while(fn_depth != 0) {
                     std::string inner_head = get_head(source_lines[line]);
                     Config* inner_config = p_config::get_config(source_lines[line], inner_head);
@@ -76,9 +81,18 @@ namespace lexer {
                     fn_line.line = &source_lines[line];
                     int values_size = fn_line.values.size();
                     if(values_size != 0 && fn_line.values[values_size - 1] == "{") {
+                        uint64_t open = line - start_line;
+                        jump_stack.push(open);
                         fn_depth++;
                     }
                     if(fn_line.head == "}") {
+                        if(!jump_stack.empty()) {
+                            uint64_t open = jump_stack.top();
+                            uint64_t end = line - start_line;
+                            jump_table[open] = end;
+                            // jump_table[end] = open;
+                            jump_stack.pop();
+                        }
                         fn_depth--;
                     }
                     if(fn_depth != 0 || fn_line.head != "}") {
@@ -87,6 +101,7 @@ namespace lexer {
                     line++;
                 }
                 Functions::fn[function->name] = function;
+                globals.fn_jump_table[function->name] = jump_table;
                 continue;
             }
             all_tokens.emplace_back(token);
@@ -98,7 +113,7 @@ namespace lexer {
                 if(!globals.jump_stack.empty()) {
                     uint64_t open = globals.jump_stack.top();
                     globals.jump_table[open] = line;
-                    //globals.jump_table[line] = open;
+                    // globals.jump_table[line] = open;
                     globals.jump_stack.pop();
                 }
             }
@@ -106,10 +121,22 @@ namespace lexer {
             line++;
         }
 
+        // DEBUG:
+        std::cout << "Top Level:\n";
         JumpTable::iterator itr;
         for(itr = globals.jump_table.begin(); itr != globals.jump_table.end(); itr++) {
-            std::cout << "[" << itr->first << ", " << itr->second << "]\n";
+            std::cout << "\t[" << itr->first << ", " << itr->second << "]\n";
         }
+        std::cout << "-----\n";
+        FnJumpTable::iterator fn_itr;
+        for(fn_itr = globals.fn_jump_table.begin(); fn_itr != globals.fn_jump_table.end(); fn_itr++) {
+            std::cout << fn_itr->first << ":\n";
+            JumpTable::iterator nested_itr;
+            for(nested_itr = fn_itr->second.begin(); nested_itr != fn_itr->second.end(); nested_itr++) {
+                std::cout << "\t[" << nested_itr->first << ", " << nested_itr->second << "]\n";
+            }
+        }
+        ///
 
         return all_tokens;
     }
