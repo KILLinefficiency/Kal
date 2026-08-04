@@ -25,6 +25,7 @@ int main() {
     test_fn();
     test_libkal_o();
 
+    std::cout << "Jumps: " << globals.jump_count << "\n";
     exit_successfully();
     return 0;
 }

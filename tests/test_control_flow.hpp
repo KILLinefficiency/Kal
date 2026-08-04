@@ -4,7 +4,7 @@
 #include "../lexer.hpp"
 
 #define RUN_CASE(VALUE) actual_string = VALUE; \
-    tokens = lexer::tokenize(lines); \
+    tokens = lexer::tokenize(lines, globals); \
     line_exec(tokens, false, true, false, globals); \
     found_string = VarTable::print("value", globals); \
     check(found_string, actual_string);

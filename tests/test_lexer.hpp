@@ -14,7 +14,7 @@ void test_lexer() {
     };
 
     std::string line = "var name = \"Kal-El\"";
-    found = lexer::tokenize(source_lines);
+    found = lexer::tokenize(source_lines, globals);
     actual = {
         {
             .head = "var",

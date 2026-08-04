@@ -122,20 +122,20 @@ namespace lexer {
         }
 
         // DEBUG:
-        std::cout << "Top Level:\n";
-        JumpTable::iterator itr;
-        for(itr = globals.jump_table.begin(); itr != globals.jump_table.end(); itr++) {
-            std::cout << "\t[" << itr->first << ", " << itr->second << "]\n";
-        }
-        std::cout << "-----\n";
-        FnJumpTable::iterator fn_itr;
-        for(fn_itr = globals.fn_jump_table.begin(); fn_itr != globals.fn_jump_table.end(); fn_itr++) {
-            std::cout << fn_itr->first << ":\n";
-            JumpTable::iterator nested_itr;
-            for(nested_itr = fn_itr->second.begin(); nested_itr != fn_itr->second.end(); nested_itr++) {
-                std::cout << "\t[" << nested_itr->first << ", " << nested_itr->second << "]\n";
-            }
-        }
+        // std::cout << "Top Level:\n";
+        // JumpTable::iterator itr;
+        // for(itr = globals.jump_table.begin(); itr != globals.jump_table.end(); itr++) {
+        //     std::cout << "\t[" << itr->first << ", " << itr->second << "]\n";
+        // }
+        // std::cout << "-----\n";
+        // FnJumpTable::iterator fn_itr;
+        // for(fn_itr = globals.fn_jump_table.begin(); fn_itr != globals.fn_jump_table.end(); fn_itr++) {
+        //     std::cout << fn_itr->first << ":\n";
+        //     JumpTable::iterator nested_itr;
+        //     for(nested_itr = fn_itr->second.begin(); nested_itr != fn_itr->second.end(); nested_itr++) {
+        //         std::cout << "\t[" << nested_itr->first << ", " << nested_itr->second << "]\n";
+        //     }
+        // }
         ///
 
         return all_tokens;

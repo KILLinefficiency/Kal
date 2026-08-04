@@ -63,8 +63,9 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
-    JumpStack& jump_stack = globals.jump_stack;
+    //JumpStack& jump_stack = globals.jump_stack;
     JumpTable& jump_table = globals.jump_table;
+    FnJumpTable& fn_jump_table = globals.fn_jump_table;
 
     bool warn = true;
     int total_tokens = tokens.size();
@@ -254,10 +255,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             current_depth = depth;
 
             // DEBUG:
-            if(jump_table.find(line) == jump_table.end()) {
-                jump_stack.push(line);
-                std::cout << "[OPEN] " << line << "\n";
-            }
+            // if(jump_table.find(line) == jump_table.end()) {
+            //     jump_stack.push(line);
+            //     std::cout << "[OPEN] " << line << "\n";
+            // }
             ///
 
             if(tokens[line].head == "if") {
@@ -273,7 +274,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
                 else {
                     // DEBUG:
-                    if(jump_table.find(line) != jump_table.end()) {
+                    if((!globals.call_stack.empty())) {
+                        std::string fn_name = globals.call_stack.top().first;
+                        line = fn_jump_table[fn_name][line];
+                        continue;
+                    }
+                    else if(jump_table.find(line) != jump_table.end()) {
                         line = jump_table[line];
                         continue;
                     }
@@ -288,14 +294,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             if(tokens[line].head == "}") { depth--; }
                         }
                         // DEBUG:
-                        if(!jump_stack.empty()) {
-                            std::cout << "[ END] " << line << "\n";
-                            uint64_t open = jump_stack.top();
-                            jump_stack.pop();
-                            jump_table[open] = line;
-                            jump_table[line] = open;
-                            std::cout << "(" << open << ", " << line << ")\n";
-                        }
+                        // if(!jump_stack.empty()) {
+                        //     std::cout << "[ END] " << line << "\n";
+                        //     uint64_t open = jump_stack.top();
+                        //     jump_stack.pop();
+                        //     jump_table[open] = line;
+                        //     jump_table[line] = open;
+                        //     std::cout << "(" << open << ", " << line << ")\n";
+                        // }
                         ///
                     }
                 }
@@ -464,7 +470,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    if(jump_table.find(line) != jump_table.end()) {
+                    if(!globals.call_stack.empty()) {
+                        std::string fn_name = globals.call_stack.top().first;
+                        line = fn_jump_table[fn_name][line];
+                    }
+                    else if(jump_table.find(line) != jump_table.end()) {
                         line = jump_table[line];
                     }
                     else {
@@ -492,16 +502,16 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
         else if(tokens[line].head == "}") {
             // DEBUG:
-            if(jump_table.find(line) == jump_table.end()) {
-                if(!jump_stack.empty()) {
-                    std::cout << "[ END] " << line << "\n";
-                    uint64_t open = jump_stack.top();
-                    jump_stack.pop();
-                    jump_table[open] = line;
-                    jump_table[line] = open;
-                    std::cout << "(" << open << ", " << line << ")\n";
-                }
-            }
+            // if(jump_table.find(line) == jump_table.end()) {
+            //     if(!jump_stack.empty()) {
+            //         std::cout << "[ END] " << line << "\n";
+            //         uint64_t open = jump_stack.top();
+            //         jump_stack.pop();
+            //         jump_table[open] = line;
+            //         jump_table[line] = open;
+            //         std::cout << "(" << open << ", " << line << ")\n";
+            //     }
+            // }
             ///
             VarTable::gc(globals);
             depth--;

@@ -4,6 +4,7 @@
 #include <stack>
 #include <utility>
 #include <vector>
+#include <cstdint>
 #include <unordered_map>
 
 class Value;
