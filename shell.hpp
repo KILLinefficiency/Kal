@@ -61,7 +61,7 @@ namespace shell {
                     }
                 }
                 if(multi_lines.size() != 0) {
-                    tokens = lexer::tokenize(multi_lines);
+                    tokens = lexer::tokenize(multi_lines, globals);
                     std::cout << style::style["bold"] << style::style["blue"] << "\nOut:" << style::style["reset"] << "\n";
                     line_exec(tokens, false, true, false, globals);
                 }
@@ -71,7 +71,7 @@ namespace shell {
             if(command[0] == '@') {
                 std::string file_name = command.substr(1);
                 std::vector<std::string> preprocessed_lines = preproc::preprocess_file(file_name);
-                tokens = lexer::tokenize(preprocessed_lines);
+                tokens = lexer::tokenize(preprocessed_lines, globals);
                 line_exec(tokens, false, true, false, globals);
                 count++;
                 continue;
@@ -81,7 +81,7 @@ namespace shell {
             for(std::string& each : shell_lines) {
                 prep_for_shell(each);
             }
-            tokens = lexer::tokenize(shell_lines);
+            tokens = lexer::tokenize(shell_lines, globals);
             line_exec(tokens, false, true, false, globals);
 
             count++;

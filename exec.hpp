@@ -63,6 +63,8 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
+    JumpStack& jump_stack = globals.jump_stack;
+    JumpTable& jump_table = globals.jump_table;
 
     bool warn = true;
     int total_tokens = tokens.size();
@@ -74,12 +76,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     std::stack<std::tuple<bool, int, int>> loop_stack;
     std::stack<std::tuple<Value*, std::string, int, uint64_t, bool>> range_stack;
 
-    std::stack<uint64_t> jump_stack;
-    std::unordered_map<uint64_t, uint64_t> jumps;
+    // std::stack<uint64_t> jump_stack;
+    // std::unordered_map<uint64_t, uint64_t> jump_table;
 
     while(line < total_tokens) {
         // DEBUG:
-        globals.jump_count++;
+        // globals.jump_count++;
         ///
         Token& cmd = tokens[line];
         globals.current_line = tokens[line].line;
@@ -252,7 +254,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             current_depth = depth;
 
             // DEBUG:
-            if(jumps.find(line) == jumps.end()) {
+            if(jump_table.find(line) == jump_table.end()) {
                 jump_stack.push(line);
                 std::cout << "[OPEN] " << line << "\n";
             }
@@ -271,11 +273,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
                 else {
                     // DEBUG:
-                    if(jumps.find(line) != jumps.end()) {
-                        line = jumps[line];
+                    if(jump_table.find(line) != jump_table.end()) {
+                        line = jump_table[line];
                         continue;
                     }
                     else {
+                        std::cout << "[MISS] " << line << "\n";
                         while(depth != current_depth - 1) {
                             // DEBUG:
                             globals.jump_count++;
@@ -289,8 +292,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             std::cout << "[ END] " << line << "\n";
                             uint64_t open = jump_stack.top();
                             jump_stack.pop();
-                            jumps[open] = line;
-                            jumps[line] = open;
+                            jump_table[open] = line;
+                            jump_table[line] = open;
                             std::cout << "(" << open << ", " << line << ")\n";
                         }
                         ///
@@ -461,10 +464,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    if(jumps.find(line) != jumps.end()) {
-                        line = jumps[line];
+                    if(jump_table.find(line) != jump_table.end()) {
+                        line = jump_table[line];
                     }
                     else {
+                        std::cout << "[MISS] " << line << "\n";
                         int local_depth = 1;
                         while(local_depth != 0) {
                             // DEBUG:
@@ -488,13 +492,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
         else if(tokens[line].head == "}") {
             // DEBUG:
-            if(jumps.find(line) == jumps.end()) {
+            if(jump_table.find(line) == jump_table.end()) {
                 if(!jump_stack.empty()) {
                     std::cout << "[ END] " << line << "\n";
                     uint64_t open = jump_stack.top();
                     jump_stack.pop();
-                    jumps[open] = line;
-                    jumps[line] = open;
+                    jump_table[open] = line;
+                    jump_table[line] = open;
                     std::cout << "(" << open << ", " << line << ")\n";
                 }
             }

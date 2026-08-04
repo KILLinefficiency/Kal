@@ -234,7 +234,7 @@ Result Kal::exec(std::string code, Table table) {
     }
 
     std::vector<std::string> lines = preproc::preprocess(code);
-    std::vector<Token> tokens = lexer::tokenize(lines);
+    std::vector<Token> tokens = lexer::tokenize(lines, *k_globals);
     Value* ret_val = line_exec(tokens, false, false, true, *k_globals);
 
     if(ret_val == nullptr) {

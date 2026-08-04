@@ -578,7 +578,7 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
         token = rpn.front();
         if(token[0] == '$' && token[1] == '(') {
             std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
-            std::vector<Token> function_call = lexer::tokenize(function_line);
+            std::vector<Token> function_call = lexer::tokenize(function_line, globals);
             Value* result = line_exec(function_call, true, true, false, globals);
             if(result != nullptr) {
                 token = result->print();

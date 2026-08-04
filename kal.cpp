@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
         std::string kast_file;
         std::string kal_file = arg_parser.get_value("-k");
         source_lines = preproc::preprocess_file(kal_file);
-        std::vector<Token> tokens = lexer::tokenize(source_lines);
+        std::vector<Token> tokens = lexer::tokenize(source_lines, globals);
         if(arg_parser.flag_exists("-o")) {
             kast_file = arg_parser.get_value("-o");
             lib::ensure_extension(kast_file, ".kast");
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
         preproc::expand_deps(source_lines, deps);
     }
     
-    std::vector<Token> tokens = lexer::tokenize(source_lines);
+    std::vector<Token> tokens = lexer::tokenize(source_lines, globals);
     line_exec(tokens, false, true, false, globals);
 
     globals.depth = 0;

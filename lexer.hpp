@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "parser.hpp"
 
+#include "globals.hpp"
 #include "types.hpp"
 #include "lib/lib_string.hpp"
 
@@ -50,7 +51,7 @@ namespace lexer {
         return head;
     }
 
-    std::vector<Token> tokenize(std::vector<std::string>& source_lines) {
+    std::vector<Token> tokenize(std::vector<std::string>& source_lines, Globals& globals) {
         int lines = source_lines.size();
         Config* config;
         std::vector<Token> all_tokens;
@@ -89,8 +90,27 @@ namespace lexer {
                 continue;
             }
             all_tokens.emplace_back(token);
+
+            if((token.values.size() != 0 && token.values.back() == "{") || token.head == "{") {
+                globals.jump_stack.push(line);
+            }
+            else if(token.head == "}") {
+                if(!globals.jump_stack.empty()) {
+                    uint64_t open = globals.jump_stack.top();
+                    globals.jump_table[open] = line;
+                    //globals.jump_table[line] = open;
+                    globals.jump_stack.pop();
+                }
+            }
+
             line++;
         }
+
+        JumpTable::iterator itr;
+        for(itr = globals.jump_table.begin(); itr != globals.jump_table.end(); itr++) {
+            std::cout << "[" << itr->first << ", " << itr->second << "]\n";
+        }
+
         return all_tokens;
     }
 }
