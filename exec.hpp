@@ -60,6 +60,8 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
     delete args;
 }
 
+//void jump(Globals& globals, int& line);
+
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
@@ -284,7 +286,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         continue;
                     }
                     else {
-                        std::cout << "[MISS] " << line << "\n";
+                        std::cout << "[MISS A] " << line << "\n";
                         while(depth != current_depth - 1) {
                             // DEBUG:
                             globals.jump_count++;
@@ -317,7 +319,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             line++;
                             continue;
                         }
+                        else if(!globals.call_stack.empty()) {
+                            std::string fn_name = globals.call_stack.top().first;
+                            line = fn_jump_table[fn_name][line];
+                            continue;
+                        }
+                        else if(jump_table.find(line) != jump_table.end()) {
+                            line = jump_table[line];
+                            continue;
+                        }
                         else {
+                            std::cout << "[MISS B] " << line << "\n";
                             while(depth != current_depth - 1) {
                                 // DEBUG:
                                 globals.jump_count++;
@@ -328,7 +340,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             }
                         }
                     }
+                    else if(!globals.call_stack.empty()) {
+                        std::string fn_name = globals.call_stack.top().first;
+                        line = fn_jump_table[fn_name][line];
+                        continue;
+                    }
+                    else if(jump_table.find(line) != jump_table.end()) {
+                        line = jump_table[line];
+                        continue;
+                    }
                     else {
+                        std::cout << "[MISS C] " << line << "\n";
                         while(depth != current_depth - 1) {
                             // DEBUG:
                             globals.jump_count++;
@@ -351,7 +373,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         line++;
                         continue;
                     }
+                    else if(!globals.call_stack.empty()) {
+                        std::string fn_name = globals.call_stack.top().first;
+                        line = fn_jump_table[fn_name][line];
+                        continue;
+                    }
+                    else if(jump_table.find(line) != jump_table.end()) {
+                        line = jump_table[line];
+                        continue;
+                    }
                     else {
+                        std::cout << "[MISS D] " << line << "\n";
                         while(depth != current_depth - 1) {
                             // DEBUG:
                             globals.jump_count++;
@@ -362,7 +394,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         }
                     }
                 }
+                else if(!globals.call_stack.empty()) {
+                    std::string fn_name = globals.call_stack.top().first;
+                    line = fn_jump_table[fn_name][line];
+                    continue;
+                }
+                else if(jump_table.find(line) != jump_table.end()) {
+                    line = jump_table[line];
+                    continue;
+                }
                 else {
+                    std::cout << "[MISS E] " << line << "\n";
                     while(depth != current_depth - 1) {
                         // DEBUG:
                         globals.jump_count++;
@@ -413,13 +455,23 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
                         if(!condition) {
                             int local_depth = 1;
-                            while(local_depth != 0) {
-                                // DEBUG:
-                                globals.jump_count++;
-                                ///
-                                line++;
-                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
-                                if(tokens[line].head == "}") { local_depth--; }
+                            if(!globals.call_stack.empty()) {
+                                std::string fn_name = globals.call_stack.top().first;
+                                line = fn_jump_table[fn_name][line];
+                            }
+                            else if(jump_table.find(line) != jump_table.end()) {
+                                line = jump_table[line];
+                            }
+                            else {
+                                std::cout << "[MISS F] " << line << "\n";
+                                while(local_depth != 0) {
+                                    // DEBUG:
+                                    globals.jump_count++;
+                                    ///
+                                    line++;
+                                    if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
+                                    if(tokens[line].head == "}") { local_depth--; }
+                                }
                             }
                             line++;
                             depth--;
@@ -478,7 +530,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         line = jump_table[line];
                     }
                     else {
-                        std::cout << "[MISS] " << line << "\n";
+                        std::cout << "[MISS G] " << line << "\n";
                         int local_depth = 1;
                         while(local_depth != 0) {
                             // DEBUG:
