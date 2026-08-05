@@ -28,12 +28,9 @@ struct Globals {
     CallStack call_stack;
     InertTable inert_table;
     InertHit inert_hit;
-    // DEBUG:
-    int jump_count = 0;
     JumpStack jump_stack;
     JumpTable jump_table;
     FnJumpTable fn_jump_table;
-    ///
 };
 
 Globals globals;

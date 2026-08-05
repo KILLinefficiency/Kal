@@ -60,32 +60,34 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
     delete args;
 }
 
-//void jump(Globals& globals, int& line);
+void jump(int& line, Globals& globals) {
+    JumpTable& jump_table = globals.jump_table;
+    FnJumpTable& fn_jump_table = globals.fn_jump_table;
+    CallStack& call_stack = globals.call_stack;
+
+    if(!call_stack.empty()) {
+        std::string fn_name = call_stack.top().first;
+        line = fn_jump_table[fn_name][line];
+    }
+    else if(jump_table.find(line) != jump_table.end()) {
+        line = jump_table[line];
+    }
+}
 
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
-    //JumpStack& jump_stack = globals.jump_stack;
-    JumpTable& jump_table = globals.jump_table;
-    FnJumpTable& fn_jump_table = globals.fn_jump_table;
 
     bool warn = true;
     int total_tokens = tokens.size();
 
     int line = 0;
-    int current_depth = 0;
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::pair<int, std::vector<std::string>>> init_loop;
     std::stack<std::tuple<bool, int, int>> loop_stack;
     std::stack<std::tuple<Value*, std::string, int, uint64_t, bool>> range_stack;
 
-    // std::stack<uint64_t> jump_stack;
-    // std::unordered_map<uint64_t, uint64_t> jump_table;
-
     while(line < total_tokens) {
-        // DEBUG:
-        // globals.jump_count++;
-        ///
         Token& cmd = tokens[line];
         globals.current_line = tokens[line].line;
         bool cmd_values_modified = false;
@@ -254,14 +256,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
             depth += 1;
-            current_depth = depth;
-
-            // DEBUG:
-            // if(jump_table.find(line) == jump_table.end()) {
-            //     jump_stack.push(line);
-            //     std::cout << "[OPEN] " << line << "\n";
-            // }
-            ///
 
             if(tokens[line].head == "if") {
                 std::string value = eval(tokens[line].values[0], globals);
@@ -275,37 +269,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    // DEBUG:
-                    if((!globals.call_stack.empty())) {
-                        std::string fn_name = globals.call_stack.top().first;
-                        line = fn_jump_table[fn_name][line];
-                        continue;
-                    }
-                    else if(jump_table.find(line) != jump_table.end()) {
-                        line = jump_table[line];
-                        continue;
-                    }
-                    else {
-                        std::cout << "[MISS A] " << line << "\n";
-                        while(depth != current_depth - 1) {
-                            // DEBUG:
-                            globals.jump_count++;
-                            ///
-                            line++;
-                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                            if(tokens[line].head == "}") { depth--; }
-                        }
-                        // DEBUG:
-                        // if(!jump_stack.empty()) {
-                        //     std::cout << "[ END] " << line << "\n";
-                        //     uint64_t open = jump_stack.top();
-                        //     jump_stack.pop();
-                        //     jump_table[open] = line;
-                        //     jump_table[line] = open;
-                        //     std::cout << "(" << open << ", " << line << ")\n";
-                        // }
-                        ///
-                    }
+                    jump(line, globals);
+                    continue;
                 }
             }
             else if(tokens[line].head == "elif") {
@@ -319,46 +284,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             line++;
                             continue;
                         }
-                        else if(!globals.call_stack.empty()) {
-                            std::string fn_name = globals.call_stack.top().first;
-                            line = fn_jump_table[fn_name][line];
-                            continue;
-                        }
-                        else if(jump_table.find(line) != jump_table.end()) {
-                            line = jump_table[line];
-                            continue;
-                        }
                         else {
-                            std::cout << "[MISS B] " << line << "\n";
-                            while(depth != current_depth - 1) {
-                                // DEBUG:
-                                globals.jump_count++;
-                                ///
-                                line++;
-                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                                if(tokens[line].head == "}") { depth--; }
-                            }
+                            jump(line, globals);
+                            continue;
                         }
-                    }
-                    else if(!globals.call_stack.empty()) {
-                        std::string fn_name = globals.call_stack.top().first;
-                        line = fn_jump_table[fn_name][line];
-                        continue;
-                    }
-                    else if(jump_table.find(line) != jump_table.end()) {
-                        line = jump_table[line];
-                        continue;
                     }
                     else {
-                        std::cout << "[MISS C] " << line << "\n";
-                        while(depth != current_depth - 1) {
-                            // DEBUG:
-                            globals.jump_count++;
-                            ///
-                            line++;
-                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                            if(tokens[line].head == "}") { depth--; }
-                        }
+                        jump(line, globals);
+                        continue;
                     }
                 }
             }
@@ -373,46 +306,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         line++;
                         continue;
                     }
-                    else if(!globals.call_stack.empty()) {
-                        std::string fn_name = globals.call_stack.top().first;
-                        line = fn_jump_table[fn_name][line];
-                        continue;
-                    }
-                    else if(jump_table.find(line) != jump_table.end()) {
-                        line = jump_table[line];
-                        continue;
-                    }
                     else {
-                        std::cout << "[MISS D] " << line << "\n";
-                        while(depth != current_depth - 1) {
-                            // DEBUG:
-                            globals.jump_count++;
-                            ///
-                            line++;
-                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                            if(tokens[line].head == "}") { depth--; }
-                        }
+                        jump(line, globals);
+                        continue;
                     }
-                }
-                else if(!globals.call_stack.empty()) {
-                    std::string fn_name = globals.call_stack.top().first;
-                    line = fn_jump_table[fn_name][line];
-                    continue;
-                }
-                else if(jump_table.find(line) != jump_table.end()) {
-                    line = jump_table[line];
-                    continue;
                 }
                 else {
-                    std::cout << "[MISS E] " << line << "\n";
-                    while(depth != current_depth - 1) {
-                        // DEBUG:
-                        globals.jump_count++;
-                        ///
-                        line++;
-                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                        if(tokens[line].head == "}") { depth--; }
-                    }
+                    jump(line, globals);
+                    continue;
                 }
             }
             else if(tokens[line].head == "loop") {
@@ -454,30 +355,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         bool condition = index < list->items.size();
 
                         if(!condition) {
-                            int local_depth = 1;
-                            if(!globals.call_stack.empty()) {
-                                std::string fn_name = globals.call_stack.top().first;
-                                line = fn_jump_table[fn_name][line];
-                            }
-                            else if(jump_table.find(line) != jump_table.end()) {
-                                line = jump_table[line];
-                            }
-                            else {
-                                std::cout << "[MISS F] " << line << "\n";
-                                while(local_depth != 0) {
-                                    // DEBUG:
-                                    globals.jump_count++;
-                                    ///
-                                    line++;
-                                    if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
-                                    if(tokens[line].head == "}") { local_depth--; }
-                                }
-                            }
+                            jump(line, globals);
+
                             line++;
                             depth--;
                             if(!std::get<4>(top_range)) {
                                 delete std::get<0>(top_range);
                             }
+
                             continue;
                         }
                         else {
@@ -522,25 +407,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    if(!globals.call_stack.empty()) {
-                        std::string fn_name = globals.call_stack.top().first;
-                        line = fn_jump_table[fn_name][line];
-                    }
-                    else if(jump_table.find(line) != jump_table.end()) {
-                        line = jump_table[line];
-                    }
-                    else {
-                        std::cout << "[MISS G] " << line << "\n";
-                        int local_depth = 1;
-                        while(local_depth != 0) {
-                            // DEBUG:
-                            globals.jump_count++;
-                            ///
-                            line++;
-                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
-                            if(tokens[line].head == "}") { local_depth--; }
-                        }
-                    }
+                    jump(line, globals);
+
                     line++;
                     depth--;
                     loop_stack.pop();
@@ -548,23 +416,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         VarTable::gc_by_names(init_loop.top().second, globals);
                         init_loop.pop();
                     }
+
                     continue;
                 }
             }
         }
         else if(tokens[line].head == "}") {
-            // DEBUG:
-            // if(jump_table.find(line) == jump_table.end()) {
-            //     if(!jump_stack.empty()) {
-            //         std::cout << "[ END] " << line << "\n";
-            //         uint64_t open = jump_stack.top();
-            //         jump_stack.pop();
-            //         jump_table[open] = line;
-            //         jump_table[line] = open;
-            //         std::cout << "(" << open << ", " << line << ")\n";
-            //     }
-            // }
-            ///
             VarTable::gc(globals);
             depth--;
             if(depth < 0) {
