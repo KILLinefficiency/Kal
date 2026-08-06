@@ -60,6 +60,20 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
     delete args;
 }
 
+void jump(int& line, Globals& globals) {
+    JumpTable& jump_table = globals.jump_table;
+    FnJumpTable& fn_jump_table = globals.fn_jump_table;
+    CallStack& call_stack = globals.call_stack;
+
+    if(!call_stack.empty()) {
+        std::string fn_name = call_stack.top().first;
+        line = fn_jump_table[fn_name][line];
+    }
+    else if(jump_table.find(line) != jump_table.end()) {
+        line = jump_table[line];
+    }
+}
+
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
@@ -68,7 +82,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     int total_tokens = tokens.size();
 
     int line = 0;
-    int current_depth = 0;
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::pair<int, std::vector<std::string>>> init_loop;
     std::stack<std::tuple<bool, int, int>> loop_stack;
@@ -243,7 +256,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
             depth += 1;
-            current_depth = depth;
+
             if(tokens[line].head == "if") {
                 std::string value = eval(tokens[line].values[0], globals);
                 if(parser::is_var(value)) {
@@ -256,11 +269,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    while(depth != current_depth - 1) {
-                        line++;
-                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                        if(tokens[line].head == "}") { depth--; }
-                    }
+                    jump(line, globals);
+                    continue;
                 }
             }
             else if(tokens[line].head == "elif") {
@@ -275,19 +285,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             continue;
                         }
                         else {
-                            while(depth != current_depth - 1) {
-                                line++;
-                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                                if(tokens[line].head == "}") { depth--; }
-                            }
+                            jump(line, globals);
+                            continue;
                         }
                     }
                     else {
-                        while(depth != current_depth - 1) {
-                            line++;
-                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                            if(tokens[line].head == "}") { depth--; }
-                        }
+                        jump(line, globals);
+                        continue;
                     }
                 }
             }
@@ -303,19 +307,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         continue;
                     }
                     else {
-                        while(depth != current_depth - 1) {
-                            line++;
-                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                            if(tokens[line].head == "}") { depth--; }
-                        }
+                        jump(line, globals);
+                        continue;
                     }
                 }
                 else {
-                    while(depth != current_depth - 1) {
-                        line++;
-                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                        if(tokens[line].head == "}") { depth--; }
-                    }
+                    jump(line, globals);
+                    continue;
                 }
             }
             else if(tokens[line].head == "loop") {
@@ -357,17 +355,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         bool condition = index < list->items.size();
 
                         if(!condition) {
-                            int local_depth = 1;
-                            while(local_depth != 0) {
-                                line++;
-                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
-                                if(tokens[line].head == "}") { local_depth--; }
-                            }
+                            jump(line, globals);
+
                             line++;
                             depth--;
                             if(!std::get<4>(top_range)) {
                                 delete std::get<0>(top_range);
                             }
+
                             continue;
                         }
                         else {
@@ -412,12 +407,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                     continue;
                 }
                 else {
-                    int local_depth = 1;
-                    while(local_depth != 0) {
-                        line++;
-                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
-                        if(tokens[line].head == "}") { local_depth--; }
-                    }
+                    jump(line, globals);
+
                     line++;
                     depth--;
                     loop_stack.pop();
@@ -425,6 +416,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         VarTable::gc_by_names(init_loop.top().second, globals);
                         init_loop.pop();
                     }
+
                     continue;
                 }
             }

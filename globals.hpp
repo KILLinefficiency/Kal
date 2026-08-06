@@ -4,6 +4,7 @@
 #include <stack>
 #include <utility>
 #include <vector>
+#include <cstdint>
 #include <unordered_map>
 
 class Value;
@@ -13,6 +14,9 @@ using CallStack = std::stack<std::pair<std::string, int>>;
 using DeferStack = std::stack<std::pair<std::string, int>>;
 using InertTable = std::unordered_map<std::string, std::string>;
 using InertHit = std::unordered_map<std::string, bool>;
+using JumpStack = std::stack<uint64_t>;
+using JumpTable = std::unordered_map<uint64_t, uint64_t>;
+using FnJumpTable = std::unordered_map<std::string, JumpTable>;
 
 struct Globals {
     int depth;
@@ -24,6 +28,9 @@ struct Globals {
     CallStack call_stack;
     InertTable inert_table;
     InertHit inert_hit;
+    JumpStack jump_stack;
+    JumpTable jump_table;
+    FnJumpTable fn_jump_table;
 };
 
 Globals globals;

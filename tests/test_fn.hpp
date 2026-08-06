@@ -10,11 +10,11 @@
 #define CHECK check(found_value->print(), actual_value->print()); delete actual_value; delete found_value; actual_value = nullptr; found_value = nullptr;
 
 void make_fn(std::vector<std::string> lines) {
-    lexer::tokenize(lines);
+    lexer::tokenize(lines, globals);
 }
 
 Value* fn_call(std::vector<std::string> lines, Globals& globals) {
-    std::vector<Token> tokens = lexer::tokenize(lines);
+    std::vector<Token> tokens = lexer::tokenize(lines, globals);
     return line_exec(tokens, true, true, false, globals);
 }
 
@@ -42,7 +42,7 @@ void test_shadowing() {
         "}"
     };
 
-    tokens = lexer::tokenize(lines);
+    tokens = lexer::tokenize(lines, globals);
     line_exec(tokens, false, true, false, globals);
 
     actual_value = "60";

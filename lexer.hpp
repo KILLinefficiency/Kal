@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "parser.hpp"
 
+#include "globals.hpp"
 #include "types.hpp"
 #include "lib/lib_string.hpp"
 
@@ -50,7 +51,7 @@ namespace lexer {
         return head;
     }
 
-    std::vector<Token> tokenize(std::vector<std::string>& source_lines) {
+    std::vector<Token> tokenize(std::vector<std::string>& source_lines, Globals& globals) {
         int lines = source_lines.size();
         Config* config;
         std::vector<Token> all_tokens;
@@ -65,9 +66,14 @@ namespace lexer {
 
             if(token.head == "fn") {
                 Fn* function = new Fn(token.values);
+                JumpStack jump_stack;
+                JumpTable jump_table;
+
                 int fn_depth = 1;
                 Token fn_line;
                 line++;
+                int start_line = line;
+
                 while(fn_depth != 0) {
                     std::string inner_head = get_head(source_lines[line]);
                     Config* inner_config = p_config::get_config(source_lines[line], inner_head);
@@ -75,9 +81,18 @@ namespace lexer {
                     fn_line.line = &source_lines[line];
                     int values_size = fn_line.values.size();
                     if(values_size != 0 && fn_line.values[values_size - 1] == "{") {
+                        uint64_t open = line - start_line;
+                        jump_stack.push(open);
                         fn_depth++;
                     }
                     if(fn_line.head == "}") {
+                        if(!jump_stack.empty()) {
+                            uint64_t open = jump_stack.top();
+                            uint64_t end = line - start_line;
+                            jump_table[open] = end;
+                            // jump_table[end] = open;
+                            jump_stack.pop();
+                        }
                         fn_depth--;
                     }
                     if(fn_depth != 0 || fn_line.head != "}") {
@@ -86,11 +101,26 @@ namespace lexer {
                     line++;
                 }
                 Functions::fn[function->name] = function;
+                globals.fn_jump_table[function->name] = jump_table;
                 continue;
             }
             all_tokens.emplace_back(token);
+
+            if((token.values.size() != 0 && token.values.back() == "{") || token.head == "{") {
+                globals.jump_stack.push(line);
+            }
+            else if(token.head == "}") {
+                if(!globals.jump_stack.empty()) {
+                    uint64_t open = globals.jump_stack.top();
+                    globals.jump_table[open] = line;
+                    // globals.jump_table[line] = open;
+                    globals.jump_stack.pop();
+                }
+            }
+
             line++;
         }
+
         return all_tokens;
     }
 }

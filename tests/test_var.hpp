@@ -433,7 +433,7 @@ void test_var() {
             "var info = 20",
         "}"
     };
-    tokens = lexer::tokenize(lines);
+    tokens = lexer::tokenize(lines, globals);
     line_exec(tokens, false, false, false, globals);
     found_string = VarTable::print("value", globals);
     actual_string = "10";
@@ -449,7 +449,7 @@ void test_var() {
             "value = data",
         "}"
     };
-    tokens = lexer::tokenize(lines);
+    tokens = lexer::tokenize(lines, globals);
     line_exec(tokens, false, false, false, globals);
     found_string = VarTable::print("value", globals);
     actual_string = "20",
@@ -474,7 +474,7 @@ void test_var() {
             "}",
         "}"
     };
-    tokens = lexer::tokenize(lines);
+    tokens = lexer::tokenize(lines, globals);
     line_exec(tokens, false, false, false, globals);
     found_string = VarTable::print("temp", globals);
     actual_string = "100";
