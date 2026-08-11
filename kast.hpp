@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 
+#include "globals.hpp"
 #include "config.hpp"
 
 namespace kast {
@@ -20,6 +21,29 @@ namespace kast {
         write_size(file, size);
         for(std::string& item : data) {
             write_data(file, item);
+        }
+    }
+
+    void write_jump_table(std::ofstream& file, JumpTable& jump_table) {
+        uint64_t size = jump_table.size();
+        write_size(file, size);
+        JumpTable::iterator itr;
+        for(itr = jump_table.begin(); itr != jump_table.end(); itr++) {
+            uint64_t open = itr->first, end = itr->second;
+            write_size(file, open);
+            write_size(file, end);
+        }
+    }
+
+    void write_fn_jump_table(std::ofstream& file, FnJumpTable& fn_jump_table) {
+        uint64_t size = fn_jump_table.size();
+        write_size(file, size);
+        FnJumpTable::iterator itr;
+        for(itr = fn_jump_table.begin(); itr != fn_jump_table.end(); itr++) {
+            std::string fn_name = itr->first;
+            JumpTable jump_table = itr->second;
+            write_data(file, fn_name);
+            write_jump_table(file, jump_table);
         }
     }
 
@@ -53,8 +77,34 @@ namespace kast {
         }
     }
 
-    void encode(std::string name, std::vector<Token>& tokens, FnTable& fn) {
+    void read_jump_table(std::ifstream& file, JumpTable& jump_table) {
+        uint64_t size;
+        read_size(file, size);
+        while(size--) {
+            uint64_t open, close;
+            read_size(file, open);
+            read_size(file, close);
+            jump_table[open] = close;
+        }
+    }
+
+    void read_fn_jump_table(std::ifstream& file, FnJumpTable& fn_jump_table) {
+        uint64_t size;
+        read_size(file, size);
+        while(size--) {
+            std::string fn_name;
+            JumpTable jump_table;
+            read_data(file, fn_name);
+            read_jump_table(file, jump_table);
+            fn_jump_table[fn_name] = jump_table;
+        }
+    }
+
+    void encode(std::string name, std::vector<Token>& tokens, FnTable& fn, Globals& globals) {
         std::ofstream kast(name, std::ios::binary);
+
+        write_jump_table(kast, globals.jump_table);
+        write_fn_jump_table(kast, globals.fn_jump_table);
 
         uint64_t total_fn = fn.size();
         write_size(kast, total_fn);
@@ -86,8 +136,11 @@ namespace kast {
         }
     }
 
-    void decode(std::string name, std::vector<Token>& tokens, FnTable& fn) {
+    void decode(std::string name, std::vector<Token>& tokens, FnTable& fn, Globals& globals) {
         std::ifstream kast(name, std::ios::binary);
+
+        read_jump_table(kast, globals.jump_table);
+        read_fn_jump_table(kast, globals.fn_jump_table);
 
         uint64_t total_fn;
         read_size(kast, total_fn);
