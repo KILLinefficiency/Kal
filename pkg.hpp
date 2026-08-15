@@ -507,7 +507,9 @@ namespace pkg {
 
     void install_project(std::string proj_path, bool first = true) {
         if(std::filesystem::exists(proj_path)) {
-            log_kal_pkg();
+            if(first) {
+                log_kal_pkg();
+            }
             TimePoint start = TimeNow();
 
             std::ifstream proj_file(proj_path);
