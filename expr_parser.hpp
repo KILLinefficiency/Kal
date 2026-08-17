@@ -671,6 +671,9 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
                 else {
                     if(a[0] >= '0' && a[0] <= '9') {
                         t_val = std::stod(a);
+                        if(t_val < 0) {
+                            errors::neg_list_mul(globals, t_val);
+                        }
                     }
                     else {
                         a_val = a;
@@ -688,6 +691,9 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
                 else {
                     if(is_num(b, globals)) {
                         t_val = std::stod(b);
+                        if(t_val < 0) {
+                            errors::neg_list_mul(globals, t_val);
+                        }
                     }
                     else {
                         a_val = b;
