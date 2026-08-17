@@ -272,6 +272,10 @@ namespace errors {
         throw_err(globals, "Argument", "No enough arguments passed to function {}.", { fn_name });
     }
 
+    void fn_eol(Globals& globals, const std::string& fn_name) {
+        throw_err(globals, "Function", "Body for function {} unclosed.", { fn_name });
+    }
+
     void invalid_ref(Globals& globals, const std::string& ref_name) {
         throw_err(globals, "Reference", "Dangling reference {} found.", { ref_name });
     }

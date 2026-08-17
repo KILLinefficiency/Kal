@@ -74,7 +74,7 @@ namespace lexer {
                 line++;
                 int start_line = line;
 
-                while(fn_depth != 0) {
+                while(line < lines && fn_depth != 0) {
                     std::string inner_head = get_head(source_lines[line]);
                     Config* inner_config = p_config::get_config(source_lines[line], inner_head);
                     fn_line = parser::parse(source_lines[line], inner_config, inner_head);
@@ -100,6 +100,11 @@ namespace lexer {
                     }
                     line++;
                 }
+
+                if(line >= lines && source_lines[line - 1] != "}") {
+                    errors::fn_eol(globals, function->name);
+                }
+
                 Functions::fn[function->name] = function;
                 globals.fn_jump_table[function->name] = jump_table;
                 continue;
