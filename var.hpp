@@ -954,7 +954,7 @@ bool compare(Value* first, Value* second) {
         for(int idx = 0; idx < size; idx++) {
             Value* each_a = TO_LIST(first)->items[idx];
             Value* each_b = TO_LIST(second)->items[idx];
-            if((TO_NUM(each_a) && TO_NUM(each_b)) || (TO_STR(each_a) && TO_STR(each_b))) {
+            if((TO_NUM(each_a) && TO_NUM(each_b)) || (TO_STR(each_a) && TO_STR(each_b)) || (TO_NULL(each_a) && TO_NULL(each_b))) {
                 result = compare_atom(each_a, each_b);
                 if(!result) {
                     return false;
