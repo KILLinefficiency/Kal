@@ -7,13 +7,17 @@
 #include "../var.hpp"
 
 namespace lib {
-    void list_push(std::string list_name, std::string value, bool allow_insert, int insert_index, Globals& globals) {
+    void list_push(std::string list_name, std::string value, bool allow_insert, uint64_t insert_index, Globals& globals) {
         BoxedValue list = get_or_make(list_name, globals);
         Value* new_value = make_value(eval(value, globals), globals);
         if(TO_LIST(list.value) && !allow_insert) {
             TO_LIST(list.value)->items.emplace_back(new_value);
         }
         else if(TO_LIST(list.value) && allow_insert) {
+            if(insert_index > TO_LIST(list.value)->items.size()) {
+                std::string idx = std::to_string(insert_index);
+                errors::index_error(globals, idx);
+            }
             TO_LIST(list.value)->items.insert(TO_LIST(list.value)->items.begin() + insert_index, new_value);
         }
         list.gc();
