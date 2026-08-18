@@ -340,6 +340,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             VarTable::set(var, "", new Ref(TO_LIST(collection)->items[index]), VAR, true, depth, false, globals);
                         }
                         else {
+                            if(TO_LIST(collection)->items.empty()) {
+                                jump(line, globals);
+                                continue;
+                            }
                             VarTable::set(var, "", TO_LIST(collection)->items[index], VAR, false, depth, true, globals);
                         }
                         range_stack.push({ collection, var, depth, index, is_ref });
