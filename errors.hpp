@@ -227,6 +227,10 @@ namespace errors {
         throw_err(globals, "Operand", "Cannot multiply list with negative value {}.", { std::to_string(operand) });
     }
 
+    void no_val(Globals& globals) {
+        throw_err(globals, "Value", "No value found.");
+    }
+
     void invalid_else(Globals& globals) {
         throw_err(globals, "Invalid Control Flow", "Cannot use an {} without a valid {}.", { "else", "if" });
     }

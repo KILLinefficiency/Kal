@@ -330,6 +330,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             VarTable::get(r_val, {}, true, true, true, globals) :
                             make_value(r_val, globals);
 
+                        if(collection == nullptr) {
+                            if(r_val == "") {
+                                errors::no_val(globals);
+                            }
+                            errors::undefined_var(globals, r_val);
+                        }
+
                         if(TO_REF(collection)) {
                             collection = TO_REF(collection)->ref;
                         }
