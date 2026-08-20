@@ -361,6 +361,35 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
     }
 }
 
+void lazy_eval_ternary(std::deque<std::string>& rpn) {
+    std::string op = rpn.back();
+    rpn.pop_back();
+    if(op == "?" || op == ":") {
+        std::string operand = rpn.back();
+        rpn.pop_back();
+        std::string condition = rpn.back();
+        condition = eval(condition, globals);
+        rpn.pop_back();
+        if(condition != "0") {
+            if(op == ":") {
+                rpn.push_back(condition);
+            }
+            else {
+                rpn.push_back(operand);
+            }
+        }
+        else {
+            rpn.push_back(condition);
+            if(op == ":") {
+                if(condition == "0") {
+                    rpn.pop_back();
+                }
+                rpn.push_back(operand);
+            }
+        }
+    }
+}
+
 std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& globals) {
     std::string current_op = "";
     std::string prev_op = "";
@@ -513,6 +542,9 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
                 rpn.push_back(operators.top());
+                if(shortcircuit && (operators.top() == "?" || operators.top() == ":")) {
+                    lazy_eval_ternary(rpn);
+                }
                 operators.pop();
             }
             operators.push(current_op);
@@ -527,6 +559,11 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
             if(top_op == "&&" || top_op == "||") {
                 rpn.push_back(top_op);
                 perform_shortcircuit(rpn);
+                operators.pop();
+            }
+            else if(top_op == "?" || top_op == ":") {
+                rpn.push_back(top_op);
+                lazy_eval_ternary(rpn);
                 operators.pop();
             }
             else {
