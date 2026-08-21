@@ -361,7 +361,25 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
     }
 }
 
-void lazy_eval_ternary(std::deque<std::string>& rpn) {
+std::deque<std::string> extract_ternary(std::deque<std::string>& rpn) {
+    std::deque<std::string> ternary;
+
+    std::string op = rpn.back();
+    rpn.pop_back();
+    ternary.push_front(op);
+
+    std::string operand = rpn.back();
+    rpn.pop_back();
+    ternary.push_front(operand);
+
+    std::string condition = rpn.back();
+    rpn.pop_back();
+    ternary.push_front(condition);
+
+    return ternary;
+}
+
+std::string lazy_eval_ternary(std::deque<std::string>& rpn) {
     std::string op = rpn.back();
     rpn.pop_back();
     if(op == "?" || op == ":") {
@@ -388,6 +406,16 @@ void lazy_eval_ternary(std::deque<std::string>& rpn) {
             }
         }
     }
+
+    std::string result = rpn.back();
+    rpn.pop_back();
+    return result;
+}
+
+void lazy_eval_ternary_cascade(std::deque<std::string>& rpn) {
+    std::deque<std::string> ternary_tokens = extract_ternary(rpn);
+    std::string shorted = lazy_eval_ternary(ternary_tokens);
+    rpn.push_back(shorted);
 }
 
 std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& globals) {
@@ -541,9 +569,14 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
             prev_op = current_op;
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
+                if(shortcircuit && (rpn.back() == "?" || rpn.back() == ":")) {
+                    lazy_eval_ternary_cascade(rpn);
+                }
+
                 rpn.push_back(operators.top());
-                if(shortcircuit && (operators.top() == "?" || operators.top() == ":")) {
-                    lazy_eval_ternary(rpn);
+
+                if(shortcircuit && (rpn.back() == "?" || rpn.back() == ":")) {
+                    lazy_eval_ternary_cascade(rpn);
                 }
                 operators.pop();
             }
@@ -563,7 +596,7 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
             }
             else if(top_op == "?" || top_op == ":") {
                 rpn.push_back(top_op);
-                lazy_eval_ternary(rpn);
+                lazy_eval_ternary_cascade(rpn);
                 operators.pop();
             }
             else {
