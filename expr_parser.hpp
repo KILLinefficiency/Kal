@@ -361,7 +361,7 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
     }
 }
 
-std::deque<std::string> extract_condition(std::deque<std::string>& rpn) {
+std::deque<std::string> extract_sub_expr(std::deque<std::string>& rpn) {
     std::deque<std::string> condition;
 
     std::string op = rpn.back();
@@ -376,7 +376,7 @@ std::deque<std::string> extract_condition(std::deque<std::string>& rpn) {
                 rpn.pop_back();
             }
             else {
-                std::deque<std::string> nested_tokens = extract_condition(rpn);
+                std::deque<std::string> nested_tokens = extract_sub_expr(rpn);
                 while(!nested_tokens.empty()) {
                     condition.push_front(nested_tokens.back());
                     nested_tokens.pop_back();
@@ -395,11 +395,13 @@ std::deque<std::string> extract_ternary(std::deque<std::string>& rpn) {
     rpn.pop_back();
     ternary.push_front(op);
 
-    std::string operand = rpn.back();
-    rpn.pop_back();
-    ternary.push_front(operand);
+    std::deque<std::string> operand_tokens = extract_sub_expr(rpn);
+    while(!operand_tokens.empty()) {
+        ternary.push_front(operand_tokens.back());
+        operand_tokens.pop_back();
+    }
 
-    std::deque<std::string> condition_tokens = extract_condition(rpn);
+    std::deque<std::string> condition_tokens = extract_sub_expr(rpn);
     if(condition_tokens.size() == 1) {
         ternary.push_front(condition_tokens.back());
         condition_tokens.pop_back();
@@ -412,12 +414,12 @@ std::deque<std::string> extract_ternary(std::deque<std::string>& rpn) {
     return ternary;
 }
 
-std::string lazy_eval_ternary(std::deque<std::string>& rpn) {
+void lazy_eval_ternary(std::deque<std::string>& rpn) {
     std::string op = rpn.back();
     rpn.pop_back();
     if(op == "?" || op == ":") {
-        std::string operand = rpn.back();
-        rpn.pop_back();
+        std::deque<std::string> operand_tokens = extract_sub_expr(rpn);
+
         std::string condition = rpn.back();
         condition = eval(condition, globals);
         rpn.pop_back();
@@ -426,7 +428,10 @@ std::string lazy_eval_ternary(std::deque<std::string>& rpn) {
                 rpn.push_back(condition);
             }
             else {
-                rpn.push_back(operand);
+                while(!operand_tokens.empty()) {
+                    rpn.push_front(operand_tokens.back());
+                    operand_tokens.pop_back();
+                }
             }
         }
         else {
@@ -435,20 +440,22 @@ std::string lazy_eval_ternary(std::deque<std::string>& rpn) {
                 if(condition == "0") {
                     rpn.pop_back();
                 }
-                rpn.push_back(operand);
+                while(!operand_tokens.empty()) {
+                    rpn.push_front(operand_tokens.back());
+                    operand_tokens.pop_back();
+                }
             }
         }
     }
-
-    std::string result = rpn.back();
-    rpn.pop_back();
-    return result;
 }
 
 void lazy_eval_ternary_cascade(std::deque<std::string>& rpn) {
     std::deque<std::string> ternary_tokens = extract_ternary(rpn);
-    std::string shorted = lazy_eval_ternary(ternary_tokens);
-    rpn.push_back(shorted);
+    lazy_eval_ternary(ternary_tokens);
+    while(!ternary_tokens.empty()) {
+        rpn.push_back(ternary_tokens.front());
+        ternary_tokens.pop_front();
+    }
 }
 
 std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& globals) {
