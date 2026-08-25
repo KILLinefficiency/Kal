@@ -409,6 +409,14 @@ void test_control_flow() {
 
     lines = {
         "value = 0",
+        "loop x in [] {",
+            "value = value + 1",
+        "}"
+    };
+    RUN_CASE("0");
+
+    lines = {
+        "value = 0",
         "info = [1, 2, 3, 4, 5]",
         "loop &x in info {",
             "x = x * 10",

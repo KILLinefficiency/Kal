@@ -339,6 +339,19 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
                         uint64_t index = 0;
                         bool condition = index < TO_LIST(collection)->items.size();
+                        if(!condition) {
+                            int local_depth = 1;
+                            while(local_depth != 0) {
+                                line++;
+                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
+                                if(tokens[line].head == "}") { local_depth--; }
+                            }
+                            line++;
+                            if(!is_ref) {
+                                delete collection;
+                            }
+                            continue;
+                        }
                         if(is_ref) {
                             VarTable::set(var, "", new Ref(TO_LIST(collection)->items[index]), VAR, true, depth, false, globals);
                         }
