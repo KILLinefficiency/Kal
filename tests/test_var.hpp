@@ -122,6 +122,11 @@ void test_var() {
     // SET("new", "$second[$first[1][1] / 100]"); => 300
 
     // Tests for assignment of dictionaries.
+    SET("empty_dict", "#()");
+    actual_string = "#()";
+    found_string = VarTable::print("empty_dict", globals);
+    check(found_string, actual_string);
+
     SET("my_data", "#(name -> \"Clark Kent\", age -> 25, \"place of origin\" -> \"Krypton\")");
     actual_string = "#(name -> \"Clark Kent\", age -> 25, place of origin -> \"Krypton\")";
     found_string = VarTable::print("my_data", globals);
