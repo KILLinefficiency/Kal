@@ -199,9 +199,13 @@ void Dict::append_unique(std::string key, bool del_val) {
 
 std::string Dict::print() {
     std::stringstream disp;
+    disp << "#(";
+    if(keys.empty()) {
+        disp << ")";
+        return disp.str();
+    }
     std::string last = keys[keys.size() - 1];
     std::string sep = ", ";
-    disp << "#(";
     for(std::string key : keys) {
         Value*& value = dict[key];
         disp << key << " -> ";
