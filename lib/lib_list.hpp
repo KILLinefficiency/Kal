@@ -14,7 +14,12 @@ namespace lib {
             TO_LIST(list.value)->items.emplace_back(new_value);
         }
         else if(TO_LIST(list.value) && allow_insert) {
-            TO_LIST(list.value)->items.insert(TO_LIST(list.value)->items.begin() + insert_index, new_value);
+            auto& items = TO_LIST(list.value)->items;
+            if(insert_index < 0 || (size_t)insert_index > items.size()) {
+                std::string index_str = std::to_string(insert_index);
+                errors::index_error(globals, index_str);
+            }
+            items.insert(items.begin() + insert_index, new_value);
         }
         list.gc();
     }
