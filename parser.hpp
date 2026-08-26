@@ -164,7 +164,7 @@ namespace parser {
         }
         int depth = 0;
         int start = index;
-        while(text[index] != close || depth != 0) {
+        while(index < size && (text[index] != close || depth != 0)) {
             if(for_access) {
                 if(text[index] == ',') {
                     // ERR:
