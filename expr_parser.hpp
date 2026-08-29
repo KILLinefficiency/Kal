@@ -362,30 +362,30 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
 }
 
 std::deque<std::string> extract_sub_expr(std::deque<std::string>& rpn) {
-    std::deque<std::string> condition;
+    std::deque<std::string> tokens;
 
     std::string op = rpn.back();
     rpn.pop_back();
-    condition.push_front(op);
+    tokens.push_front(op);
 
     int times = 2;
     if(order(op)) {
         while(times--) {
             if(!order(rpn.back())) {
-                condition.push_front(rpn.back());
+                tokens.push_front(rpn.back());
                 rpn.pop_back();
             }
             else {
                 std::deque<std::string> nested_tokens = extract_sub_expr(rpn);
                 while(!nested_tokens.empty()) {
-                    condition.push_front(nested_tokens.back());
+                    tokens.push_front(nested_tokens.back());
                     nested_tokens.pop_back();
                 }
             }
         }
     }
 
-    return condition;
+    return tokens;
 }
 
 std::deque<std::string> extract_ternary(std::deque<std::string>& rpn) {
@@ -629,7 +629,24 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
     while(!operators.empty()) {
         if(shortcircuit) {
             std::string top_op = operators.top();
-            if(top_op == "&&" || top_op == "||") {
+            if(top_op == "??") {
+                std::deque<std::string> fallback = extract_sub_expr(rpn);
+                std::deque<std::string> original = extract_sub_expr(rpn);
+                std::string result = eval(original, globals);
+
+                if(result != "null") {
+                    rpn.push_back(result);
+                }
+                else {
+                    while(!fallback.empty()) {
+                        rpn.push_back(fallback.front());
+                        fallback.pop_front();
+                    }
+                }
+
+                operators.pop();
+            }
+            else if(top_op == "&&" || top_op == "||") {
                 rpn.push_back(top_op);
                 perform_shortcircuit(rpn);
                 operators.pop();
