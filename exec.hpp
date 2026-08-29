@@ -262,7 +262,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 if(parser::is_var(value)) {
                     value = VarTable::print(value, globals);
                 }
-                bool condition = value == "1";
+                bool condition = value != "0";
                 conditional_stack.push({ condition, depth });
                 if(conditional_stack.top().first && tokens[line].head != "else") {
                     line++;
@@ -277,7 +277,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 std::pair<bool, int> check = conditional_stack.top();
                 if(check.second == depth) {
                     if(!check.first) {
-                        bool condition = eval(tokens[line].values[0], globals) == "1";
+                        bool condition = eval(tokens[line].values[0], globals) != "0";
                         if(condition && tokens[line].head != "else") {
                             conditional_stack.pop();
                             conditional_stack.push({ condition, depth });
@@ -330,6 +330,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             VarTable::get(r_val, {}, true, true, true, globals) :
                             make_value(r_val, globals);
 
+                        if(collection == nullptr) {
+                            if(r_val == "") {
+                                errors::no_val(globals);
+                            }
+                            errors::undefined_var(globals, r_val);
+                        }
+
                         if(TO_REF(collection)) {
                             collection = TO_REF(collection)->ref;
                         }
@@ -340,6 +347,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             VarTable::set(var, "", new Ref(TO_LIST(collection)->items[index]), VAR, true, depth, false, globals);
                         }
                         else {
+                            if(TO_LIST(collection)->items.empty()) {
+                                jump(line, globals);
+                                continue;
+                            }
                             VarTable::set(var, "", TO_LIST(collection)->items[index], VAR, false, depth, true, globals);
                         }
                         range_stack.push({ collection, var, depth, index, is_ref });

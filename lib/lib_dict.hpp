@@ -72,7 +72,9 @@ namespace lib {
     Value* dict_key_exists(std::string dict_name, std::string key, Globals& globals) {
         BoxedValue dict = get_or_make(dict_name, globals);
         std::string exists = "0";
-        if(TO_DICT(dict.value)->dict[lib::resolve_string(key)] != nullptr) {
+
+        std::unordered_map<std::string, Value*>& internal_dict = TO_DICT(dict.value)->dict;
+        if(internal_dict.find(lib::resolve_string(key)) != internal_dict.end()) {
             exists = "1";
         }
 

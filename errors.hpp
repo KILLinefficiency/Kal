@@ -223,6 +223,14 @@ namespace errors {
         throw_err(globals, "Key", "Key {} does not exist.", { key });
     }
 
+    void neg_list_mul(Globals& globals, double& operand) {
+        throw_err(globals, "Operand", "Cannot multiply list with negative value {}.", { std::to_string(operand) });
+    }
+
+    void no_val(Globals& globals) {
+        throw_err(globals, "Value", "No value found.");
+    }
+
     void invalid_else(Globals& globals) {
         throw_err(globals, "Invalid Control Flow", "Cannot use an {} without a valid {}.", { "else", "if" });
     }
@@ -270,6 +278,10 @@ namespace errors {
 
     void fn_less_args(Globals& globals, const std::string& fn_name) {
         throw_err(globals, "Argument", "No enough arguments passed to function {}.", { fn_name });
+    }
+
+    void fn_eol(Globals& globals, const std::string& fn_name) {
+        throw_err(globals, "Function", "Body for function {} unclosed.", { fn_name });
     }
 
     void invalid_ref(Globals& globals, const std::string& ref_name) {
