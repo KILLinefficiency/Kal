@@ -10,7 +10,8 @@ void write_dict(std::ofstream&, Value*&);
 void read_dict(std::ifstream&, Value*&);
 
 enum DataType {
-    Atom,
+    Num,
+    Str,
     Lst,
     Dic,
     Nul
@@ -32,20 +33,28 @@ void read_type(std::ifstream& bin, DataType& type) {
     bin.read(reinterpret_cast<char*>(&type), sizeof(type));
 }
 
-void write_atom(std::ofstream& bin, std::string atom) {
-    uint64_t size = atom.size();
-    write_type(bin, Atom);
-    write_size(bin, size);
-    bin.write(atom.c_str(), size);
+void write_number(std::ofstream& bin, double& number) {
+    write_type(bin, Num);
+    bin.write(reinterpret_cast<char*>(&number), sizeof(number));
 }
 
-void read_atom(std::ifstream& bin, std::string& atom) {
+void read_number(std::ifstream& bin, double& number) {
+    bin.read(reinterpret_cast<char*>(&number), sizeof(number));
+}
+void write_string(std::ofstream& bin, std::string str) {
+    uint64_t size = str.size();
+    write_type(bin, Str);
+    write_size(bin, size);
+    bin.write(str.c_str(), size);
+}
+
+void read_string(std::ifstream& bin, std::string& str) {
     uint64_t size;
-    bin.read(reinterpret_cast<char*>(&size), sizeof(size));
+    read_size(bin, size);
     char* buffer = new char[size + 1];
     bin.read(buffer, size);
     buffer[size] = '\0';
-    atom = buffer;
+    str = buffer;
     delete[] buffer;
 }
 
@@ -65,10 +74,10 @@ void write_list(std::ofstream& bin, Value*& data) {
             write_list(bin, each);
         }
         else if(dynamic_cast<Number*>(each)) {
-            write_atom(bin, dynamic_cast<Number*>(each)->val);
+            write_number(bin, dynamic_cast<Number*>(each)->val);
         }
         else if(dynamic_cast<String*>(each)) {
-            write_atom(bin, dynamic_cast<String*>(each)->str);
+            write_string(bin, dynamic_cast<String*>(each)->str);
         }
         else if(dynamic_cast<Null*>(each)) {
             write_null(bin);
@@ -84,15 +93,15 @@ void read_list(std::ifstream& bin, Value*& list) {
     DataType type;
     while(size--) {
         read_type(bin, type);
-        if(type == Atom) {
+        if(type == Num) {
+            double num;
+            read_number(bin, num);
+            dynamic_cast<List*>(list)->items.emplace_back(new Number(num));
+        }
+        else if(type == Str) {
             std::string data;
-            read_atom(bin, data);
-            if(data[0] == '"') {
-                dynamic_cast<List*>(list)->items.emplace_back(new String(data));
-            }
-            else {
-                dynamic_cast<List*>(list)->items.emplace_back(new Number(data));
-            }
+            read_string(bin, data);
+            dynamic_cast<List*>(list)->items.emplace_back(new String(data));
         }
         else if(type == Lst) {
             Value* nested_list;
@@ -115,7 +124,7 @@ void write_dict(std::ofstream& bin, Value*& dict) {
     uint64_t size = dynamic_cast<Dict*>(dict)->keys.size();
     write_size(bin, size);
     for(std::string& key : dynamic_cast<Dict*>(dict)->keys) {
-        write_atom(bin, key);
+        write_string(bin, key);
         Value* value = dynamic_cast<Dict*>(dict)->dict[key];
         if(dynamic_cast<List*>(value)) {
             write_list(bin, value);
@@ -124,10 +133,10 @@ void write_dict(std::ofstream& bin, Value*& dict) {
             write_dict(bin, value);
         }
         else if(dynamic_cast<Number*>(value)) {
-            write_atom(bin, dynamic_cast<Number*>(value)->val);
+            write_number(bin, dynamic_cast<Number*>(value)->val);
         }
         else if(dynamic_cast<String*>(value)) {
-            write_atom(bin, dynamic_cast<String*>(value)->str);
+            write_string(bin, dynamic_cast<String*>(value)->str);
         }
         else if(dynamic_cast<Null*>(value)) {
             write_null(bin);
@@ -144,18 +153,18 @@ void read_dict(std::ifstream& bin, Value*& dict) {
     while(size--) {
         read_type(bin, type);
         std::string key;
-        read_atom(bin, key);
+        read_string(bin, key);
         dynamic_cast<Dict*>(dict)->keys.emplace_back(key);
         read_type(bin, type);
-        if(type == Atom) {
+        if(type == Num) {
+            double num;
+            read_number(bin, num);
+            dynamic_cast<Dict*>(dict)->dict[key] = new Number(num);
+        }
+        else if(type == Str) {
             std::string data;
-            read_atom(bin, data);
-            if(data[0] == '"') {
-                dynamic_cast<Dict*>(dict)->dict[key] = new String(data);
-            }
-            else {
-                dynamic_cast<Dict*>(dict)->dict[key] = new Number(data);
-            }
+            read_string(bin, data);
+            dynamic_cast<Dict*>(dict)->dict[key] = new String(data);
         }
         else if(type == Lst) {
             Value* list;
@@ -177,10 +186,10 @@ namespace lib {
     void serialize(std::string name, Value*& value) {
         std::ofstream bin(name, std::ios::binary);
         if(dynamic_cast<Number*>(value)) {
-            write_atom(bin, dynamic_cast<Number*>(value)->val);
+            write_number(bin, dynamic_cast<Number*>(value)->val);
         }
         else if(dynamic_cast<String*>(value)) {
-            write_atom(bin, dynamic_cast<String*>(value)->str);
+            write_string(bin, dynamic_cast<String*>(value)->str);
         }
         else if(dynamic_cast<List*>(value)) {
             write_list(bin, value);
@@ -202,13 +211,15 @@ namespace lib {
         std::ifstream bin(name, std::ios::binary);
         DataType type;
         read_type(bin, type);
-        if(type == Atom) {
+        if(type == Num) {
+            double num;
+            read_number(bin, num);
+            return new Number(num);
+        }
+        else if(type == Str) {
             std::string data;
-            read_atom(bin, data);
-            if(data[0] == '"') {
-                return new String(data);
-            }
-            return new Number(data);
+            read_string(bin, data);
+            return new String(data);
         }
         else if(type == Lst) {
             Value* list;

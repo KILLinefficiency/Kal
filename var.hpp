@@ -62,9 +62,11 @@ Null::~Null() {}
 
 Number::Number() {}
 
-Number::Number(std::string Val) : val(Val) {}
+Number::Number(double Val) : val(Val) {}
+Number::Number(std::string Val) : val(std::stod(Val)) {}
+
 std::string Number::print() {
-    return val;
+    return lib::trim_num(std::to_string(val));
 }
 Number::~Number() {}
 
@@ -611,8 +613,8 @@ namespace VarTable {
             if(TO_REF(ptr)) {
                 ptr = TO_REF(ptr)->ref;
             }
-            if(TO_NUM(ptr) && data != "") {
-                TO_NUM(ptr)->val = data;
+            if(TO_NUM(ptr) && data != "" && data[0] != '"') {
+                TO_NUM(ptr)->val = std::stod(data);
                 return;
             }
             else if(TO_STR(ptr) && data != "") {

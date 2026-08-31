@@ -809,7 +809,7 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
                 if(parser::is_var(b)) {
                     b_temp = VarTable::get(b, {}, true, true, true, globals);
                     if(dynamic_cast<Number*>(b_temp)) {
-                        t_val = std::stod(dynamic_cast<Number*>(b_temp)->val);
+                        t_val = dynamic_cast<Number*>(b_temp)->val;
                     }
                     else if(dynamic_cast<List*>(b_temp)) {
                         a_val = VarTable::print(b, globals);

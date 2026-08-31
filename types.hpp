@@ -34,9 +34,10 @@ class Ref : public Value {
 class Number : public Value {
     public:
         std::string type = "Number";
-        std::string val;
-        Number(std::string);
+        double val;
         Number();
+        Number(double);
+        Number(std::string);
         std::string print();
         ~Number();
 };
