@@ -570,7 +570,7 @@ namespace VarTable {
             }
         }
 
-        if(is_literal) {
+        if(is_literal && packed_items != nullptr) {
             delete packed_items;
         }
     }
@@ -604,7 +604,7 @@ namespace VarTable {
                     d_ptr = TO_REF(d_ptr)->ref;
                 }
                 if(TO_NUM(d_ptr)) {
-                    data = TO_NUM(d_ptr)->val;
+                    data = std::to_string(TO_NUM(d_ptr)->val);
                 }
                 else if(TO_STR(d_ptr)) {
                     data = std::string(TO_STR(d_ptr)->str);

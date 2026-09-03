@@ -317,13 +317,13 @@ void test_var() {
     check(found_string, actual_string);
 
     // Tests for swapping two variables using unpacking.
-    SET("first", "10");
-    SET("second", "20");
+    SET("first", "\"A\"");
+    SET("second", "\"B\"");
     SET("[first, second]", "[second, first]");
-    actual_string = "20";
+    actual_string = "\"B\"";
     found_string = VarTable::print("first", globals);
     check(found_string, actual_string);
-    actual_string = "10";
+    actual_string = "\"A\"";
     found_string = VarTable::print("second", globals);
     check(found_string, actual_string);
     globals.depth = 0;
