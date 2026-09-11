@@ -96,6 +96,27 @@ class Null : public Value {
         ~Null();
 };
 
+class Op : public Value {
+    public:
+        std::string type = "Op";
+        std::string op;
+        Op();
+        Op(std::string);
+        std::string print();
+        ~Op();
+
+};
+
+class Sym : public Value {
+    public:
+        std::string type = "Sym";
+        std::string sym;
+        Sym();
+        Sym(std::string);
+        std::string print();
+        ~Sym();
+};
+
 class Fn : public Value {
     public:
         std::string type = "Fn";
@@ -136,3 +157,13 @@ std::string Fn::print() {
 }
 
 Fn::~Fn() {}
+
+#define TO_NUM(value)  (dynamic_cast<Number*>(const_cast<Value*>(value)))
+#define TO_STR(value)  (dynamic_cast<String*>(const_cast<Value*>(value)))
+#define TO_CHAR(value) (dynamic_cast<Char*>(value))
+#define TO_LIST(value) (dynamic_cast<List*>(value))
+#define TO_DICT(value) (dynamic_cast<Dict*>(value))
+#define TO_NULL(value) (dynamic_cast<Null*>(value))
+#define TO_REF(value)  (dynamic_cast<Ref*>(value))
+#define TO_OP(value)   (dynamic_cast<Op*>(value))
+#define TO_SYM(value)  (dynamic_cast<Sym*>(const_cast<Value*>(value)))

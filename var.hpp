@@ -15,14 +15,6 @@
 #include "lib/lib_string.hpp"
 #include "lib/lib_style.hpp"
 
-#define TO_NUM(value)  (dynamic_cast<Number*>(value))
-#define TO_STR(value)  (dynamic_cast<String*>(value))
-#define TO_CHAR(value) (dynamic_cast<Char*>(value))
-#define TO_LIST(value) (dynamic_cast<List*>(value))
-#define TO_DICT(value) (dynamic_cast<Dict*>(value))
-#define TO_NULL(value) (dynamic_cast<Null*>(value))
-#define TO_REF(value)  (dynamic_cast<Ref*>(value))
-
 Value* copy(Value*);
 
 Value* make_value(std::string value, Globals& globals) {
@@ -256,6 +248,20 @@ Dict::~Dict() {
         }
     }
 }
+
+Op::Op() {}
+Op::Op(std::string Op): op(Op) {}
+std::string Op::print() {
+    return op;
+}
+Op::~Op() {}
+
+Sym::Sym() {}
+Sym::Sym(std::string Sym): sym(Sym) {}
+std::string Sym::print() {
+    return sym;
+}
+Sym::~Sym() {}
 
 Value* copy(Value* value) {
     Value* duplicate = nullptr;

@@ -11,14 +11,16 @@
 #include "globals.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
+#include "types.hpp"
 #include "lib/lib_math.hpp"
 #include "lib/lib_string.hpp"
 
 std::string eval(std::deque<std::string>, Globals& globals);
 bool compare(std::string, std::string, Globals& globals);
 Value* line_exec(std::vector<Token>&, bool, bool, bool, Globals&);
+Value* make_value(std::string, Globals&);
 
-#define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
+#define SET_CURRENT_OP(X) else if(match(expr, X, index)) TO_OP(current_op)->op = X
 
 std::string str_add(const std::string& x, const std::string& y) {
     std::string xy;
@@ -79,38 +81,70 @@ std::string list_mul(std::string& list, double& times) {
 }
 
 namespace ops {
-    const std::string negative = "0n",
-                      log_not = "!",
-                      bit_not = "~",
-                      exp = "**",
-                      mod = "%",
-                      div = "/",
-                      mul = "*",
-                      sub = "-",
-                      add = "+",
-                      l_shift = "<<",
-                      r_shift = ">>",
-                      lt = "<",
-                      lte = "<=",
-                      gt = ">",
-                      gte = ">=",
-                      eq = "==",
-                      neq = "!=",
-                      bit_and = "&",
-                      bit_xor = "^",
-                      bit_or = "|",
-                      log_and = "&&",
-                      log_or = "||",
-                      if_null = "??",
-                      t_if = "?",
-                      t_else = ":",
-                      left = "(",
-                      right = ")",
-                      as = "as",
-                      walrus = ":=",
-                      integer = "int",
-                      floating = "float",
-                      string = "str";
+    // const std::string negative = "0n",
+    //                   log_not = "!",
+    //                   bit_not = "~",
+    //                   exp = "**",
+    //                   mod = "%",
+    //                   div = "/",
+    //                   mul = "*",
+    //                   sub = "-",
+    //                   add = "+",
+    //                   l_shift = "<<",
+    //                   r_shift = ">>",
+    //                   lt = "<",
+    //                   lte = "<=",
+    //                   gt = ">",
+    //                   gte = ">=",
+    //                   eq = "==",
+    //                   neq = "!=",
+    //                   bit_and = "&",
+    //                   bit_xor = "^",
+    //                   bit_or = "|",
+    //                   log_and = "&&",
+    //                   log_or = "||",
+    //                   if_null = "??",
+    //                   t_if = "?",
+    //                   t_else = ":",
+    //                   left = "(",
+    //                   right = ")",
+    //                   as = "as",
+    //                   walrus = ":=",
+    //                   integer = "int",
+    //                   floating = "float",
+    //                   string = "str";
+    const Op negative = Op("0n"),
+                      log_not = Op("!"),
+                      bit_not = Op("~"),
+                      exp = Op("**"),
+                      mod = Op("%"),
+                      div = Op("/"),
+                      mul = Op("*"),
+                      sub = Op("-"),
+                      add = Op("+"),
+                      l_shift = Op("<<"),
+                      r_shift = Op(">>"),
+                      lt = Op("<"),
+                      lte = Op("<="),
+                      gt = Op(">"),
+                      gte = Op(">="),
+                      eq = Op("=="),
+                      neq = Op("!="),
+                      bit_and = Op("&"),
+                      bit_xor = Op("^"),
+                      bit_or = Op("|"),
+                      log_and = Op("&&"),
+                      log_or = Op("||"),
+                      if_null = Op("??"),
+                      t_if = Op("?"),
+                      t_else = Op(":"),
+                      left = Op("("),
+                      right = Op(")"),
+                      as = Op("as"),
+                      walrus = Op(":="),
+                      integer = Op("int"),
+                      floating = Op("float"),
+                      string = Op("str");
 }
 
 bool match(std::string& text, std::string pattern, int& index) {
@@ -122,23 +156,26 @@ bool match(std::string& text, std::string pattern, int& index) {
     return found;
 }
 
-int order(std::string op) {
-    if(op == ops::as)                                                            return 16;
-    else if (op == ops::if_null)                                                 return 15;
-    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 14;
-    else if (op == ops::exp)                                                     return 13;
-    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 12;
-    else if (op == ops::add || op == ops::sub)                                   return 11;
-    else if (op == ops::l_shift || op == ops::r_shift)                           return 10;
-    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 9;
-    else if (op == ops::eq || op == ops::neq)                                    return 8;
-    else if (op == ops::bit_and)                                                 return 7;
-    else if (op == ops::bit_xor)                                                 return 6;
-    else if (op == ops::bit_or)                                                  return 5;
-    else if (op == ops::log_and)                                                 return 4;
-    else if (op == ops::log_or)                                                  return 3;
-    else if (op == ops::t_if || op == ops::t_else)                               return 2;
-    else if (op == ops::walrus)                                                  return 1;
+int order(Value* op) {
+    if(TO_OP(op)) {
+        std::string OP = TO_OP(op)->op;
+        if(OP == ops::as.op)                                                                     return 16;
+        else if (OP == ops::if_null.op)                                                          return 15;
+        else if (OP == ops::negative.op || OP == ops::log_not.op || OP == ops::bit_not.op)       return 14;
+        else if (OP == ops::exp.op)                                                              return 13;
+        else if (OP == ops::mul.op || OP == ops::div.op || OP == ops::mod.op)                    return 12;
+        else if (OP == ops::add.op || OP == ops::sub.op)                                         return 11;
+        else if (OP == ops::l_shift.op || OP == ops::r_shift.op)                                 return 10;
+        else if (OP == ops::lt.op || OP == ops::lte.op || OP == ops::gt.op || OP == ops::gte.op) return 9;
+        else if (OP == ops::eq.op || OP == ops::neq.op)                                          return 8;
+        else if (OP == ops::bit_and.op)                                                          return 7;
+        else if (OP == ops::bit_xor.op)                                                          return 6;
+        else if (OP == ops::bit_or.op)                                                           return 5;
+        else if (OP == ops::log_and.op)                                                          return 4;
+        else if (OP == ops::log_or.op)                                                           return 3;
+        else if (OP == ops::t_if.op || OP == ops::t_else.op)                                     return 2;
+        else if (OP == ops::walrus.op)                                                           return 1;
+    }
     return 0;
 }
 
@@ -298,10 +335,11 @@ bool is_list(std::string& structure, Globals& globals) {
     return false;
 }
 
-std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
-    std::deque<std::string> expr;
-    std::string back = rpn.back();
-    if((back[0] >= '0' && back[0] <= '9') || (parser::is_var(back)) || back[0] == '"' || (back[0] == '$' && back[1] == '(')) {
+std::deque<const Value*> extract_operand(std::deque<const Value*>& rpn) {
+    std::deque<const Value*> expr;
+    const Value* back = rpn.back();
+    // if((back[0] >= '0' && back[0] <= '9') || (parser::is_var(back)) || back[0] == '"' || (back[0] == '$' && back[1] == '(')) {
+    if(TO_NUM(back) || (TO_SYM(back) && parser::is_var(TO_SYM(back)->sym)) || TO_STR(back) || (TO_SYM(back) && TO_SYM(back)->sym[0] == '$' && TO_SYM(back)->sym[1] == '(')) {
         expr.push_back(back);
         rpn.pop_back();
     }
@@ -309,9 +347,10 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
         expr.push_front(back);
         rpn.pop_back();
 
-        std::string second = rpn.back();
-        if(!((second[0] >= '0' && second[0] <= '9') || (parser::is_var(second)) || second[0] == '"') || (second[0] == '$' && second[1] == '(')) {
-            std::deque<std::string> second_expr = extract_operand(rpn);
+        const Value* second = rpn.back();
+        // if(!((second[0] >= '0' && second[0] <= '9') || (parser::is_var(second)) || second[0] == '"') || (second[0] == '$' && second[1] == '(')) {
+        if(!(TO_NUM(second) || (TO_SYM(second) && parser::is_var(TO_SYM(second)->sym)) || TO_STR(second)) || (TO_SYM(second) && TO_SYM(second)->sym[0] == '$' && TO_SYM(second)->sym[1] == '(')) {
+            std::deque<const Value*> second_expr = extract_operand(rpn);
             while(!second_expr.empty()) {
                 expr.push_front(second_expr.back());
                 second_expr.pop_back();
@@ -322,10 +361,11 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
             rpn.pop_back();
         }
 
-        if(back != "0n" && back != "!" && back != "~") {
-            std::string first = rpn.back();
-            if(!((first[0] >= '0' && first[0] <= '9') || (parser::is_var(second)) || first[0] == '"') || (first[0] == '$' && first[1] == '(')) {
-                std::deque<std::string> first_expr = extract_operand(rpn);
+        if(back != &ops::negative && back != &ops::log_not && back != &ops::bit_not) {
+            const Value* first = rpn.back();
+            // if(!((first[0] >= '0' && first[0] <= '9') || (parser::is_var(second)) || first[0] == '"') || (first[0] == '$' && first[1] == '(')) {
+            if(!(TO_NUM(first) || (TO_SYM(second) && parser::is_var(TO_SYM(second)->sym)) || TO_STR(first)) || (TO_SYM(first) && TO_SYM(first)->sym[0] == '$' && TO_SYM(first)->sym[1] == '(')) {
+                std::deque<const Value*> first_expr = extract_operand(rpn);
                 while(!first_expr.empty()) {
                     expr.push_front(first_expr.back());
                     first_expr.pop_back();
@@ -341,17 +381,17 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
 }
 
 
-void perform_shortcircuit(std::deque<std::string>& rpn) {
-    std::string op = rpn.back();
+void perform_shortcircuit(std::deque<const Value*>& rpn) {
+    const Value* op = rpn.back();
     rpn.pop_back();
-    std::deque<std::string> second = extract_operand(rpn);
-    std::deque<std::string> first = extract_operand(rpn);
+    std::deque<const Value*> second = extract_operand(rpn);
+    std::deque<const Value*> first = extract_operand(rpn);
     std::string first_result = eval(first, globals);
-    if((op == "&&" && first_result == "0") || (op == "||" && first_result == "1")) {
-        rpn.push_back(first_result);
+    if((op == &ops::log_and && first_result == "0") || (op == &ops::log_or && first_result == "1")) {
+        rpn.push_back(new Number(first_result));
     }
     else {
-        rpn.push_back(first_result);
+        rpn.push_back(new Number(first_result));
 
         while(!second.empty()) {
             rpn.push_back(second.front());
@@ -361,22 +401,22 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
     }
 }
 
-std::deque<std::string> extract_sub_expr(std::deque<std::string>& rpn) {
-    std::deque<std::string> tokens;
+std::deque<const Value*> extract_sub_expr(std::deque<const Value*>& rpn) {
+    std::deque<const Value*> tokens;
 
-    std::string op = rpn.back();
+    const Value* op = rpn.back();
     rpn.pop_back();
     tokens.push_front(op);
 
     int times = 2;
-    if(order(op)) {
+    if(order(const_cast<Value*>(op))) {
         while(times--) {
-            if(!order(rpn.back())) {
+            if(!order(const_cast<Value*>(rpn.back()))) {
                 tokens.push_front(rpn.back());
                 rpn.pop_back();
             }
             else {
-                std::deque<std::string> nested_tokens = extract_sub_expr(rpn);
+                std::deque<const Value*> nested_tokens = extract_sub_expr(rpn);
                 while(!nested_tokens.empty()) {
                     tokens.push_front(nested_tokens.back());
                     nested_tokens.pop_back();
@@ -388,43 +428,43 @@ std::deque<std::string> extract_sub_expr(std::deque<std::string>& rpn) {
     return tokens;
 }
 
-std::deque<std::string> extract_ternary(std::deque<std::string>& rpn) {
-    std::deque<std::string> ternary;
+std::deque<const Value*> extract_ternary(std::deque<const Value*>& rpn, Globals& globals) {
+    std::deque<const Value*> ternary;
 
-    std::string op = rpn.back();
+    const Value* op = rpn.back();
     rpn.pop_back();
     ternary.push_front(op);
 
-    std::deque<std::string> operand_tokens = extract_sub_expr(rpn);
+    std::deque<const Value*> operand_tokens = extract_sub_expr(rpn);
     while(!operand_tokens.empty()) {
         ternary.push_front(operand_tokens.back());
         operand_tokens.pop_back();
     }
 
-    std::deque<std::string> condition_tokens = extract_sub_expr(rpn);
+    std::deque<const Value*> condition_tokens = extract_sub_expr(rpn);
     if(condition_tokens.size() == 1) {
         ternary.push_front(condition_tokens.back());
         condition_tokens.pop_back();
     }
     else {
         std::string condition = eval(condition_tokens, globals);
-        ternary.push_front(condition);
+        ternary.push_front(make_value(condition, globals));
     }
 
     return ternary;
 }
 
-void lazy_eval_ternary(std::deque<std::string>& rpn) {
-    std::string op = rpn.back();
+void lazy_eval_ternary(std::deque<const Value*>& rpn, Globals& globals) {
+    const Value* op = rpn.back();
     rpn.pop_back();
-    if(op == "?" || op == ":") {
-        std::deque<std::string> operand_tokens = extract_sub_expr(rpn);
+    if(op == &ops::t_if || op == &ops::t_else) {
+        std::deque<const Value*> operand_tokens = extract_sub_expr(rpn);
 
-        std::string condition = rpn.back();
+        const Value* condition = rpn.back();
         condition = eval(condition, globals);
         rpn.pop_back();
-        if(condition != "0") {
-            if(op == ":") {
+        if(TO_NUM(condition) && TO_NUM(condition)->val != 0) {
+            if(op == &ops::t_else) {
                 rpn.push_back(condition);
             }
             else {
@@ -436,8 +476,8 @@ void lazy_eval_ternary(std::deque<std::string>& rpn) {
         }
         else {
             rpn.push_back(condition);
-            if(op == ":") {
-                if(condition == "0") {
+            if(op == &ops::t_else) {
+                if(TO_NUM(condition) && TO_NUM(condition)->val == 0) {
                     rpn.pop_back();
                 }
                 while(!operand_tokens.empty()) {
@@ -449,25 +489,25 @@ void lazy_eval_ternary(std::deque<std::string>& rpn) {
     }
 }
 
-void lazy_eval_ternary_cascade(std::deque<std::string>& rpn) {
-    std::deque<std::string> ternary_tokens = extract_ternary(rpn);
-    lazy_eval_ternary(ternary_tokens);
+void lazy_eval_ternary_cascade(std::deque<const Value*>& rpn, Globals& globals) {
+    std::deque<const Value*> ternary_tokens = extract_ternary(rpn, globals);
+    lazy_eval_ternary(ternary_tokens, globals);
     while(!ternary_tokens.empty()) {
         rpn.push_back(ternary_tokens.front());
         ternary_tokens.pop_front();
     }
 }
 
-std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& globals) {
-    std::string current_op = "";
-    std::string prev_op = "";
-    std::deque<std::string> rpn;
-    std::stack<std::string> operators;
+std::deque<const Value*> make_rpn(std::string& expr, bool shortcircuit, Globals& globals) {
+    Value* current_op = new Op();
+    Value* prev_op = new Op();
+    std::deque<const Value*> rpn;
+    std::stack<const Value*> operators;
 
     int index = 0;
     int expr_len = expr.size();
     while(index < expr_len) {
-        if(expr[index] == ops::negative[0] || expr[index] == ops::log_not[0] || expr[index] == ops::bit_not[0]) {
+        if(expr[index] == ops::negative.op[0] || expr[index] == ops::log_not.op[0] || expr[index] == ops::bit_not.op[0]) {
             int next_index = index + 1;
             while(expr[next_index] == ' ' || expr[next_index] == '\t' || expr[next_index] == '\n') {
                 next_index++;
@@ -483,33 +523,39 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
         }
         else if(expr[index] == '"') {
             std::string value = parser::parse_string(expr, index);
-            rpn.push_back(value);
-            prev_op = value;
+            Value* str_value = new String(value);
+            rpn.push_back(str_value);
+            prev_op = str_value;
             index++;
             continue;
         }
+        // TODO
         else if(expr[index] == '$' && expr[index + 1] == '(') {
             std::string value = parser::parse_fexpr(expr, index);
-            rpn.push_back(value);
-            prev_op = value;
+            Value* fexpr_value = new Sym(value);
+            rpn.push_back(fexpr_value);
+            prev_op = fexpr_value;
             continue;
         }
         else if(expr[index] == '[') {
-            std::string list_value = parser::extract_list(expr, '[', index);
+            std::string value = parser::extract_list(expr, '[', index);
+            Value* list_value = new List(value, globals);
             rpn.push_back(list_value);
             prev_op = list_value;
         }
         else if(expr[index] == '#') {
             index++;
-            std::string dict_value = '#' + parser::extract_list(expr, '(', index);
+            std::string value = '#' + parser::extract_list(expr, '(', index);
+            Value* dict_value = new Dict(value, globals);
             rpn.push_back(dict_value);
             prev_op = dict_value;
         }
         else if(parser::match(index, expr, "f(", false)) {
             std::string line = parser::extract_fstr(expr, index);
             std::string value = fstr(line, globals);
-            rpn.push_back(value);
-            prev_op = value;
+            Value* str_value = new String(value);
+            rpn.push_back(str_value);
+            prev_op = str_value;
         }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
@@ -517,50 +563,54 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
                 index++;
             }
             std::string value = expr.substr(begin, index - begin);
+            Value* num_value = new Number(value);
+            rpn.push_back(num_value);
+            prev_op = num_value;
+            index--;
+        }
+        else if(match(expr, parser::null_val, index)) {
+            Value* null = new Null();
+            rpn.push_back(null);
+            prev_op = null;
+            index++;
+            continue;
+        }
+        else if(match(expr, ops::integer.op, index)) {
+            rpn.push_back(&ops::integer);
+            prev_op = const_cast<Op*>(&ops::integer);
+            index++;
+            continue;
+        }
+        else if(match(expr, ops::floating.op, index)) {
+            rpn.push_back(&ops::floating);
+            prev_op = const_cast<Op*>(&ops::floating);
+            index++;
+            continue;
+        }
+        else if(match(expr, ops::string.op, index)) {
+            rpn.push_back(&ops::string);
+            prev_op = const_cast<Op*>(&ops::string);
+            index++;
+            continue;
+        }
+        // TODO:
+        else if((parser::is_var(expr, index)) && (expr[index] != 'a' || expr[index + 1] != 's')) {
+            std::string var = parser::parse_variable(expr, index);
+            std::string val = expand_var(var, globals);
+            Value* value = new Sym(val);
             rpn.push_back(value);
             prev_op = value;
             index--;
         }
-        else if(match(expr, parser::null_val, index)) {
-            rpn.push_back(parser::null_val);
-            prev_op = parser::null_val;
-            index++;
-            continue;
+        else if(match(expr, ops::left.op, index)) {
+            operators.push(&ops::left);
+            prev_op = const_cast<Op*>(&ops::left);
         }
-        else if(match(expr, ops::integer, index)) {
-            rpn.push_back(ops::integer);
-            prev_op = ops::integer;
-            index++;
-            continue;
-        }
-        else if(match(expr, ops::floating, index)) {
-            rpn.push_back(ops::floating);
-            prev_op = ops::floating;
-            index++;
-            continue;
-        }
-        else if(match(expr, ops::string, index)) {
-            rpn.push_back(ops::string);
-            prev_op = ops::string;
-            index++;
-            continue;
-        }
-        else if((parser::is_var(expr, index)) && (expr[index] != 'a' || expr[index + 1] != 's')) {
-            std::string var = parser::parse_variable(expr, index);
-            std::string val = expand_var(var, globals);
-            rpn.push_back(val);
-            prev_op = val;
-            index--;
-        }
-        else if(match(expr, ops::left, index)) {
-            operators.push(ops::left);
-            prev_op = ops::left;
-        }
-        else if(match(expr, ops::right, index)) {
-            while(!operators.empty() && operators.top() != ops::left) {
-                std::string top_op = operators.top();
+        else if(match(expr, ops::right.op, index)) {
+            while(!operators.empty() && operators.top() != &ops::left) {
+                Value* top_op = const_cast<Value*>(operators.top());
                 rpn.push_back(top_op);
-                if(shortcircuit && (top_op == "&&" || top_op == "||")) {
+                if(shortcircuit && (TO_OP(top_op)->op == "&&" || TO_OP(top_op)->op == "||")) {
                     perform_shortcircuit(rpn); 
                 }
                 operators.pop();
@@ -569,54 +619,54 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
         }
 
         else {
-            if(match(expr, ops::exp, index)) current_op = ops::exp;
-            SET_CURRENT_OP(ops::l_shift);
-            SET_CURRENT_OP(ops::r_shift);
-            SET_CURRENT_OP(ops::lte);
-            SET_CURRENT_OP(ops::gte);
-            SET_CURRENT_OP(ops::eq);
-            SET_CURRENT_OP(ops::neq);
-            SET_CURRENT_OP(ops::log_and);
-            SET_CURRENT_OP(ops::log_or);
-            SET_CURRENT_OP(ops::log_not);
-            SET_CURRENT_OP(ops::bit_not);
-            SET_CURRENT_OP(ops::mod);
-            SET_CURRENT_OP(ops::div);
-            SET_CURRENT_OP(ops::mul);
-            SET_CURRENT_OP(ops::sub);
-            SET_CURRENT_OP(ops::add);
-            SET_CURRENT_OP(ops::lt);
-            SET_CURRENT_OP(ops::gt);
-            SET_CURRENT_OP(ops::bit_and);
-            SET_CURRENT_OP(ops::bit_xor);
-            SET_CURRENT_OP(ops::bit_or);
-            SET_CURRENT_OP(ops::if_null);
-            SET_CURRENT_OP(ops::negative);
-            SET_CURRENT_OP(ops::walrus);
-            SET_CURRENT_OP(ops::t_if);
-            SET_CURRENT_OP(ops::t_else);
-            SET_CURRENT_OP(ops::as);
-            if(prev_op == "0n" && current_op == "-") {
+            if(match(expr, ops::exp.op, index)) current_op = const_cast<Op*>(&ops::exp);
+            SET_CURRENT_OP(ops::l_shift.op);
+            SET_CURRENT_OP(ops::r_shift.op);
+            SET_CURRENT_OP(ops::lte.op);
+            SET_CURRENT_OP(ops::gte.op);
+            SET_CURRENT_OP(ops::eq.op);
+            SET_CURRENT_OP(ops::neq.op);
+            SET_CURRENT_OP(ops::log_and.op);
+            SET_CURRENT_OP(ops::log_or.op);
+            SET_CURRENT_OP(ops::log_not.op);
+            SET_CURRENT_OP(ops::bit_not.op);
+            SET_CURRENT_OP(ops::mod.op);
+            SET_CURRENT_OP(ops::div.op);
+            SET_CURRENT_OP(ops::mul.op);
+            SET_CURRENT_OP(ops::sub.op);
+            SET_CURRENT_OP(ops::add.op);
+            SET_CURRENT_OP(ops::lt.op);
+            SET_CURRENT_OP(ops::gt.op);
+            SET_CURRENT_OP(ops::bit_and.op);
+            SET_CURRENT_OP(ops::bit_xor.op);
+            SET_CURRENT_OP(ops::bit_or.op);
+            SET_CURRENT_OP(ops::if_null.op);
+            SET_CURRENT_OP(ops::negative.op);
+            SET_CURRENT_OP(ops::walrus.op);
+            SET_CURRENT_OP(ops::t_if.op);
+            SET_CURRENT_OP(ops::t_else.op);
+            SET_CURRENT_OP(ops::as.op);
+            if(TO_OP(prev_op)->op == "0n" && TO_OP(current_op)->op == "-") {
                 index++;
                 prev_op = current_op;
                 operators.pop();
                 continue;
             }
-            if(((prev_op == "" || prev_op == ops::left) && current_op == "-") || (current_op == "-" && order(prev_op) != 0)) {
-                current_op = "0n";
+            if(((TO_OP(prev_op)->op == "" || TO_OP(prev_op)->op == ops::left.op) && TO_OP(current_op)->op == "-") || (TO_OP(current_op)->op == "-" && order(prev_op) != 0)) {
+                TO_OP(current_op)->op = "0n";
             }
 
-            prev_op = current_op;
+            TO_OP(prev_op)->op = TO_OP(current_op)->op;
 
-            while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
-                if(shortcircuit && (rpn.back() == "?" || rpn.back() == ":")) {
-                    lazy_eval_ternary_cascade(rpn);
+            while(!operators.empty() && operators.top() != &ops::left && order(const_cast<Value*>(operators.top())) >= order(current_op)) {
+                if(shortcircuit && (rpn.back() == &ops::t_if || rpn.back() == &ops::t_else)) {
+                    lazy_eval_ternary_cascade(rpn, globals);
                 }
 
                 rpn.push_back(operators.top());
 
-                if(shortcircuit && (rpn.back() == "?" || rpn.back() == ":")) {
-                    lazy_eval_ternary_cascade(rpn);
+                if(shortcircuit && (rpn.back() == &ops::t_if || rpn.back() == &ops::t_else)) {
+                    lazy_eval_ternary_cascade(rpn, globals);
                 }
                 operators.pop();
             }
@@ -628,14 +678,14 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
 
     while(!operators.empty()) {
         if(shortcircuit) {
-            std::string top_op = operators.top();
-            if(top_op == "??") {
-                std::deque<std::string> fallback = extract_sub_expr(rpn);
-                std::deque<std::string> original = extract_sub_expr(rpn);
+            Value* top_op = const_cast<Value*>(operators.top());
+            if(TO_OP(top_op) && top_op == &ops::if_null) {
+                std::deque<const Value*> fallback = extract_sub_expr(rpn);
+                std::deque<const Value*> original = extract_sub_expr(rpn);
                 std::string result = eval(original, globals);
 
                 if(result != "null") {
-                    rpn.push_back(result);
+                    rpn.push_back(make_value(result, globals));
                 }
                 else {
                     while(!fallback.empty()) {
@@ -646,14 +696,14 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
 
                 operators.pop();
             }
-            else if(top_op == "&&" || top_op == "||") {
+            else if(TO_OP(top_op) && (top_op == &ops::log_and || top_op == &ops::log_or)) {
                 rpn.push_back(top_op);
                 perform_shortcircuit(rpn);
                 operators.pop();
             }
-            else if(top_op == "?" || top_op == ":") {
+            else if(TO_OP(top_op) && (top_op == &ops::t_if || top_op == &ops::t_else)) {
                 rpn.push_back(top_op);
-                lazy_eval_ternary_cascade(rpn);
+                lazy_eval_ternary_cascade(rpn, globals);
                 operators.pop();
             }
             else {
@@ -670,31 +720,33 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit, Globals& 
     return rpn;
 }
 
-std::string eval(std::deque<std::string> rpn, Globals& globals) {
+std::string eval(std::deque<const Value*> rpn, Globals& globals) {
     int& depth = globals.depth;
 
     std::string a, b;
     std::string result;
     double x = 0, y = 0;
-    std::string token;
-    std::stack<std::string> numbers;
+    // std::string token;
+    Value* token;
+    std::stack<const Value*> numbers;
 
-    std::string rpn_front = rpn.front();
-    if(rpn.size() == 1 && (rpn_front[0] != '$' || rpn_front[1] != '(')) {
+    Value* rpn_front = rpn.front();
+    if(rpn.size() == 1 && (TO_SYM(rpn_front)->sym[0] != '$' || TO_SYM(rpn_front)->sym[1] != '(')) {
         if(order(rpn_front)) {
             // ERR:
             errors::invalid_operator(rpn_front);
         }
-        if(rpn_front[0] >= '0' && rpn_front[0] <= '9') {
-            result = lib::trim_num(rpn_front);
+        if(TO_NUM(rpn_front)/*rpn_front[0] >= '0' && rpn_front[0] <= '9'*/) {
+            // result = lib::trim_num(rpn_front);
+            result = rpn.front();
             rpn.pop_front();
             return result;
         }
-        else if(parser::is_var(rpn_front)) {
+        else if(TO_SYM(rpn_front) && parser::is_var(TO_SYM(rpn_front)->sym)) {
             rpn.pop_front();
             return rpn_front;
         }
-        else if(rpn_front[0] == '"') {
+        else if(TO_STR(rpn_front)/*rpn_front[0] == '"'*/) {
             rpn_front = lib::render_escape_chars(rpn_front);
         }
         rpn.pop_front();
@@ -703,22 +755,24 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
 
     while(!rpn.empty()) {
         token = rpn.front();
-        if(token[0] == '$' && token[1] == '(') {
+        if(TO_SYM(token) && TO_SYM(token)->sym[0] == '$' && TO_SYM(token)->sym[1] == '(') {
             std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
             std::vector<Token> function_call = lexer::tokenize(function_line, globals);
             Value* result = line_exec(function_call, true, true, false, globals);
             if(result != nullptr) {
-                token = result->print();
+                //token = result->print();
+                token = copy(result);
             }
             else {
-                token = "null";
+                token = new Null();
             }
             delete result;
         }
-        else if(parser::is_var(token)) {
-            Value* temp = VarTable::get(token, {}, true, true, true, globals);
+        else if(TO_SYM(token) && parser::is_var(TO_SYM(token)->sym)) {
+            Value* temp = VarTable::get(TO_SYM(token)->sym, {}, true, true, true, globals);
             rpn.pop_front();
-            if(rpn.front() == ":=") {
+            //if(rpn.front() == &ops::walrus) {
+            if(rpn.front() == &ops::walrus) {
                 numbers.push(token);
                 continue;
             }
@@ -730,10 +784,10 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
             }
             else if(rpn.size() >= 3) {
                 rpn.pop_front();
-                std::string operand_y = rpn.front();
+                const Value* operand_y = rpn.front();
                 rpn.pop_front();
-                std::string op = rpn.front();
-                if(op != ":=") {
+                const Value* op = rpn.front();
+                if(op != &ops::walrus) {
                     if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
                         token = VarTable::print(token, globals);
                     }
@@ -751,18 +805,21 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
             continue;
         }
         else if(order(token) == 14) {
-            y = std::stod(numbers.top());
-            numbers.pop();
-            if(token == "0n") {
-                y = -y;
+            if(TO_NUM(numbers.top)) {
+                y = TO_NUM(numbers.top())->val;
+                numbers.pop();
+                //if(token == &ops::negative) {
+                if(token == &ops::negative) {
+                    y = -y;
+                }
+                else if(token == &ops::log_not) {
+                    y = !y;
+                }
+                else if(token == &ops::bit_not) {
+                    y = ~long(y);
+                }
+                numbers.push(new Number(y));
             }
-            else if(token == "!") {
-                y = !y;
-            }
-            else if(token == "~") {
-                y = ~long(y);
-            }
-            numbers.push(std::to_string(y));
         }
         else {
             if(numbers.size() < 2) {
@@ -933,11 +990,11 @@ std::string eval(std::deque<std::string> rpn, Globals& globals) {
     return result;
 }
 
-std::string eval(std::string expr, Globals& globals) {
-    expr = lib::trim(expr);
-    if(expr == "") {
-        return expr;
-    }
-    std::deque<std::string> rpn = make_rpn(expr, true, globals);
-    return eval(rpn, globals);
-}
+// std::string eval(std::string expr, Globals& globals) {
+//     expr = lib::trim(expr);
+//     if(expr == "") {
+//         return expr;
+//     }
+//     std::deque<Value*> rpn = make_rpn(expr, true, globals);
+//     return eval(rpn, globals);
+// }
